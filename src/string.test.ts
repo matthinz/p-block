@@ -1,23 +1,23 @@
-import { V } from "./validator";
+import { V } from ".";
+import { ValidationError } from "./errors";
+import { Validator } from "./types";
 
 describe("V.isString()", () => {
   describe("validate()", () => {
-    const tests: [any, boolean][] = [
-      [undefined, false],
-      [null, false],
-      [true, false],
-      [false, false],
+    const tests: [any, boolean, string?, string?][] = [
+      [undefined, false, "invalidType", "input must be of type 'string'"],
+      [null, false, "invalidType", "input must be of type 'string'"],
+      [true, false, "invalidType", "input must be of type 'string'"],
+      [false, false, "invalidType", "input must be of type 'string'"],
       ["foo", true],
     ];
 
-    tests.forEach(([input, shouldValidate]) => {
-      const desc = input === undefined ? "undefined" : JSON.stringify(input);
-      test(`${desc} ${
-        shouldValidate ? "validates" : "does not validate"
-      }`, () => {
-        const actual = V.isString().validate(input);
-        expect(actual).toBe(shouldValidate);
-      });
+    tests.forEach((params) => runValidationTest(V.isString(), ...params));
+
+    describe("throwing", () => {
+      tests.forEach((params) =>
+        runThrowingTest(V.isString().shouldThrow(), ...params)
+      );
     });
   });
 
@@ -32,33 +32,14 @@ describe("V.isString()", () => {
         "input must match regular expression /foo/",
       ],
     ];
-    tests.forEach(([regex, input, shouldValidate, errorCode, errorMessage]) => {
-      test(`"${input}" ${
-        shouldValidate ? "validates" : "does not validate"
-      } against ${regex}`, () => {
-        const v = V.isString().matches(regex);
-        expect(v.validate(input)).toBe(shouldValidate);
-      });
+
+    tests.forEach(([regex, ...params]) => {
+      runValidationTest(V.isString().matches(regex), ...params);
     });
 
     describe("throwing", () => {
-      tests.forEach(
-        ([regex, input, shouldValidate, errorCode, errorMessage]) => {
-          test(`"${input}" ${
-            shouldValidate ? "validates" : "does not validate"
-          } against ${regex}`, () => {
-            const v = V.isString().matches(regex).shouldThrow();
-            try {
-              v.validate(input);
-              expect(shouldValidate).toBe(true);
-            } catch (err) {
-              expect(shouldValidate).toBe(false);
-              expect(err).toHaveProperty("code", errorCode);
-              expect(err).toHaveProperty("message", errorMessage);
-              expect(err).toHaveProperty("path", []);
-            }
-          });
-        }
+      tests.forEach(([regex, ...params]) =>
+        runThrowingTest(V.isString().matches(regex).shouldThrow(), ...params)
       );
     });
   });
@@ -77,32 +58,14 @@ describe("V.isString()", () => {
       ],
     ];
 
-    tests.forEach(([max, input, shouldValidate]) => {
-      test(`"${input}" (max: ${max}) ${
-        shouldValidate ? "validates" : "does not validate"
-      }`, () => {
-        const v = V.isString().maxLength(max);
-        expect(v.validate(input)).toBe(shouldValidate);
-      });
-    });
+    tests.forEach(([max, ...params]) =>
+      runValidationTest(V.isString().maxLength(max), ...params)
+    );
 
     describe("throwing", () => {
-      tests.forEach(([max, input, shouldValidate, errorCode, errorMessage]) => {
-        test(`"${input}" (max: ${max}) ${
-          shouldValidate ? "does not throw" : "throws"
-        }`, () => {
-          const v = V.isString().maxLength(max).shouldThrow();
-          try {
-            v.validate(input);
-            expect(shouldValidate).toBe(true);
-          } catch (err) {
-            expect(shouldValidate).toBe(false);
-            expect(err).toHaveProperty("code", errorCode);
-            expect(err).toHaveProperty("message", errorMessage);
-            expect(err).toHaveProperty("path", []);
-          }
-        });
-      });
+      tests.forEach(([max, ...params]) =>
+        runThrowingTest(V.isString().maxLength(max).shouldThrow(), ...params)
+      );
     });
   });
 
@@ -120,105 +83,57 @@ describe("V.isString()", () => {
       [3, "blah", true],
     ];
 
-    tests.forEach(([max, input, shouldValidate]) => {
-      test(`"${input}" (max: ${max}) ${
-        shouldValidate ? "validates" : "does not validate"
-      }`, () => {
-        const v = V.isString().minLength(max);
-        expect(v.validate(input)).toBe(shouldValidate);
-      });
-    });
+    tests.forEach(([min, ...params]) =>
+      runValidationTest(V.isString().minLength(min), ...params)
+    );
 
     describe("throwing", () => {
-      tests.forEach(([max, input, shouldValidate, errorCode, errorMessage]) => {
-        test(`"${input}" (max: ${max}) ${
-          shouldValidate ? "does not throw" : "throws"
-        }`, () => {
-          const v = V.isString().minLength(max).shouldThrow();
-          try {
-            v.validate(input);
-            expect(shouldValidate).toBe(true);
-          } catch (err) {
-            expect(shouldValidate).toBe(false);
-            expect(err).toHaveProperty("code", errorCode);
-            expect(err).toHaveProperty("message", errorMessage);
-            expect(err).toHaveProperty("path", []);
-          }
-        });
-      });
+      tests.forEach(([min, ...params]) =>
+        runThrowingTest(V.isString().minLength(min).shouldThrow(), ...params)
+      );
     });
   });
 
   describe("notEmpty()", () => {
     const tests: [any, boolean, string?, string?][] = [
-      [null, false, "isString", "input must be a string"],
+      [null, false, "invalidType", "input must be of type 'string'"],
       ["", false, "notEmpty", "input cannot be an empty string"],
       [" ", true],
     ];
-    tests.forEach(([input, shouldValidate, errorCode, errorMessage]) => {
-      test(`"${input}" ${
-        shouldValidate ? "validates" : "does not validate"
-      }`, () => {
-        const v = V.isString().notEmpty();
-        expect(v.validate(input)).toBe(shouldValidate);
-      });
-    });
+
+    const validator = V.isString().notEmpty();
+
+    tests.forEach((params) => runValidationTest(validator, ...params));
 
     describe("throwing", () => {
-      tests.forEach(([input, shouldValidate, errorCode, errorMessage]) => {
-        test(`${input} ${
-          shouldValidate ? "validates" : "does not validate"
-        }`, () => {
-          const v = V.isString().notEmpty().shouldThrow();
-          try {
-            v.validate(input);
-            expect(shouldValidate).toBe(true);
-          } catch (err) {
-            expect(shouldValidate).toBe(false);
-            expect(err).toHaveProperty("code", errorCode);
-            expect(err).toHaveProperty("message", errorMessage);
-            expect(err).toHaveProperty("path", []);
-          }
-        });
-      });
+      tests.forEach((params) =>
+        runThrowingTest(validator.shouldThrow(), ...params)
+      );
     });
   });
 
   describe("passes()", () => {
-    const tests: [string, string, boolean, string?, string?][] = [
-      ["valid input", "foo", true],
-      ["invalid input", "bar", false, "not_foo", "input must be 'foo'"],
+    const tests: [string, boolean, string?, string?][] = [
+      ["valid input", true],
+      [
+        "invalid input",
+        false,
+        "not_valid_input",
+        "input must be 'valid input'",
+      ],
     ];
 
-    const v = V.isString().passes(
-      (s) => s === "foo",
-      "not_foo",
-      "input must be 'foo'"
+    const validator = V.isString().passes(
+      (s) => s === "valid input",
+      "not_valid_input",
+      "input must be 'valid input'"
     );
 
-    tests.forEach(([desc, input, shouldValidate, errorCode, errorMessage]) => {
-      test(desc, () => {
-        expect(v.validate(input)).toBe(shouldValidate);
-      });
-    });
+    tests.forEach((params) => runValidationTest(validator, ...params));
 
     describe("throwing", () => {
-      const throwingV = v.shouldThrow();
-
-      tests.forEach(
-        ([desc, input, shouldValidate, errorCode, errorMessage]) => {
-          test(desc, () => {
-            try {
-              throwingV.validate(input);
-              expect(shouldValidate).toBe(true);
-            } catch (err) {
-              expect(shouldValidate).toBe(false);
-              expect(err).toHaveProperty("message", errorMessage);
-              expect(err).toHaveProperty("code", errorCode);
-              expect(err).toHaveProperty("path", []);
-            }
-          });
-        }
+      tests.forEach((params) =>
+        runThrowingTest(validator.shouldThrow(), ...params)
       );
     });
   });
@@ -282,13 +197,46 @@ describe("V.isString()", () => {
       });
     });
   });
-
-  describe("throw()", () => {
-    test("can be enabled", () => {
-      const v = V.isString().shouldThrow();
-      expect(() => {
-        v.validate(1234);
-      }).toThrowError();
-    });
-  });
 });
+
+function runValidationTest(
+  validator: Validator<string>,
+  input: any,
+  shouldValidate: boolean,
+  errorCode?: string,
+  errorMessage?: string
+) {
+  const desc = input === undefined ? "undefined" : JSON.stringify(input);
+  test(`${desc} ${shouldValidate ? "validates" : "does not validate"}`, () => {
+    const actual = validator.validate(input);
+    expect(actual).toBe(shouldValidate);
+  });
+}
+
+function runThrowingTest(
+  validator: Validator<string>,
+  input: any,
+  shouldValidate: boolean,
+  errorCode?: string,
+  errorMessage?: string
+) {
+  const inputAsJson = input === undefined ? "undefined" : JSON.stringify(input);
+  test(`${validator} ${
+    shouldValidate ? "validates" : "does not validate"
+  } ${inputAsJson}`, () => {
+    try {
+      validator.validate(input);
+      expect(shouldValidate).toBe(true);
+    } catch (err) {
+      expect(shouldValidate).toBe(false);
+      if (err instanceof ValidationError) {
+        expect(err.errors).toHaveLength(1);
+        expect(err.errors[0]).toHaveProperty("code", errorCode);
+        expect(err.errors[0]).toHaveProperty("message", errorMessage);
+        expect(err.errors[0]).toHaveProperty("path", []);
+      } else {
+        throw err;
+      }
+    }
+  });
+}
