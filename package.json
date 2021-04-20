@@ -1,7 +1,6 @@
 {
-  "name": "ts-validator",
-  "version": "1.0.0",
-  "main": "index.js",
+  "name": "unnamed-ts-validator",
+  "version": "0.0.1",
   "license": "MIT",
   "devDependencies": {
     "@types/jest": "^26.0.22",
@@ -14,8 +13,5 @@
   },
   "lint-staged": {
     "*.{js,css,md}": "prettier --write"
-  },
-  "scripts": {
-    "prepare": "husky install"
   }
 }
