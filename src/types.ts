@@ -1,3 +1,5 @@
+export type ObjectWithProperties = {} & { [property: string]: any };
+
 /**
  * Interface for a validator of the given type.
  */
@@ -17,13 +19,19 @@ export interface UntypedValidator {
   validate: (input: any) => boolean;
 }
 
-export interface FluentValidator<Type> extends Validator<Type> {
+export interface FluentValidator<Type>
+  extends Validator<Type>,
+    Normalizer<Type> {
   /**
    * @returns A new FluentValidator that requires both `this` and `validator` to pass.
    */
   and<OtherType>(
     validator: Validator<OtherType>
   ): FluentValidator<Type & OtherType>;
+
+  normalizedWith(
+    normalizer: NormalizationFunction<Type> | NormalizationFunction<Type>[]
+  ): FluentValidator<Type>;
 
   /**
    * @returns A new FluentValidator that requires either `this` or `validator` to pass.
@@ -45,6 +53,44 @@ export interface FluentValidator<Type> extends Validator<Type> {
   ): FluentValidator<Type>;
 }
 
+export interface FluentDateValidator extends FluentValidator<Date> {
+  equalTo(
+    value: Date | (() => Date),
+    errorCode?: string,
+    errorMessage?: string
+  ): FluentDateValidator;
+
+  greaterThan(
+    value: Date | (() => Date),
+    errorCode?: string,
+    errorMessage?: string
+  ): FluentDateValidator;
+
+  greaterThanOrEqualTo(
+    value: Date | (() => Date),
+    errorCode?: string,
+    errorMessage?: string
+  ): FluentDateValidator;
+
+  lessThan(
+    value: Date | (() => Date),
+    errorCode?: string,
+    errorMessage?: string
+  ): FluentDateValidator;
+
+  lessThanOrEqualTo(
+    value: Date | (() => Date),
+    errorCode?: string,
+    errorMessage?: string
+  ): FluentDateValidator;
+
+  passes(
+    validator: ValidationFunction<Date>,
+    errorCode?: string,
+    errorMessage?: string
+  ): FluentDateValidator;
+}
+
 export interface Normalizer<Type> {
   /**
    * @param input
@@ -61,9 +107,13 @@ export interface ValidatorOptions {
   ) => ValidationContext | undefined;
 }
 
+export type PathElement = string | number;
+
+export type Path = PathElement[];
+
 export interface ValidationContext {
   handleErrors(errors: ValidationErrorDetails[]): false;
-  path: (string | number)[];
+  path: Path;
 }
 
 export interface ValidationErrorDetails {

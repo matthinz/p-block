@@ -1,5 +1,8 @@
+import { FluentArrayValidator } from "./array";
 import { BasicValidator } from "./basic";
+import { enableThrowing, ValidationError } from "./errors";
 import {
+  FluentValidator,
   NormalizationFunction,
   ValidationContext,
   ValidationErrorDetails,
@@ -8,11 +11,51 @@ import {
   ValidatorOptions,
 } from "./types";
 
-type ObjectWithProperties = {} & { [property: string]: any };
-
 type ValidatorDictionary = { [property: string]: Validator<any> };
 
-function checkIsObject<Type extends ObjectWithProperties>(
+export interface FluentObjectValidator<Type extends {}>
+  extends FluentValidator<Type> {
+  /**
+   * @param validators
+   * @param errorCode Error code assigned to any errors generated.
+   * @param errorMessage Error message returned with any errors generated.
+   * @returns A new FluentValidator that requires input to pass all of `validators`.
+   */
+  passes(
+    validators: ValidationFunction<Type> | ValidationFunction<Type>[],
+    errorCode?: string,
+    errorMessage?: string
+  ): FluentObjectValidator<Type>;
+
+  /**
+   * @returns A new validator, derived from this one, that throws errors on validation failures.
+   */
+  shouldThrow(): FluentObjectValidator<Type>;
+
+  /**
+   * @param properties
+   * @returns A new validator, derived from this one, that verifies that all properties
+   *          listed in `properties` are present and pass validation rules supplied.
+   */
+  withProperties<
+    PropertyValidators extends {
+      [property: string]: Validator<any>;
+    }
+  >(
+    properties: PropertyValidators
+  ): FluentObjectValidator<
+    Type &
+      {
+        [property in keyof PropertyValidators]: typeof properties[property] extends Validator<
+          infer T
+        >
+          ? T
+          : never;
+      }
+  >;
+}
+
+function checkIsObject<Type extends {}>(
   input: any,
   context?: ValidationContext
 ): input is Type {
@@ -26,28 +69,52 @@ function checkIsObject<Type extends ObjectWithProperties>(
   );
 }
 
-export class ObjectValidator<
-  ParentType extends ObjectWithProperties,
-  Type extends ParentType
-> extends BasicValidator<ParentType, Type> {
+export class ObjectValidator<ParentType extends {}, Type extends ParentType>
+  extends BasicValidator<ParentType, Type>
+  implements FluentObjectValidator<Type> {
   constructor(
-    parent: ObjectValidator<any, ParentType> | undefined,
-    normalizers: NormalizationFunction<Type> | NormalizationFunction<Type>[],
-    validators: ValidationFunction<Type> | ValidationFunction<Type>[],
+    parent?: ObjectValidator<any, ParentType>,
+    normalizers?: NormalizationFunction<Type> | NormalizationFunction<Type>[],
+    validators?: ValidationFunction<Type> | ValidationFunction<Type>[],
     options?: ValidatorOptions
   ) {
     super(parent ?? checkIsObject, normalizers, validators, options);
   }
 
+  normalizedWith(
+    normalizers: NormalizationFunction<Type> | NormalizationFunction<Type>[]
+  ): FluentObjectValidator<Type> {
+    return new ObjectValidator(this, normalizers, [], this.options);
+  }
+
+  passes(
+    validators: ValidationFunction<Type> | ValidationFunction<Type>[],
+    errorCode?: string,
+    errorMessage?: string
+  ): FluentObjectValidator<Type> {
+    return new ObjectValidator(this, [], validators, {
+      ...this.options,
+      errorCode: errorCode ?? this.options.errorCode,
+      errorMessage: errorMessage ?? this.options.errorMessage,
+    });
+  }
+
+  shouldThrow(): FluentObjectValidator<Type> {
+    return new ObjectValidator<Type, Type>(
+      this,
+      [],
+      [],
+      enableThrowing(this.options)
+    );
+  }
+
   /**
-   *
    * @param properties
    * @returns A new ObjectValidator that checks that all properties pass the provided validators.
    */
   withProperties<Properties extends ValidatorDictionary>(
     properties: Properties
-  ): ObjectValidator<
-    Type,
+  ): FluentObjectValidator<
     Type &
       {
         [property in keyof Properties]: typeof properties[property] extends Validator<
@@ -76,7 +143,9 @@ export class ObjectValidator<
 
       const result = Object.keys(properties).reduce<boolean>(
         (allPropertiesValid, propertyName) => {
-          const propertyValue = input[propertyName];
+          const propertyValue = (input as { [property: string]: any })[
+            propertyName
+          ];
           const propertyValidator = properties[propertyName];
           const propertyContext = {
             ...(context ?? { handleError: () => false }),

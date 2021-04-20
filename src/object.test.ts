@@ -1,10 +1,7 @@
 import { V } from ".";
 import { ValidationError } from "./errors";
 import { ObjectValidator } from "./object";
-import { ValidationErrorDetails, Validator } from "./types";
-
-type PathElement = string | number;
-type Path = PathElement[];
+import { Path, ValidationErrorDetails, Validator } from "./types";
 
 describe("isObject()", () => {
   describe("withProperties", () => {

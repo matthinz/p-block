@@ -52,8 +52,7 @@ function createTypeValidator<Type>(
 /**
  * Validator that asserts an input is of a a specific type.
  */
-export class BasicValidator<ParentType, Type extends ParentType>
-  implements FluentValidator<Type> {
+export abstract class BasicValidator<ParentType, Type extends ParentType> {
   private parent?:
     | BasicValidator<any, ParentType>
     | TypeValidationFunction<any, Type>;
@@ -66,14 +65,22 @@ export class BasicValidator<ParentType, Type extends ParentType>
       | BasicValidator<any, ParentType>
       | TypeValidationFunction<any, Type>
       | string,
-    normalizers: NormalizationFunction<Type> | NormalizationFunction<Type>[],
-    validators: ValidationFunction<Type> | ValidationFunction<Type>[],
+    normalizers?: NormalizationFunction<Type> | NormalizationFunction<Type>[],
+    validators?: ValidationFunction<Type> | ValidationFunction<Type>[],
     options?: ValidatorOptions
   ) {
     this.parent =
       typeof parent === "string" ? createTypeValidator<Type>(parent) : parent;
-    this.normalizers = Array.isArray(normalizers) ? normalizers : [normalizers];
-    this.validators = Array.isArray(validators) ? validators : [validators];
+    this.normalizers = normalizers
+      ? Array.isArray(normalizers)
+        ? normalizers
+        : [normalizers]
+      : [];
+    this.validators = validators
+      ? Array.isArray(validators)
+        ? validators
+        : [validators]
+      : [];
     this.options =
       options == null
         ? defaultOptions
@@ -87,15 +94,6 @@ export class BasicValidator<ParentType, Type extends ParentType>
     validator: Validator<OtherType>
   ): FluentValidator<Type & OtherType> {
     throw new Error();
-  }
-
-  /**
-   * @param normalizer
-   */
-  normalizedWith(
-    ...normalizers: NormalizationFunction<Type>[]
-  ): BasicValidator<Type, Type> {
-    return new BasicValidator<Type, Type>(this, normalizers, []);
   }
 
   /**
@@ -126,42 +124,6 @@ export class BasicValidator<ParentType, Type extends ParentType>
     validator: Validator<OtherType>
   ): FluentValidator<Type | OtherType> {
     throw new Error();
-  }
-
-  /**
-   * @returns A new BasicValidator that performs an additional check on its input beyond a basic type check.
-   */
-  passes(
-    validator: ValidationFunction<Type>,
-    errorCode: string = "invalid",
-    errorMessage: string = "input was invalid"
-  ): BasicValidator<Type, Type> {
-    return new BasicValidator(this, [], [validator], {
-      ...this.options,
-      errorCode,
-      errorMessage,
-    });
-  }
-
-  /**
-   * @returns A new Validator configured to throw on validation errors.
-   */
-  shouldThrow(): BasicValidator<Type, Type> {
-    return new BasicValidator<Type, Type>(this, [], [], {
-      ...this.options,
-      prepareContext: (
-        context?: ValidationContext
-      ): ValidationContext | undefined => {
-        context = this.options.prepareContext
-          ? this.options.prepareContext(context)
-          : context;
-
-        return {
-          ...(context ?? { path: [] }),
-          handleErrors: throwValidationError,
-        };
-      },
-    });
   }
 
   toString() {
