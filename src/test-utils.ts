@@ -1,9 +1,26 @@
 import { ValidationError } from "./errors";
-import { Path, Validator } from "./types";
+import { Normalizer, Path, Validator } from "./types";
 
 type TestableValidator<Type> = Validator<Type> & {
   shouldThrow?: () => TestableValidator<Type>;
 };
+
+export function runNormalizationTests<Type>(
+  validator: Validator<Type> & Normalizer<Type>,
+  tests: [Type, Type, boolean][]
+) {
+  tests.forEach(([input, expected, shouldValidate]) => {
+    describe(`"${stringify(input)}" -> "${stringify(expected)}"`, () => {
+      test("normalize()", () => {
+        const actual = validator.normalize(input);
+        expect(actual).toBe(expected);
+      });
+      test("validate()", () => {
+        expect(validator.validate(input)).toBe(shouldValidate);
+      });
+    });
+  });
+}
 
 export function runValidationTests<Type>(
   validator: TestableValidator<Type>,
