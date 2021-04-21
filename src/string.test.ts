@@ -1,6 +1,8 @@
 import { V } from ".";
 import { runNormalizationTests, runValidationTests } from "./test-utils";
 
+// cspell:ignore abcdefghi abcdefghij abcdefghijk falses
+
 describe("V.isString()", () => {
   describe("validate()", () => {
     const tests: [any, boolean, string?, string?][] = [
