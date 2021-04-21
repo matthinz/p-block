@@ -1,4 +1,5 @@
 import { BasicValidator } from "./basic";
+import { BooleanValidator, FluentBooleanValidator } from "./boolean";
 import { enableThrowing } from "./errors";
 import { FluentNumberValidator, NumberValidator } from "./number";
 import {
@@ -6,6 +7,7 @@ import {
   FluentValidator,
   NormalizationFunction,
   TypeValidationFunction,
+  ValidationContext,
   ValidationFunction,
   ValidatorOptions,
 } from "./types";
@@ -44,22 +46,27 @@ export interface FluentStringValidator extends FluentValidator<string> {
   ): FluentStringValidator;
 
   normalizedWith(
-    normalizer: NormalizationFunction<string> | NormalizationFunction<string>[]
+    normalizer: NormalizationFunction | NormalizationFunction[]
   ): FluentStringValidator;
 
   notEmpty(errorCode?: string, errorMessage?: string): FluentStringValidator;
 
   parsedAs<Type>(
-    parser: (input: string) => Type | undefined,
+    parser: ((input: string) => Type) | undefined,
     errorCode?: string,
     errorMessage?: string
   ): FluentValidator<Type>;
 
   parsedAsBoolean(
+    errorCode?: string,
+    errorMessage?: string
+  ): FluentBooleanValidator;
+
+  parsedAsBoolean(
     parser?: (input: string) => boolean | undefined,
     errorCode?: string,
     errorMessage?: string
-  ): FluentValidator<boolean>;
+  ): FluentBooleanValidator;
 
   parsedAsDate(
     parser?: (input: string) => Date | undefined,
@@ -123,9 +130,7 @@ export class StringValidator
   implements FluentStringValidator {
   constructor(
     parent?: TypeValidationFunction<any, string> | StringValidator,
-    normalizers?:
-      | NormalizationFunction<string>
-      | NormalizationFunction<string>[],
+    normalizers?: NormalizationFunction | NormalizationFunction[],
     validators?: ValidationFunction<string> | ValidationFunction<string>[],
     options?: ValidatorOptions
   ) {
@@ -145,7 +150,9 @@ export class StringValidator
   }
 
   lowerCased(): FluentStringValidator {
-    return this.normalizedWith((str) => str.toLowerCase());
+    return this.normalizedWith((value: any) =>
+      typeof value === "string" ? value.toLowerCase() : value
+    );
   }
 
   matches(
@@ -179,7 +186,7 @@ export class StringValidator
   }
 
   normalizedWith(
-    normalizer: NormalizationFunction<string> | NormalizationFunction<string>[]
+    normalizer: NormalizationFunction | NormalizationFunction[]
   ): FluentStringValidator {
     return new StringValidator(this, normalizer, [], this.options);
   }
@@ -197,11 +204,77 @@ export class StringValidator
   }
 
   parsedAsBoolean(
-    parser?: (input: string) => boolean | undefined,
-    errorCode?: string,
+    parserOrErrorCode?: ((input: string) => boolean | undefined) | string,
+    errorCodeOrErrorMessage?: string,
     errorMessage?: string
-  ): FluentValidator<boolean> {
-    throw new Error();
+  ): FluentBooleanValidator {
+    // The normalizer's job is taking arbitrary input and attempt to parse
+    // it as a boolean value. If parsing fails, it will return input unmodified...
+    const normalizer = (input: any): any => {
+      input = this.normalize(input);
+
+      if (typeof input !== "string") {
+        return input;
+      }
+
+      const parser =
+        typeof parserOrErrorCode === "function"
+          ? parserOrErrorCode
+          : defaultBooleanParser;
+
+      const parsed = parser(input);
+      if (parsed !== undefined) {
+        return parsed;
+      }
+
+      return input;
+    };
+
+    /// ...where it will be caught by the validator.
+    const validator = (
+      input: any,
+      context?: ValidationContext
+    ): input is boolean => {
+      if (typeof input === "boolean") {
+        return true;
+      }
+
+      // Because this function will be the `parent` of the resulting
+      // FluentBooleanValidator, we need to ensure we're calling prior
+      // validators to so we know we're actually dealing with a parsable string.
+      if (!this.validate(input, context)) {
+        return false;
+      }
+
+      let code =
+        typeof parserOrErrorCode === "string"
+          ? parserOrErrorCode
+          : errorCodeOrErrorMessage;
+
+      let message: string | undefined;
+
+      if (code === undefined) {
+        code = "parsedAsBoolean";
+        message = "input could not be parsed as a boolean";
+      } else {
+        message =
+          (typeof parserOrErrorCode === "string"
+            ? errorCodeOrErrorMessage
+            : errorMessage) ?? code;
+      }
+
+      return (
+        context?.handleErrors([
+          {
+            code,
+            message,
+            path: context?.path ?? [],
+          },
+        ]) ?? false
+      );
+    };
+
+    return new BooleanValidator(validator, normalizer);
   }
 
   parsedAsDate(
@@ -253,5 +326,18 @@ export class StringValidator
 
   upperCased(): FluentStringValidator {
     return this.normalizedWith((str) => str.toUpperCase());
+  }
+}
+
+function defaultBooleanParser(input: string): boolean | undefined {
+  const TRUE_REGEX = /^(y|Y|yes|Yes|YES|true|True|TRUE|on|On|ON)$/;
+  const FALSE_REGEX = /^(n|N|no|No|NO|false|False|FALSE|off|Off|OFF)$/;
+
+  if (TRUE_REGEX.test(input)) {
+    return true;
+  }
+
+  if (FALSE_REGEX.test(input)) {
+    return false;
   }
 }

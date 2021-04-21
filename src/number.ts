@@ -74,7 +74,7 @@ export interface FluentNumberValidator extends FluentValidator<number> {
    * @returns A new FluentNumberValidator, derived from this one, that normalizes inputs using the given normalization functions.
    */
   normalizedWith(
-    normalizer: NormalizationFunction<number> | NormalizationFunction<number>[]
+    normalizer: NormalizationFunction | NormalizationFunction[]
   ): FluentNumberValidator;
 
   /**
@@ -111,9 +111,7 @@ export class NumberValidator
   implements FluentNumberValidator {
   constructor(
     parent?: NumberValidator,
-    normalizers?:
-      | NormalizationFunction<number>
-      | NormalizationFunction<number>[],
+    normalizers?: NormalizationFunction | NormalizationFunction[],
     validators?: ValidationFunction<number> | ValidationFunction<number>[],
     options?: ValidatorOptions
   ) {
@@ -161,7 +159,7 @@ export class NumberValidator
   }
 
   normalizedWith(
-    normalizers: NormalizationFunction<number> | NormalizationFunction<number>[]
+    normalizers: NormalizationFunction | NormalizationFunction[]
   ): FluentNumberValidator {
     return new NumberValidator(
       this,

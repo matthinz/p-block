@@ -18,10 +18,8 @@ export class BooleanValidator
   extends BasicValidator<any, boolean>
   implements FluentBooleanValidator {
   constructor(
-    parent?: BooleanValidator,
-    normalizers?:
-      | NormalizationFunction<boolean>
-      | NormalizationFunction<boolean>[],
+    parent?: BooleanValidator | TypeValidationFunction<any, boolean>,
+    normalizers?: NormalizationFunction | NormalizationFunction[],
     validators?: ValidationFunction<boolean> | ValidationFunction<boolean>[],
     options?: ValidatorOptions
   ) {

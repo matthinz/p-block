@@ -3,7 +3,6 @@ import { ValidationError } from "./errors";
 import {
   FluentValidator,
   NormalizationFunction,
-  Normalizer,
   TypeValidationFunction,
   ValidationContext,
   ValidationErrorDetails,
@@ -17,15 +16,9 @@ const defaultOptions: ValidatorOptions = {
   errorMessage: "input was invalid",
 };
 
-function throwValidationError(
-  this: ValidationContext,
-  errors: ValidationErrorDetails[]
-): false {
-  throw new ValidationError(errors);
-}
-
 function createTypeValidator<Type>(
-  type: string
+  type: string,
+  options?: ValidatorOptions
 ): TypeValidationFunction<any, Type> {
   return function validateType(
     input: any,
@@ -35,11 +28,22 @@ function createTypeValidator<Type>(
       return true;
     }
 
+    let errorCode: string;
+    let errorMessage: string;
+
+    if (options?.errorCode) {
+      errorCode = options.errorCode;
+      errorMessage = options.errorMessage ?? errorCode;
+    } else {
+      errorCode = "invalidType";
+      errorMessage = `input must be of type '${type}'`;
+    }
+
     if (context) {
       return context.handleErrors([
         {
-          code: "invalidType",
-          message: `input must be of type '${type}'`,
+          code: errorCode,
+          message: errorMessage,
           path: [],
         },
       ]);
@@ -56,7 +60,7 @@ export abstract class BasicValidator<ParentType, Type extends ParentType> {
   private parent?:
     | BasicValidator<any, ParentType>
     | TypeValidationFunction<any, Type>;
-  private normalizers: NormalizationFunction<Type>[];
+  private normalizers: NormalizationFunction[];
   private validators: ValidationFunction<Type>[];
   protected options: ValidatorOptions;
 
@@ -65,12 +69,14 @@ export abstract class BasicValidator<ParentType, Type extends ParentType> {
       | BasicValidator<any, ParentType>
       | TypeValidationFunction<any, Type>
       | string,
-    normalizers?: NormalizationFunction<Type> | NormalizationFunction<Type>[],
+    normalizers?: NormalizationFunction | NormalizationFunction[],
     validators?: ValidationFunction<Type> | ValidationFunction<Type>[],
     options?: ValidatorOptions
   ) {
     this.parent =
-      typeof parent === "string" ? createTypeValidator<Type>(parent) : parent;
+      typeof parent === "string"
+        ? createTypeValidator<Type>(parent, options)
+        : parent;
     this.normalizers = normalizers
       ? Array.isArray(normalizers)
         ? normalizers
@@ -97,14 +103,13 @@ export abstract class BasicValidator<ParentType, Type extends ParentType> {
   }
 
   /**
-   * Given a strongly-typed input, applies all configured normalizations.
+   * Given an, applies all configured normalizations.
    * @param input
    * @returns Normalized version of `input`.
    */
-  normalize(input: Type): Type {
+  normalize(input: any): Type {
     if (this.parent instanceof BasicValidator) {
-      // XXX: You can probably get into some hairy situations here.
-      input = this.parent.normalize(input as ParentType) as Type;
+      input = this.parent.normalize(input) as Type;
     }
 
     return this.normalizers.reduce(
@@ -152,10 +157,7 @@ export abstract class BasicValidator<ParentType, Type extends ParentType> {
       throw new Error("parent was not a BasicValidator or a function");
     }
 
-    // XXX: normalizedWith guarantees that the child validator will have the same
-    //      type as the parent validator, so this is ok. Would be nice to
-    //      re-work so we could avoid the use of `as` here.
-    input = this.normalize(input as Type);
+    input = this.normalize(input);
 
     let allErrors: ValidationErrorDetails[] = [];
 

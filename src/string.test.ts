@@ -84,6 +84,63 @@ describe("V.isString()", () => {
     runValidationTests(validator, tests);
   });
 
+  describe("parsedAsBoolean()", () => {
+    describe("default parser", () => {
+      const trues = "y|Y|yes|Yes|YES|true|True|TRUE|on|On|ON".split("|");
+      const falses = "n|N|no|No|NO|false|False|FALSE|off|Off|OFF".split("|");
+
+      runValidationTests(
+        V.isString().parsedAsBoolean().isTrue(),
+        trues
+          .map((input) => [input, true] as [any, boolean])
+          .concat(falses.map((input) => [input, false] as [any, boolean]))
+      );
+
+      runValidationTests(
+        V.isString().parsedAsBoolean().isFalse(),
+        falses
+          .map((input) => [input, true] as [any, boolean])
+          .concat(trues.map((input) => [input, false] as [any, boolean]))
+      );
+
+      runValidationTests(V.isString().parsedAsBoolean(), [
+        [undefined, false, "invalidType"],
+        [
+          "not a boolean",
+          false,
+          "parsedAsBoolean",
+          "input could not be parsed as a boolean",
+        ],
+      ]);
+    });
+
+    describe("custom parser", () => {
+      function parse(input: string): boolean | undefined {
+        if (input === "heck yeah") {
+          return true;
+        } else if (input === "naw") {
+          return false;
+        }
+      }
+
+      const validator = V.isString().parsedAsBoolean(
+        parse,
+        "bad_bool",
+        "was a bad bool"
+      );
+
+      const tests: [any, boolean, string?, string?][] = [
+        [undefined, false, "invalidType"],
+        [new Date(), false, "invalidType"],
+        ["heck yeah", true],
+        ["naw", true],
+        ["something else", false, "bad_bool", "was a bad bool"],
+      ];
+
+      runValidationTests(validator, tests);
+    });
+  });
+
   describe("passes()", () => {
     const tests: [string, boolean, string?, string?][] = [
       ["valid input", true],

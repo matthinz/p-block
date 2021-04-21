@@ -74,7 +74,7 @@ export class ObjectValidator<ParentType extends {}, Type extends ParentType>
   implements FluentObjectValidator<Type> {
   constructor(
     parent?: ObjectValidator<any, ParentType>,
-    normalizers?: NormalizationFunction<Type> | NormalizationFunction<Type>[],
+    normalizers?: NormalizationFunction | NormalizationFunction[],
     validators?: ValidationFunction<Type> | ValidationFunction<Type>[],
     options?: ValidatorOptions
   ) {
@@ -82,7 +82,7 @@ export class ObjectValidator<ParentType extends {}, Type extends ParentType>
   }
 
   normalizedWith(
-    normalizers: NormalizationFunction<Type> | NormalizationFunction<Type>[]
+    normalizers: NormalizationFunction | NormalizationFunction[]
   ): FluentObjectValidator<Type> {
     return new ObjectValidator(this, normalizers, [], this.options);
   }

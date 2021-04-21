@@ -6,7 +6,7 @@ type TestableValidator<Type> = Validator<Type> & {
 };
 
 export function runNormalizationTests<Type>(
-  validator: Validator<Type> & Normalizer<Type>,
+  validator: Validator<Type> & Normalizer,
   tests: [Type, Type, boolean][]
 ) {
   tests.forEach(([input, expected, shouldValidate]) => {

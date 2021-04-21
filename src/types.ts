@@ -19,9 +19,7 @@ export interface UntypedValidator {
   validate: (input: any) => boolean;
 }
 
-export interface FluentValidator<Type>
-  extends Validator<Type>,
-    Normalizer<Type> {
+export interface FluentValidator<Type> extends Validator<Type>, Normalizer {
   /**
    * @returns A new FluentValidator that requires both `this` and `validator` to pass.
    */
@@ -30,7 +28,7 @@ export interface FluentValidator<Type>
   ): FluentValidator<Type & OtherType>;
 
   normalizedWith(
-    normalizer: NormalizationFunction<Type> | NormalizationFunction<Type>[]
+    normalizer: NormalizationFunction | NormalizationFunction[]
   ): FluentValidator<Type>;
 
   /**
@@ -91,12 +89,12 @@ export interface FluentDateValidator extends FluentValidator<Date> {
   ): FluentDateValidator;
 }
 
-export interface Normalizer<Type> {
+export interface Normalizer {
   /**
    * @param input
    * @returns `input` with normalization rules applied.
    */
-  normalize: NormalizationFunction<Type>;
+  normalize: NormalizationFunction;
 }
 
 export interface ValidatorOptions {
@@ -132,4 +130,4 @@ export type TypeValidationFunction<InputType, OutputType extends InputType> = (
   context?: ValidationContext
 ) => input is OutputType;
 
-export type NormalizationFunction<Type> = (input: Type) => Type;
+export type NormalizationFunction = (input: any) => any;
