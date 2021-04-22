@@ -418,8 +418,9 @@ function defaultDateParser(input: string): Date | undefined {
      * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date
      */
     const date = new Date(input);
-    return isNaN((date as unknown) as number) ? input : date;
+
+    return isNaN((date as unknown) as number) ? undefined : date;
   } catch (err) {
-    return input;
+    return undefined;
   }
 }

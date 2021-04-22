@@ -1,5 +1,5 @@
 import { BasicValidator } from "./basic";
-import { enableThrowing } from "./errors";
+import { enableThrowing, setErrorOptions } from "./errors";
 import {
   FluentValidator,
   NormalizationFunction,
@@ -95,7 +95,14 @@ export class DateValidator
     errorCode?: string,
     errorMessage?: string
   ): FluentDateValidator {
-    throw new Error();
+    return this.passesComparison(
+      value,
+      (lhs, rhs) => lhs === rhs,
+      "equalTo",
+      (lhs, rhs) => `input must be equal to ${rhs.toISOString()}`,
+      errorCode,
+      errorMessage
+    );
   }
 
   greaterThan(
@@ -103,7 +110,14 @@ export class DateValidator
     errorCode?: string,
     errorMessage?: string
   ): FluentDateValidator {
-    throw new Error();
+    return this.passesComparison(
+      value,
+      (lhs, rhs) => lhs > rhs,
+      "greaterThan",
+      (lhs, rhs) => `input must be greater than ${rhs.toISOString()}`,
+      errorCode,
+      errorMessage
+    );
   }
 
   greaterThanOrEqualTo(
@@ -111,7 +125,15 @@ export class DateValidator
     errorCode?: string,
     errorMessage?: string
   ): FluentDateValidator {
-    throw new Error();
+    return this.passesComparison(
+      value,
+      (lhs, rhs) => lhs >= rhs,
+      "greaterThanOrEqualTo",
+      (lhs, rhs) =>
+        `input must be greater than or equal to ${rhs.toISOString()}`,
+      errorCode,
+      errorMessage
+    );
   }
 
   lessThan(
@@ -119,7 +141,14 @@ export class DateValidator
     errorCode?: string,
     errorMessage?: string
   ): FluentDateValidator {
-    throw new Error();
+    return this.passesComparison(
+      value,
+      (lhs, rhs) => lhs < rhs,
+      "lessThan",
+      (lhs, rhs) => `input must be less than ${rhs.toISOString()}`,
+      errorCode,
+      errorMessage
+    );
   }
 
   lessThanOrEqualTo(
@@ -127,13 +156,20 @@ export class DateValidator
     errorCode?: string,
     errorMessage?: string
   ): FluentDateValidator {
-    throw new Error();
+    return this.passesComparison(
+      value,
+      (lhs, rhs) => lhs <= rhs,
+      "lessThanOrEqualTo",
+      (lhs, rhs) => `input must be less than or equal to ${rhs.toISOString()}`,
+      errorCode,
+      errorMessage
+    );
   }
 
   normalizedWith(
     normalizers: NormalizationFunction[] | NormalizationFunction
   ): FluentDateValidator {
-    throw new Error();
+    return new DateValidator(this, normalizers);
   }
 
   passes(
@@ -141,10 +177,61 @@ export class DateValidator
     errorCode?: string,
     errorMessage?: string
   ): FluentDateValidator {
-    throw new Error();
+    return new DateValidator(
+      this,
+      [],
+      validator,
+      setErrorOptions(this.options, errorCode, errorMessage)
+    );
   }
 
   shouldThrow() {
     return new DateValidator(this, [], [], enableThrowing(this.options));
   }
+
+  private passesComparison(
+    value: Date | (() => Date),
+    comparison: (lhs: Date, rhs: Date) => boolean,
+    defaultErrorCode: string,
+    defaultErrorMessage: (lhs: Date, rhs: Date) => string,
+    providedErrorCode?: string,
+    providedErrorMessage?: string
+  ): FluentDateValidator {
+    return this.passes((input, context?: ValidationContext) => {
+      const comparator = typeof value === "function" ? value() : value;
+
+      if (comparison(input, comparator)) {
+        return true;
+      }
+
+      const [errorCode, errorMessage] = resolveErrorDetails(
+        defaultErrorCode,
+        defaultErrorMessage(input, comparator),
+        providedErrorCode,
+        providedErrorMessage
+      );
+
+      return (
+        context?.handleErrors([
+          {
+            code: errorCode,
+            message: errorMessage,
+            path: context?.path ?? [],
+          },
+        ]) ?? false
+      );
+    });
+  }
+}
+
+function resolveErrorDetails(
+  defaultErrorCode: string,
+  defaultErrorMessage: string,
+  providedErrorCode?: string,
+  providedErrorMessage?: string
+): [string, string] {
+  if (providedErrorCode === undefined) {
+    return [defaultErrorCode, defaultErrorMessage];
+  }
+  return [providedErrorCode, providedErrorMessage ?? providedErrorCode];
 }

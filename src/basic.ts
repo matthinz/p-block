@@ -1,5 +1,3 @@
-import { V } from ".";
-import { ValidationError } from "./errors";
 import {
   FluentValidator,
   NormalizationFunction,
@@ -29,7 +27,7 @@ function createTypeValidator<Type>(
     }
 
     let errorCode: string;
-    let errorMessage: string;
+    let errorMessage: string | ((input: any) => string);
 
     if (options?.errorCode) {
       errorCode = options.errorCode;
@@ -43,7 +41,10 @@ function createTypeValidator<Type>(
       return context.handleErrors([
         {
           code: errorCode,
-          message: errorMessage,
+          message:
+            typeof errorMessage === "function"
+              ? errorMessage(input)
+              : errorMessage,
           path: [],
         },
       ]);
@@ -164,9 +165,19 @@ export abstract class BasicValidator<ParentType, Type extends ParentType> {
     const recordingContext = {
       ...(context ?? { path: [] }),
       handleErrors(errors: ValidationErrorDetails[]): false {
-        if (errors.length > 0) {
-          allErrors = [...allErrors, ...errors];
+        if (errors.length === 0) {
+          throw new Error(
+            "ValidationContext.handleErrors() should not be passed an empty array"
+          );
         }
+
+        allErrors = allErrors.concat(
+          errors.map((err) => ({
+            ...err,
+            message: err.message.replace(/:input/g, input),
+          }))
+        );
+
         return false;
       },
     };
@@ -187,7 +198,10 @@ export abstract class BasicValidator<ParentType, Type extends ParentType> {
           : [
               {
                 code: this.options.errorCode,
-                message: this.options.errorMessage,
+                message:
+                  typeof this.options.errorMessage === "function"
+                    ? this.options.errorMessage(input)
+                    : this.options.errorMessage,
                 path: [],
               },
             ]

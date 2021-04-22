@@ -61,7 +61,7 @@ export interface Normalizer {
 
 export interface ValidatorOptions {
   errorCode: string;
-  errorMessage: string;
+  errorMessage: string | ((input: any) => string);
   prepareContext?: (
     context?: ValidationContext
   ) => ValidationContext | undefined;
