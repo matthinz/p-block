@@ -1,5 +1,6 @@
 import { V } from ".";
 import { ValidationError } from "./errors";
+import { runNormalizationTests, runValidationTests } from "./test-utils";
 import { Path, Validator } from "./types";
 
 describe("isArray()", () => {
@@ -12,23 +13,10 @@ describe("isArray()", () => {
     [["foo", true, 1234, null, undefined], true],
   ];
 
-  tests.forEach((params) => runValidationTests(V.isArray(), ...params));
-
-  describe("throwing", () => {
-    tests.forEach((params) =>
-      runThrowingTest(V.isArray().shouldThrow(), ...params)
-    );
-  });
+  runValidationTests(V.isArray(), tests);
 
   describe("allItemsPass", () => {
     describe("errorCode specified", () => {
-      const tests: [any, boolean, string[]?, string[]?, Path[]?][] = [
-        [undefined, false, ["invalidType"], ["input must be an array"]],
-        [[], true],
-        [[1, 2, -3], false, ["must_be_positive"], ["must be positive"], [[2]]],
-        [[1, 2, 3], true],
-      ];
-
       const validator = V.isArray()
         .of(V.isNumber())
         .allItemsPass(
@@ -37,15 +25,20 @@ describe("isArray()", () => {
           "must be positive"
         );
 
-      tests.forEach((params) => runValidationTests(validator, ...params));
+      const tests: [any, boolean, string[]?, string[]?, Path[]?][] = [
+        [undefined, false, ["invalidType"], ["input must be an array"]],
+        [[], true],
+        [[1, 2, -3], false, ["must_be_positive"], ["must be positive"], [[2]]],
+        [[1, 2, 3], true],
+      ];
 
-      describe("throwing", () => {
-        tests.forEach((params) =>
-          runThrowingTest(validator.shouldThrow(), ...params)
-        );
-      });
+      runValidationTests(validator, tests);
     });
     describe("errorCode not specified", () => {
+      const validator = V.isArray()
+        .of(V.isNumber())
+        .allItemsPass((value) => value > 0);
+
       const tests: [any, boolean, string[]?, string[]?, Path[]?][] = [
         [undefined, false, ["invalidType"], ["input must be an array"]],
         [[], true],
@@ -59,21 +52,12 @@ describe("isArray()", () => {
         [[1, 2, 3], true],
       ];
 
-      const validator = V.isArray()
-        .of(V.isNumber())
-        .allItemsPass((value) => value > 0);
-
-      tests.forEach((params) => runValidationTests(validator, ...params));
-
-      describe("throwing", () => {
-        tests.forEach((params) =>
-          runThrowingTest(validator.shouldThrow(), ...params)
-        );
-      });
+      runValidationTests(validator, tests);
     });
   });
 
   describe("maxLength", () => {
+    const validator = V.isArray().maxLength(2);
     const tests: [any, boolean, string?, string?][] = [
       [undefined, false, "invalidType", "input must be an array"],
       [[], true],
@@ -86,17 +70,12 @@ describe("isArray()", () => {
         "input must be an array of no more than 2 item(s)",
       ],
     ];
-    const validator = V.isArray().maxLength(2);
-    tests.forEach((params) => runValidationTests(validator, ...params));
-
-    describe("throwing", () => {
-      tests.forEach((params) =>
-        runThrowingTest(validator.shouldThrow(), ...params)
-      );
-    });
+    runValidationTests(validator, tests);
   });
 
   describe("minLength", () => {
+    const validator = V.isArray().minLength(2);
+
     const tests: [any, boolean, string?, string?][] = [
       [undefined, false, "invalidType", "input must be an array"],
       [[], false, "minLength", "input must be an array of at least 2 item(s)"],
@@ -109,14 +88,8 @@ describe("isArray()", () => {
       [["foo", "bar"], true],
       [["foo", "bar", "baz"], true],
     ];
-    const validator = V.isArray().minLength(2);
-    tests.forEach((params) => runValidationTests(validator, ...params));
 
-    describe("throwing", () => {
-      tests.forEach((params) =>
-        runThrowingTest(validator.shouldThrow(), ...params)
-      );
-    });
+    runValidationTests(validator, tests);
   });
 
   describe("normalizedWith", () => {
@@ -126,22 +99,15 @@ describe("isArray()", () => {
         values.map((value) => value.toUpperCase())
       );
 
-    const input = ["foo", "Bar"];
+    const tests: [any, any, boolean][] = [
+      [["foo", "Bar"], ["FOO", "BAR"], true],
+    ];
 
-    test("normalize()", () => {
-      expect(validator.normalize(input)).toStrictEqual(["FOO", "BAR"]);
-    });
-
-    test("passes normalized input to next validator", () => {
-      expect(
-        validator
-          .allItemsPass((item) => item === item.toUpperCase())
-          .validate(input)
-      ).toBe(true);
-    });
+    runNormalizationTests(validator, tests);
   });
 
   describe("of()", () => {
+    const validator = V.isArray().of(V.isString());
     const tests: [any, boolean, string?, string?, Path?][] = [
       [[], true],
       [[123], false, "invalidType", "input must be of type 'string'", [0]],
@@ -182,21 +148,18 @@ describe("isArray()", () => {
       ],
       [["foo", "bar"], true],
     ];
-    const validator = V.isArray().of(V.isString());
 
-    tests.forEach((params) => runValidationTests(validator, ...params));
-
-    describe("throwing", () => {
-      tests.forEach((params) =>
-        runThrowingTest(validator.shouldThrow(), ...params)
-      );
-    });
+    runValidationTests(validator, tests);
   });
 
   describe("passes", () => {
     function allPositive(input: number[]): boolean {
       return input.every((item) => item > 0);
     }
+
+    const validator = V.isArray()
+      .of(V.isNumber())
+      .passes(allPositive, "not_positive", "should be positive");
 
     const tests: [any, boolean, string?, string?, Path?][] = [
       [[], true],
@@ -207,79 +170,6 @@ describe("isArray()", () => {
       [[1, 2, 3], true],
     ];
 
-    const validator = V.isArray()
-      .of(V.isNumber())
-      .passes(allPositive, "not_positive", "should be positive");
-
-    tests.forEach((params) => runValidationTests(validator, ...params));
-
-    describe("throwing", () => {
-      tests.forEach((params) =>
-        runThrowingTest(validator.shouldThrow(), ...params)
-      );
-    });
+    runValidationTests(validator, tests);
   });
 });
-
-function runValidationTests(
-  validator: Validator<any>,
-  input: any,
-  shouldValidate: boolean
-) {
-  const inputAsJson = input === undefined ? "undefined" : JSON.stringify(input);
-  const desc = `${validator} ${
-    shouldValidate ? "validates" : "does not validate"
-  } ${inputAsJson}`;
-
-  test(desc, () => {
-    expect(validator.validate(input)).toBe(shouldValidate);
-  });
-}
-
-function runThrowingTest(
-  validator: Validator<any>,
-  input: any,
-  shouldValidate: boolean,
-  errorCode?: string | string[],
-  errorMessage?: string | string[],
-  errorPath?: Path | Path[]
-) {
-  const inputAsJson = input === undefined ? "undefined" : JSON.stringify(input);
-  test(`${validator} ${
-    shouldValidate ? "validates" : "does not validate"
-  } ${inputAsJson}`, () => {
-    try {
-      validator.validate(input);
-      expect(shouldValidate).toBe(true);
-    } catch (err) {
-      expect(shouldValidate).toBe(false);
-      if (err instanceof ValidationError) {
-        if (errorCode !== undefined) {
-          errorCode = Array.isArray(errorCode) ? errorCode : [errorCode];
-          expect(err.errors).toHaveLength(errorCode.length);
-          expect(err.errors.map(({ code }) => code)).toStrictEqual(errorCode);
-        }
-
-        if (errorMessage !== undefined) {
-          errorMessage = Array.isArray(errorMessage)
-            ? errorMessage
-            : [errorMessage];
-          expect(err.errors).toHaveLength(errorMessage.length);
-          expect(err.errors.map(({ message }) => message)).toStrictEqual(
-            errorMessage
-          );
-        }
-
-        if (errorPath !== undefined) {
-          if (!Array.isArray(errorPath[0])) {
-            errorPath = [errorPath as Path];
-          }
-          expect(err.errors).toHaveLength(errorPath.length);
-          expect(err.errors.map(({ path }) => path)).toStrictEqual(errorPath);
-        }
-      } else {
-        throw err;
-      }
-    }
-  });
-}
