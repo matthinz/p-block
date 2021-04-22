@@ -51,44 +51,6 @@ export interface FluentValidator<Type> extends Validator<Type>, Normalizer {
   ): FluentValidator<Type>;
 }
 
-export interface FluentDateValidator extends FluentValidator<Date> {
-  equalTo(
-    value: Date | (() => Date),
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentDateValidator;
-
-  greaterThan(
-    value: Date | (() => Date),
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentDateValidator;
-
-  greaterThanOrEqualTo(
-    value: Date | (() => Date),
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentDateValidator;
-
-  lessThan(
-    value: Date | (() => Date),
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentDateValidator;
-
-  lessThanOrEqualTo(
-    value: Date | (() => Date),
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentDateValidator;
-
-  passes(
-    validator: ValidationFunction<Date>,
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentDateValidator;
-}
-
 export interface Normalizer {
   /**
    * @param input

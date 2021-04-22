@@ -157,6 +157,53 @@ describe("V.isString()", () => {
     });
   });
 
+  describe("parsedAsDate()", () => {
+    describe("default parser", () => {
+      const validator = V.isString().parsedAsDate();
+
+      const tests: [any, boolean, string?, string?][] = [
+        [undefined, false, "invalidType"],
+        [{}, false, "invalidType"],
+        ["", false, "parsedAsDate", "input could not be parsed as a Date"],
+        ["", false, "parsedAsDate", "input could not be parsed as a Date"],
+        ["2021-04-21T15:47:47+00:00", true],
+        ["2021-04-21T15:47:47Z", true],
+        ["20210421T154747Z", true],
+      ];
+
+      runValidationTests(validator, tests);
+
+      const normalizationTests: [any, any, boolean][] = [
+        [null, null, false],
+        [undefined, undefined, false],
+        [
+          "2021-04-21T15:47:47+00:00",
+          new Date(Date.UTC(2021, 3, 21, 15, 47, 47)),
+          true,
+        ],
+      ];
+
+      runNormalizationTests(validator, normalizationTests);
+    });
+    describe("custom parser", () => {
+      function parseDate(input: any): Date | undefined {
+        if (input === "when star wars came out") {
+          return new Date(1977, 4, 25);
+        }
+      }
+
+      const tests: [any, any, boolean][] = [
+        [undefined, undefined, false],
+        [null, null, false],
+        ["", "", false],
+        ["when star wars came out", new Date(1977, 4, 25), true],
+        ["some other date", "some other date", false],
+      ];
+
+      runNormalizationTests(V.isString().parsedAsDate(parseDate), tests);
+    });
+  });
+
   describe("passes()", () => {
     const tests: [string, boolean, string?, string?][] = [
       ["valid input", true],

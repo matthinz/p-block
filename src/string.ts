@@ -1,9 +1,9 @@
 import { BasicValidator } from "./basic";
 import { BooleanValidator, FluentBooleanValidator } from "./boolean";
+import { DateValidator, FluentDateValidator } from "./date";
 import { enableThrowing } from "./errors";
 import { FluentNumberValidator, NumberValidator } from "./number";
 import {
-  FluentDateValidator,
   FluentValidator,
   NormalizationFunction,
   TypeValidationFunction,
@@ -278,15 +278,75 @@ export class StringValidator
       );
     };
 
-    return new BooleanValidator(validator, normalizer);
+    return new BooleanValidator(parentValidator, normalizer, validator);
   }
 
   parsedAsDate(
     parserOrErrorCode?: string | ((input: string) => Date | undefined),
-    errorCode?: string,
+    errorCodeOrErrorMessage?: string,
     errorMessage?: string
   ): FluentDateValidator {
-    throw new Error();
+    const normalizer = (input: any): any => {
+      input = this.normalize(input);
+
+      if (typeof input !== "string") {
+        return input;
+      }
+
+      const parser =
+        typeof parserOrErrorCode === "function"
+          ? parserOrErrorCode
+          : defaultDateParser;
+
+      const parsed = parser(input);
+
+      return parsed === undefined ? input : parsed;
+    };
+
+    const parentValidator = (
+      input: any,
+      context?: ValidationContext
+    ): input is Date => {
+      if (input instanceof Date) {
+        return true;
+      }
+
+      return this.validate(input, context);
+    };
+
+    const validator = (input: any, context?: ValidationContext): boolean => {
+      if (input instanceof Date) {
+        return true;
+      }
+
+      let code =
+        typeof parserOrErrorCode === "function"
+          ? errorCodeOrErrorMessage
+          : parserOrErrorCode;
+      let message: string;
+
+      if (code === undefined) {
+        code = "parsedAsDate";
+        message = "input could not be parsed as a Date";
+      } else {
+        message =
+          (typeof parserOrErrorCode === "function"
+            ? errorMessage
+            : errorCodeOrErrorMessage) ?? code;
+      }
+
+      return (
+        context?.handleErrors([
+          {
+            code,
+            message,
+            path: context?.path ?? [],
+          },
+        ]) ?? false
+      );
+    };
+
+    return new DateValidator(parentValidator, normalizer, validator);
   }
 
   parsedAsFloat(
@@ -343,5 +403,23 @@ function defaultBooleanParser(input: string): boolean | undefined {
 
   if (FALSE_REGEX.test(input)) {
     return false;
+  }
+}
+
+function defaultDateParser(input: string): Date | undefined {
+  try {
+    /*
+     * > Note: Parsing of date strings with the Date constructor (and
+     * > Date.parse(), which works the same way) is strongly discouraged due
+     * > to browser differences and inconsistencies.
+     * >
+     * >   - Support for RFC 2822 format strings is by convention only.
+     * >   - Support for ISO 8601 formats differs in that date-only strings (e.g. "1970-01-01") are treated as UTC, not local.
+     * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date
+     */
+    const date = new Date(input);
+    return isNaN((date as unknown) as number) ? input : date;
+  } catch (err) {
+    return input;
   }
 }
