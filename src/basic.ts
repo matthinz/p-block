@@ -107,9 +107,9 @@ export abstract class BasicValidator<ParentType, Type extends ParentType> {
    * @param input
    * @returns Normalized version of `input`.
    */
-  normalize(input: any): Type {
+  normalize(input: any): any {
     if (this.parent instanceof BasicValidator) {
-      input = this.parent.normalize(input) as Type;
+      input = this.parent.normalize(input);
     }
 
     return this.normalizers.reduce(
@@ -143,6 +143,8 @@ export abstract class BasicValidator<ParentType, Type extends ParentType> {
       ? this.options.prepareContext(context)
       : context;
 
+    input = this.normalize(input);
+
     const { parent } = this;
 
     if (parent instanceof BasicValidator) {
@@ -156,8 +158,6 @@ export abstract class BasicValidator<ParentType, Type extends ParentType> {
     } else {
       throw new Error("parent was not a BasicValidator or a function");
     }
-
-    input = this.normalize(input);
 
     let allErrors: ValidationErrorDetails[] = [];
 

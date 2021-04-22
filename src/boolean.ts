@@ -46,7 +46,7 @@ export class BooleanValidator
   normalizedWith(
     normalizers: NormalizationFunction | NormalizationFunction[]
   ): FluentBooleanValidator {
-    throw new Error();
+    return new BooleanValidator(this, normalizers, [], this.options);
   }
 
   shouldThrow(): FluentBooleanValidator {

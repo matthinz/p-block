@@ -122,7 +122,9 @@ describe("isArray()", () => {
   describe("normalizedWith", () => {
     const validator = V.isArray()
       .of(V.isString())
-      .normalizedWith((values) => values.map((value) => value.toUpperCase()));
+      .normalizedWith((values: string[]) =>
+        values.map((value) => value.toUpperCase())
+      );
 
     const input = ["foo", "Bar"];
 

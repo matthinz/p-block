@@ -1,5 +1,5 @@
 import { V } from ".";
-import { runValidationTests } from "./test-utils";
+import { runNormalizationTests, runValidationTests } from "./test-utils";
 import { Path } from "./types";
 
 describe("isBoolean()", () => {
@@ -29,5 +29,17 @@ describe("isBoolean()", () => {
       [true, true],
     ];
     runValidationTests(V.isBoolean().isTrue(), tests);
+  });
+
+  describe("normalizedWith()", () => {
+    const tests: [any, any, boolean][] = [
+      [undefined, false, true],
+      [null, false, true],
+      [true, true, true],
+    ];
+    runNormalizationTests(
+      V.isBoolean().normalizedWith((input) => !!input),
+      tests
+    );
   });
 });
