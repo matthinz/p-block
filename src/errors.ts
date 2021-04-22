@@ -8,13 +8,25 @@ export class ValidationError extends Error {
   readonly errors: ValidationErrorDetails[];
 
   constructor(errors: ValidationErrorDetails[]) {
-    super("Validation failed");
+    super(`Validation failed: ${summarizeErrors(errors)}`);
 
     // https://github.com/Microsoft/TypeScript/wiki/FAQ#why-doesnt-extending-built-ins-like-error-array-and-map-work
     Object.setPrototypeOf(this, ValidationError.prototype);
 
     this.errors = errors;
   }
+}
+
+function summarizeErrors(errors: ValidationErrorDetails[]): string {
+  return errors
+    .map(({ code, message, path }) => {
+      if (path.length > 0) {
+        return `${path}: ${code} (${message})`;
+      }
+
+      return `${code} (${message})`;
+    })
+    .join(", ");
 }
 
 /**
