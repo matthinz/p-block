@@ -1,6 +1,7 @@
 import { BasicValidator } from "./basic";
 import { enableThrowing, setErrorOptions } from "./errors";
 import {
+  FluentValidator,
   NormalizationFunction,
   TypeValidationFunction,
   ValidationFunction,
@@ -8,7 +9,7 @@ import {
   ValidatorOptions,
 } from "./types";
 
-export interface FluentBooleanValidator extends Validator<boolean> {
+export interface FluentBooleanValidator extends FluentValidator<boolean> {
   isFalse(errorCode?: string, errorMessage?: string): FluentBooleanValidator;
   isTrue(errorCode?: string, errorMessage?: string): FluentBooleanValidator;
   shouldThrow(): FluentBooleanValidator;
@@ -40,6 +41,12 @@ export class BooleanValidator
       errorCode ?? "isTrue",
       errorMessage ?? "input must be true"
     );
+  }
+
+  normalizedWith(
+    normalizers: NormalizationFunction | NormalizationFunction[]
+  ): FluentBooleanValidator {
+    throw new Error();
   }
 
   shouldThrow(): FluentBooleanValidator {

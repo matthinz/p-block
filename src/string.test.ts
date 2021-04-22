@@ -98,6 +98,19 @@ describe("V.isString()", () => {
           .concat(falses.map((input) => [input, false] as [any, boolean]))
       );
 
+      runNormalizationTests(V.isString().parsedAsBoolean(), [
+        ...(trues.map((input) => [input, true, true]) as [
+          any,
+          boolean,
+          boolean
+        ]),
+        ...(falses.map((input) => [input, false, true]) as [
+          any,
+          boolean,
+          boolean
+        ]),
+      ]);
+
       runValidationTests(
         V.isString().parsedAsBoolean().isFalse(),
         falses
@@ -107,6 +120,7 @@ describe("V.isString()", () => {
 
       runValidationTests(V.isString().parsedAsBoolean(), [
         [undefined, false, "invalidType"],
+        [null, false, "invalidType"],
         [
           "not a boolean",
           false,

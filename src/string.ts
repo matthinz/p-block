@@ -208,6 +208,16 @@ export class StringValidator
     errorCodeOrErrorMessage?: string,
     errorMessage?: string
   ): FluentBooleanValidator {
+    const parentValidator = (
+      input: any,
+      context?: ValidationContext
+    ): input is boolean => {
+      // This validator's job is to ensure that input is actually a valid
+      // *string*. We lie about it being a valid *boolean*, but that will
+      // be handled by the combination of normalization + validation below
+      return this.validate(input, context);
+    };
+
     // The normalizer's job is taking arbitrary input and attempt to parse
     // it as a boolean value. If parsing fails, it will return input unmodified...
     const normalizer = (input: any): any => {
@@ -231,19 +241,9 @@ export class StringValidator
     };
 
     /// ...where it will be caught by the validator.
-    const validator = (
-      input: any,
-      context?: ValidationContext
-    ): input is boolean => {
+    const validator = (input: any, context?: ValidationContext): boolean => {
       if (typeof input === "boolean") {
         return true;
-      }
-
-      // Because this function will be the `parent` of the resulting
-      // FluentBooleanValidator, we need to ensure we're calling prior
-      // validators to so we know we're actually dealing with a parsable string.
-      if (!this.validate(input, context)) {
-        return false;
       }
 
       let code =

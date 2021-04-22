@@ -7,16 +7,21 @@ type TestableValidator<Type> = Validator<Type> & {
 
 export function runNormalizationTests<Type>(
   validator: Validator<Type> & Normalizer,
-  tests: [Type, Type, boolean][]
+  tests: [any, any, boolean][]
 ) {
-  tests.forEach(([input, expected, shouldValidate]) => {
-    describe(`"${stringify(input)}" -> "${stringify(expected)}"`, () => {
-      test("normalize()", () => {
+  describe("normalize()", () => {
+    tests.forEach(([input, expected, shouldValidate]) => {
+      test(`"${stringify(input)}" -> "${stringify(expected)}"`, () => {
         const actual = validator.normalize(input);
-        expect(actual).toBe(expected);
+        expect(actual).toStrictEqual(expected);
       });
-      test("validate()", () => {
-        expect(validator.validate(input)).toBe(shouldValidate);
+    });
+
+    describe("validate", () => {
+      tests.forEach(([input, expected, shouldValidate]) => {
+        test(`"${stringify(input)}" -> "${stringify(expected)}"`, () => {
+          expect(validator.validate(input)).toBe(shouldValidate);
+        });
       });
     });
   });
