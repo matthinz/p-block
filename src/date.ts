@@ -185,7 +185,7 @@ export class DateValidator
     );
   }
 
-  shouldThrow() {
+  shouldThrow(): FluentDateValidator {
     return new DateValidator(this, [], [], enableThrowing(this.options));
   }
 

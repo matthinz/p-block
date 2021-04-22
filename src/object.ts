@@ -1,6 +1,5 @@
-import { FluentArrayValidator } from "./array";
 import { BasicValidator } from "./basic";
-import { enableThrowing, ValidationError } from "./errors";
+import { enableThrowing } from "./errors";
 import {
   FluentValidator,
   NormalizationFunction,
@@ -13,7 +12,7 @@ import {
 
 type ValidatorDictionary = { [property: string]: Validator<any> };
 
-export interface FluentObjectValidator<Type extends {}>
+export interface FluentObjectValidator<Type extends Record<string, unknown>>
   extends FluentValidator<Type> {
   /**
    * @param validators
@@ -55,7 +54,7 @@ export interface FluentObjectValidator<Type extends {}>
   >;
 }
 
-function checkIsObject<Type extends {}>(
+function checkIsObject<Type extends Record<string, unknown>>(
   input: any,
   context?: ValidationContext
 ): input is Type {
@@ -69,7 +68,10 @@ function checkIsObject<Type extends {}>(
   );
 }
 
-export class ObjectValidator<ParentType extends {}, Type extends ParentType>
+export class ObjectValidator<
+    ParentType extends Record<string, unknown>,
+    Type extends ParentType
+  >
   extends BasicValidator<ParentType, Type>
   implements FluentObjectValidator<Type> {
   constructor(

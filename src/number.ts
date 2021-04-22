@@ -1,10 +1,8 @@
 import { BasicValidator } from "./basic";
-import { enableThrowing, ValidationError } from "./errors";
+import { enableThrowing } from "./errors";
 import {
   FluentValidator,
   NormalizationFunction,
-  ValidationContext,
-  ValidationErrorDetails,
   ValidationFunction,
   ValidatorOptions,
 } from "./types";
@@ -181,7 +179,7 @@ export class NumberValidator
     });
   }
 
-  roundedTo(decimalPlaces: number = 0): FluentNumberValidator {
+  roundedTo(decimalPlaces = 0): FluentNumberValidator {
     const exp = Math.pow(10, decimalPlaces);
     return new NumberValidator(
       this,

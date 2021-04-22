@@ -1,5 +1,3 @@
-export type ObjectWithProperties = {} & { [property: string]: any };
-
 /**
  * Interface for a validator of the given type.
  */

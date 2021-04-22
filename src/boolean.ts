@@ -5,7 +5,6 @@ import {
   NormalizationFunction,
   TypeValidationFunction,
   ValidationFunction,
-  Validator,
   ValidatorOptions,
 } from "./types";
 

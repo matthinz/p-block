@@ -1,5 +1,5 @@
 import { V } from ".";
-import { enableThrowing, ValidationError } from "./errors";
+import { ValidationError } from "./errors";
 import { Path, Validator } from "./types";
 
 describe("isArray()", () => {
@@ -224,10 +224,7 @@ describe("isArray()", () => {
 function runValidationTests(
   validator: Validator<any>,
   input: any,
-  shouldValidate: boolean,
-  errorCode?: string | string[],
-  errorMessage?: string | string[],
-  errorPath?: Path | Path[]
+  shouldValidate: boolean
 ) {
   const inputAsJson = input === undefined ? "undefined" : JSON.stringify(input);
   const desc = `${validator} ${

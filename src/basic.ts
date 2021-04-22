@@ -132,7 +132,7 @@ export abstract class BasicValidator<ParentType, Type extends ParentType> {
     throw new Error();
   }
 
-  toString() {
+  toString(): string {
     return this.validators.map((validator) => validator.toString()).join(", ");
   }
 

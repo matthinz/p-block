@@ -2,7 +2,7 @@ import { BasicValidator } from "./basic";
 import { BooleanValidator, FluentBooleanValidator } from "./boolean";
 import { DateValidator, FluentDateValidator } from "./date";
 import { enableThrowing } from "./errors";
-import { FluentNumberValidator, NumberValidator } from "./number";
+import { FluentNumberValidator } from "./number";
 import {
   FluentValidator,
   NormalizationFunction,
@@ -167,7 +167,11 @@ export class StringValidator
     );
   }
 
-  maxLength(max: number, errorCode?: string, errorMessage?: string) {
+  maxLength(
+    max: number,
+    errorCode?: string,
+    errorMessage?: string
+  ): FluentStringValidator {
     return this.passes(
       (input) => input.length <= max,
       errorCode ?? "maxLength",
@@ -176,7 +180,11 @@ export class StringValidator
     );
   }
 
-  minLength(min: number, errorCode?: string, errorMessage?: string) {
+  minLength(
+    min: number,
+    errorCode?: string,
+    errorMessage?: string
+  ): FluentStringValidator {
     return this.passes(
       (input) => input.length >= min,
       errorCode ?? "minLength",

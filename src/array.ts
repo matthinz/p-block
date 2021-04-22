@@ -1,9 +1,8 @@
 import { BasicValidator } from "./basic";
-import { enableThrowing, setErrorOptions } from "./errors";
+import { enableThrowing } from "./errors";
 import {
   FluentValidator,
   NormalizationFunction,
-  TypeValidationFunction,
   ValidationContext,
   ValidationErrorDetails,
   ValidationFunction,
@@ -32,9 +31,7 @@ export interface FluentArrayValidator<ItemType>
   ): FluentArrayValidator<ItemType>;
 
   normalizedWith(
-    normalizer:
-      | NormalizationFunction<ItemType[]>
-      | NormalizationFunction<ItemType[]>[]
+    normalizer: NormalizationFunction | NormalizationFunction[]
   ): FluentArrayValidator<ItemType>;
 
   /**
@@ -87,9 +84,7 @@ export class ArrayValidator<ParentItemType, ItemType extends ParentItemType>
   implements FluentArrayValidator<ItemType> {
   constructor(
     parent?: ArrayValidator<any, ParentItemType>,
-    normalizers?:
-      | NormalizationFunction<ItemType[]>
-      | NormalizationFunction<ItemType[]>[],
+    normalizers?: NormalizationFunction | NormalizationFunction[],
     validators?:
       | ValidationFunction<ItemType[]>
       | ValidationFunction<ItemType[]>[],
@@ -142,9 +137,7 @@ export class ArrayValidator<ParentItemType, ItemType extends ParentItemType>
   }
 
   normalizedWith(
-    normalizers:
-      | NormalizationFunction<ItemType[]>
-      | NormalizationFunction<ItemType[]>[]
+    normalizers: NormalizationFunction | NormalizationFunction[]
   ): FluentArrayValidator<ItemType> {
     return new ArrayValidator(this, normalizers, [], this.options);
   }
@@ -209,7 +202,7 @@ function createArrayItemValidator<ItemType>(
         handleErrorsCalled = true;
         itemErrors = [
           ...itemErrors,
-          ...errors.map(({ code, message, path }) => ({
+          ...errors.map(({ code, message }) => ({
             code: errorCode ?? code,
             message: errorMessage ?? message,
             path: [...itemContext.path],
