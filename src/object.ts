@@ -14,6 +14,10 @@ type ValidatorDictionary = { [property: string]: Validator<any> };
 
 export interface FluentObjectValidator<Type extends Record<string, unknown>>
   extends FluentValidator<Type> {
+  defaultedTo<Defaults extends { [property in keyof Type]?: Type[property] }>(
+    values: Defaults
+  ): FluentObjectValidator<Type>;
+
   /**
    * @param validators
    * @param errorCode Error code assigned to any errors generated.
@@ -81,6 +85,26 @@ export class ObjectValidator<
     options?: ValidatorOptions
   ) {
     super(parent ?? checkIsObject, normalizers, validators, options);
+  }
+
+  defaultedTo<Defaults extends { [property in keyof Type]?: Type[property] }>(
+    defaults: Defaults
+  ): FluentObjectValidator<Type> {
+    return this.normalizedWith((input) => {
+      if (input == null || typeof input !== "object") {
+        return input;
+      }
+
+      const result: Record<string, unknown> = {};
+
+      const keys = [...Object.keys(defaults), ...Object.keys(input)];
+
+      keys.forEach((key) => {
+        result[key] = input[key] ?? defaults[key];
+      });
+
+      return result;
+    });
   }
 
   normalizedWith(

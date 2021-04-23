@@ -1,5 +1,5 @@
 import { V } from ".";
-import { runValidationTests } from "./test-utils";
+import { runNormalizationTests, runValidationTests } from "./test-utils";
 import { Path } from "./types";
 
 describe("isObject()", () => {
@@ -103,5 +103,31 @@ describe("isObject()", () => {
     ];
 
     runValidationTests(validator, tests);
+  });
+
+  describe("defaultedTo()", () => {
+    const validator = V.isObject()
+      .withProperties({
+        name: V.isString(),
+        age: V.isNumber(),
+      })
+      .defaultedTo({
+        name: "Chris Exampleton",
+      });
+
+    const tests: [any, any, boolean][] = [
+      [undefined, undefined, false],
+      [null, null, false],
+      [123, 123, false],
+      [{}, { name: "Chris Exampleton" }, false],
+      [
+        { name: "Pat Exampleton", age: 99 },
+        { name: "Pat Exampleton", age: 99 },
+        true,
+      ],
+      [{ age: 99 }, { name: "Chris Exampleton", age: 99 }, true],
+    ];
+
+    runNormalizationTests(validator, tests);
   });
 });
