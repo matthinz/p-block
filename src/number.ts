@@ -1,8 +1,10 @@
 import { BasicValidator } from "./basic";
-import { enableThrowing } from "./errors";
+import { enableThrowing, resolveErrorDetails } from "./errors";
 import {
   FluentValidator,
   NormalizationFunction,
+  TypeValidationFunction,
+  ValidationContext,
   ValidationFunction,
   ValidatorOptions,
 } from "./types";
@@ -115,6 +117,15 @@ export class NumberValidator
     validators?: ValidationFunction<number> | ValidationFunction<number>[],
     options?: ValidatorOptions
   ) {
+    const noArgumentsSupplied =
+      parent === undefined &&
+      normalizers === undefined &&
+      validators === undefined &&
+      options === undefined;
+    if (noArgumentsSupplied) {
+      validators = [validateNumberIsFinite];
+    }
+
     super(parent ?? "number", normalizers, validators, options);
   }
 
@@ -127,7 +138,14 @@ export class NumberValidator
     errorCode?: string,
     errorMessage?: string
   ): FluentNumberValidator {
-    throw new Error();
+    return this.passesComparison(
+      value,
+      (lhs, rhs) => lhs === rhs,
+      "equalTo",
+      (lhs, rhs) => `input must be equal to ${rhs}`,
+      errorCode,
+      errorMessage
+    );
   }
 
   greaterThan(
@@ -135,7 +153,14 @@ export class NumberValidator
     errorCode?: string,
     errorMessage?: string
   ): FluentNumberValidator {
-    throw new Error();
+    return this.passesComparison(
+      value,
+      (lhs, rhs) => lhs > rhs,
+      "greaterThan",
+      (lhs, rhs) => `input must be greater than ${rhs}`,
+      errorCode,
+      errorMessage
+    );
   }
 
   greaterThanOrEqualTo(
@@ -143,7 +168,14 @@ export class NumberValidator
     errorCode?: string,
     errorMessage?: string
   ): FluentNumberValidator {
-    throw new Error();
+    return this.passesComparison(
+      value,
+      (lhs, rhs) => lhs >= rhs,
+      "greaterThanOrEqualTo",
+      (lhs, rhs) => `input must be greater than or equal to ${rhs}`,
+      errorCode,
+      errorMessage
+    );
   }
 
   lessThan(
@@ -151,7 +183,14 @@ export class NumberValidator
     errorCode?: string,
     errorMessage?: string
   ): FluentNumberValidator {
-    throw new Error();
+    return this.passesComparison(
+      value,
+      (lhs, rhs) => lhs < rhs,
+      "lessThan",
+      (lhs, rhs) => `input must be less than ${rhs}`,
+      errorCode,
+      errorMessage
+    );
   }
 
   lessThanOrEqualTo(
@@ -159,7 +198,14 @@ export class NumberValidator
     errorCode?: string,
     errorMessage?: string
   ): FluentNumberValidator {
-    throw new Error();
+    return this.passesComparison(
+      value,
+      (lhs, rhs) => lhs <= rhs,
+      "lessThanOrEqualTo",
+      (lhs, rhs) => `input must be less than or equal to ${rhs}`,
+      errorCode,
+      errorMessage
+    );
   }
 
   normalizedWith(
@@ -207,4 +253,61 @@ export class NumberValidator
       this.options
     );
   }
+
+  private passesComparison(
+    value: number | (() => number),
+    comparison: (lhs: number, rhs: number) => boolean,
+    defaultErrorCode: string,
+    defaultErrorMessage: (lhs: number, rhs: number) => string,
+    providedErrorCode?: string,
+    providedErrorMessage?: string
+  ): FluentNumberValidator {
+    function comparisonValidator(
+      input: number,
+      context?: ValidationContext
+    ): boolean {
+      const valueToCompareAgainst =
+        typeof value === "function" ? value() : value;
+      if (comparison(input, valueToCompareAgainst)) {
+        return true;
+      }
+
+      const [errorCode, errorMessage] = resolveErrorDetails(
+        defaultErrorCode,
+        defaultErrorMessage(input, valueToCompareAgainst),
+        providedErrorCode,
+        providedErrorMessage
+      );
+
+      return (
+        context?.handleErrors([
+          {
+            code: errorCode,
+            message: errorMessage,
+            path: context?.path ?? [],
+          },
+        ]) ?? false
+      );
+    }
+    return new NumberValidator(this, [], comparisonValidator, this.options);
+  }
+}
+
+function validateNumberIsFinite(
+  input: number,
+  context?: ValidationContext
+): boolean {
+  if (!isFinite(input)) {
+    return (
+      context?.handleErrors([
+        {
+          code: "invalidNumber",
+          message: "input must be a finite number",
+          path: context?.path ?? [],
+        },
+      ]) ?? false
+    );
+  }
+
+  return true;
 }

@@ -47,6 +47,18 @@ export function enableThrowing(options: ValidatorOptions): ValidatorOptions {
   };
 }
 
+export function resolveErrorDetails(
+  defaultErrorCode: string,
+  defaultErrorMessage: string,
+  providedErrorCode?: string,
+  providedErrorMessage?: string
+): [string, string] {
+  if (providedErrorCode === undefined) {
+    return [defaultErrorCode, defaultErrorMessage];
+  }
+  return [providedErrorCode, providedErrorMessage ?? providedErrorCode];
+}
+
 export function setErrorOptions(
   options: ValidatorOptions,
   errorCode?: string,

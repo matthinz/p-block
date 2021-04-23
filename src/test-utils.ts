@@ -126,6 +126,15 @@ function stringify(value: any): string {
     if (value === null) {
       return "<<null>>";
     }
+    if (value === Infinity) {
+      return "<<Infinity>>";
+    }
+    if (value === -Infinity) {
+      return "<<-Infinity>>";
+    }
+    if (isNaN(value)) {
+      return "<<NaN>>";
+    }
     return value;
   }).replace(/"<<(.+)>>"/g, "$1");
 }

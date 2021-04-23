@@ -1,5 +1,5 @@
 import { BasicValidator } from "./basic";
-import { enableThrowing, setErrorOptions } from "./errors";
+import { enableThrowing, resolveErrorDetails, setErrorOptions } from "./errors";
 import {
   FluentValidator,
   NormalizationFunction,
@@ -228,16 +228,4 @@ export class DateValidator
       );
     });
   }
-}
-
-function resolveErrorDetails(
-  defaultErrorCode: string,
-  defaultErrorMessage: string,
-  providedErrorCode?: string,
-  providedErrorMessage?: string
-): [string, string] {
-  if (providedErrorCode === undefined) {
-    return [defaultErrorCode, defaultErrorMessage];
-  }
-  return [providedErrorCode, providedErrorMessage ?? providedErrorCode];
 }
