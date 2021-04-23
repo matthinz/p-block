@@ -3,7 +3,6 @@ import { enableThrowing, resolveErrorDetails } from "./errors";
 import {
   FluentValidator,
   NormalizationFunction,
-  TypeValidationFunction,
   ValidationContext,
   ValidationFunction,
   ValidatorOptions,
