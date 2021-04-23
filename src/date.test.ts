@@ -2,34 +2,53 @@ import { V } from ".";
 import { runNormalizationTests, runValidationTests } from "./test-utils";
 
 describe("isDate()", () => {
-  const tests: [any, boolean, string?, string?][] = [
-    [undefined, false, "invalidType", "input must be a Date"],
-    [null, false, "invalidType", "input must be a Date"],
-    [false, false, "invalidType", "input must be a Date"],
-    [{}, false, "invalidType", "input must be a Date"],
-    [
-      {
-        getDate: () => 1234,
-      },
-      false,
-      "invalidType",
-      "input must be a Date",
-    ],
-    [123456, false, "invalidType", "input must be a Date"],
-    ["not a date", false, "invalidType", "input must be a Date"],
-    ["2021-04-21T15:59:25.237Z", false, "invalidType", "input must be a Date"],
-    [
-      new Date("not actually a date"),
-      false,
-      "invalidDate",
-      "input must represent a valid Date",
-    ],
-    [new Date(2021, 3, 21), true],
-  ];
+  describe("validate()", () => {
+    const tests: [any, boolean, string?, string?][] = [
+      [undefined, false, "invalidType", "input must be a Date"],
+      [null, false, "invalidType", "input must be a Date"],
+      [false, false, "invalidType", "input must be a Date"],
+      [{}, false, "invalidType", "input must be a Date"],
+      [
+        {
+          getDate: () => 1234,
+        },
+        false,
+        "invalidType",
+        "input must be a Date",
+      ],
+      [123456, false, "invalidType", "input must be a Date"],
+      ["not a date", false, "invalidType", "input must be a Date"],
+      [
+        "2021-04-21T15:59:25.237Z",
+        false,
+        "invalidType",
+        "input must be a Date",
+      ],
+      [
+        new Date("not actually a date"),
+        false,
+        "invalidDate",
+        "input must represent a valid Date",
+      ],
+      [new Date(2021, 3, 21), true],
+    ];
 
-  const validator = V.isDate();
+    const validator = V.isDate();
 
-  runValidationTests(validator, tests);
+    runValidationTests(validator, tests);
+  });
+
+  describe("defaultedTo()", () => {
+    const date = new Date();
+    const validator = V.isDate().defaultedTo(date);
+    const tests: [any, any, boolean][] = [
+      [undefined, date, true],
+      [null, date, true],
+      [false, false, false],
+      [new Date(2021, 3, 4), new Date(2021, 3, 4), true],
+    ];
+    runNormalizationTests(validator, tests);
+  });
 
   describe("equalTo()", () => {
     const tests: [any, boolean, string?, string?][] = [

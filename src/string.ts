@@ -144,9 +144,7 @@ export class StringValidator
   }
 
   defaultedTo(value: string): FluentStringValidator {
-    return this.normalizedWith((input) => {
-      return input == null ? value : input;
-    });
+    return this.normalizedWith((input) => input ?? value);
   }
 
   isIn(

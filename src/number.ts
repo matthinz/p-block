@@ -8,6 +8,8 @@ import {
 } from "./types";
 
 export interface FluentNumberValidator extends FluentValidator<number> {
+  defaultedTo(value: number): FluentNumberValidator;
+
   /**
    * @param value
    * @param errorCode
@@ -114,6 +116,10 @@ export class NumberValidator
     options?: ValidatorOptions
   ) {
     super(parent ?? "number", normalizers, validators, options);
+  }
+
+  defaultedTo(value: number): FluentNumberValidator {
+    return this.normalizedWith((input) => (input == null ? value : input));
   }
 
   equalTo(

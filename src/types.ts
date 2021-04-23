@@ -19,6 +19,12 @@ export interface UntypedValidator {
 
 export interface FluentValidator<Type> extends Validator<Type>, Normalizer {
   /**
+   * @param value
+   * @returns A new FluentValidator that substitutes `value` when input is `null` or `undefined`.
+   */
+  defaultedTo(value: Type): FluentValidator<Type>;
+
+  /**
    * @returns A new FluentValidator that requires both `this` and `validator` to pass.
    */
   and<OtherType>(

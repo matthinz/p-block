@@ -22,7 +22,7 @@ export function runNormalizationTests<Type>(
 
   describe("normalize()", () => {
     testsWithValidator.forEach(([validator, input, expected]) => {
-      test(`"${stringify(input)}" -> "${stringify(expected)}"`, () => {
+      test(`${stringify(input)} normalizes to ${stringify(expected)}`, () => {
         const actual = validator.normalize(input);
         expect(actual).toStrictEqual(expected);
       });
@@ -31,7 +31,9 @@ export function runNormalizationTests<Type>(
     describe("validate()", () => {
       testsWithValidator.forEach(
         ([validator, input, expected, shouldValidate]) => {
-          test(`"${stringify(input)}" -> "${stringify(expected)}"`, () => {
+          test(`${stringify(input)} normalizes to ${stringify(expected)} and ${
+            shouldValidate ? "validates" : "does not validate"
+          }`, () => {
             expect(validator.validate(input)).toBe(shouldValidate);
           });
         }
@@ -121,6 +123,9 @@ function stringify(value: any): string {
     if (value === undefined) {
       return "<<undefined>>";
     }
+    if (value === null) {
+      return "<<null>>";
+    }
     return value;
-  }).replace(/"<<undefined>>"/g, "undefined");
+  }).replace(/"<<(.+)>>"/g, "$1");
 }

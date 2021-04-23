@@ -10,6 +10,8 @@ import {
 } from "./types";
 
 export interface FluentDateValidator extends FluentValidator<Date> {
+  defaultedTo(value: Date): FluentDateValidator;
+
   equalTo(
     value: Date | (() => Date),
     errorCode?: string,
@@ -88,6 +90,10 @@ export class DateValidator
     options?: ValidatorOptions
   ) {
     super(parent ?? isDate, normalizers, validators, options);
+  }
+
+  defaultedTo(value: Date): FluentDateValidator {
+    return this.normalizedWith((input) => input ?? value);
   }
 
   equalTo(

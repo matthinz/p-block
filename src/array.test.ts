@@ -56,6 +56,17 @@ describe("isArray()", () => {
     });
   });
 
+  describe("defaultedTo()", () => {
+    const validator = V.isArray().defaultedTo(["foo"]);
+    const tests: [any, any, boolean][] = [
+      [undefined, ["foo"], true],
+      [null, ["foo"], true],
+      [false, false, false],
+      [[], [], true],
+    ];
+    runNormalizationTests(validator, tests);
+  });
+
   describe("maxLength", () => {
     const validator = V.isArray().maxLength(2);
     const tests: [any, boolean, string?, string?][] = [

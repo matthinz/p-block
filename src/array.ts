@@ -18,6 +18,8 @@ export interface FluentArrayValidator<ItemType>
     errorMessage?: string
   ): FluentArrayValidator<ItemType>;
 
+  defaultedTo(value: ItemType[]): FluentArrayValidator<ItemType>;
+
   maxLength(
     value: number,
     errorCode?: string,
@@ -91,6 +93,10 @@ export class ArrayValidator<ParentItemType, ItemType extends ParentItemType>
     options?: ValidatorOptions
   ) {
     super(parent ?? defaultArrayValidator, normalizers, validators, options);
+  }
+
+  defaultedTo(value: ItemType[]): FluentArrayValidator<ItemType> {
+    return this.normalizedWith((input) => input ?? value);
   }
 
   allItemsPass(
