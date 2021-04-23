@@ -16,6 +16,19 @@ describe("V.isString()", () => {
     runValidationTests(V.isString(), tests);
   });
 
+  describe("defaultValue()", () => {
+    const validator = V.isString().defaultValue("");
+
+    const tests: [any, any, boolean][] = [
+      [undefined, "", true],
+      [null, "", true],
+      ["foo", "foo", true],
+      [1234, 1234, false],
+    ];
+
+    runNormalizationTests(validator, tests);
+  });
+
   describe("matches", () => {
     const tests: [string, boolean, string?, string?][] = [
       ["foo", true],

@@ -14,6 +14,12 @@ import {
 
 export interface FluentStringValidator extends FluentValidator<string> {
   /**
+   * @param value
+   * @returns A FluentStringValidator, derived from this one, that will fill in the given default value when input is null or undefined.
+   */
+  defaultValue(value: string): FluentStringValidator;
+
+  /**
    * @returns A FluentStringValidator, derived from this one, that validates its input is included in `values`. This check is strict--case matters.
    */
   isIn(
@@ -135,6 +141,12 @@ export class StringValidator
     options?: ValidatorOptions
   ) {
     super(parent ?? "string", normalizers, validators, options);
+  }
+
+  defaultValue(value: string): FluentStringValidator {
+    return this.normalizedWith((input) => {
+      return input == null ? value : input;
+    });
   }
 
   isIn(

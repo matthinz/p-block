@@ -6,23 +6,36 @@ type TestableValidator<Type> = Validator<Type> & {
 };
 
 export function runNormalizationTests<Type>(
-  validator: Validator<Type> & Normalizer,
-  tests: [any, any, boolean][]
-) {
+  validator:
+    | (Validator<Type> & Normalizer)
+    | [Validator<Type> & Normalizer, any, any, boolean][],
+  tests?: [any, any, boolean][] | undefined
+): void {
+  const testsWithValidator: [
+    Validator<Type> & Normalizer,
+    any,
+    any,
+    boolean
+  ][] = Array.isArray(validator)
+    ? validator
+    : (tests ?? []).map((params) => [validator, ...params]);
+
   describe("normalize()", () => {
-    tests.forEach(([input, expected, shouldValidate]) => {
+    testsWithValidator.forEach(([validator, input, expected]) => {
       test(`"${stringify(input)}" -> "${stringify(expected)}"`, () => {
         const actual = validator.normalize(input);
         expect(actual).toStrictEqual(expected);
       });
     });
 
-    describe("validate", () => {
-      tests.forEach(([input, expected, shouldValidate]) => {
-        test(`"${stringify(input)}" -> "${stringify(expected)}"`, () => {
-          expect(validator.validate(input)).toBe(shouldValidate);
-        });
-      });
+    describe("validate()", () => {
+      testsWithValidator.forEach(
+        ([validator, input, expected, shouldValidate]) => {
+          test(`"${stringify(input)}" -> "${stringify(expected)}"`, () => {
+            expect(validator.validate(input)).toBe(shouldValidate);
+          });
+        }
+      );
     });
   });
 }
