@@ -97,7 +97,7 @@ export class DateValidator
   ): FluentDateValidator {
     return this.passesComparison(
       value,
-      (lhs, rhs) => lhs === rhs,
+      (lhs, rhs) => lhs.getTime() === rhs.getTime(),
       "equalTo",
       (lhs, rhs) => `input must be equal to ${rhs.toISOString()}`,
       errorCode,

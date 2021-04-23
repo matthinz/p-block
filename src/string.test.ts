@@ -16,8 +16,8 @@ describe("V.isString()", () => {
     runValidationTests(V.isString(), tests);
   });
 
-  describe("defaultValue()", () => {
-    const validator = V.isString().defaultValue("");
+  describe("defaultedTo()", () => {
+    const validator = V.isString().defaultedTo("");
 
     const tests: [any, any, boolean][] = [
       [undefined, "", true],
@@ -181,7 +181,7 @@ describe("V.isString()", () => {
         ["", false, "parsedAsDate", "input could not be parsed as a Date"],
         ["2021-04-21T15:47:47+00:00", true],
         ["2021-04-21T15:47:47Z", true],
-        ["20210421T154747Z", true],
+        ["20210421T154747Z", false],
       ];
 
       runValidationTests(validator, tests);

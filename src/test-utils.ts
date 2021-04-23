@@ -49,17 +49,17 @@ export function runValidationTests<Type>(
     (string | string[])?,
     (Path | Path[])?
   ][]
-) {
-  tests.forEach(
-    ([input, shouldValidate, errorCodes, errorMessages, errorPaths]) => {
-      const desc = `${stringify(input)} ${
-        shouldValidate ? "should validate" : "should not validate"
-      }`;
-      test(desc, () => {});
-    }
-  );
+): void {
+  tests.forEach(([input, shouldValidate]) => {
+    const desc = `${stringify(input)} ${
+      shouldValidate ? "should validate" : "should not validate"
+    }`;
+    test(desc, () => {
+      expect(validator.validate(input)).toBe(shouldValidate);
+    });
+  });
 
-  if (!validator.shouldThrow) {
+  if (typeof validator.shouldThrow !== "function") {
     return;
   }
 
@@ -119,8 +119,8 @@ export function runValidationTests<Type>(
 function stringify(value: any): string {
   return JSON.stringify(value, (key, value) => {
     if (value === undefined) {
-      return "undefined";
+      return "<<undefined>>";
     }
     return value;
-  });
+  }).replace(/"<<undefined>>"/g, "undefined");
 }

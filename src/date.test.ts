@@ -36,9 +36,9 @@ describe("isDate()", () => {
       [undefined, false, "invalidType"],
       [null, false, "invalidType"],
       [{}, false, "invalidType"],
-      [new Date(2021, 2, 3, 4, 5, 6, 7), true],
+      [new Date(2021, 1, 2, 3, 4, 5, 6), true],
       [
-        new Date(2021, 2, 3, 4, 5, 6, 8),
+        new Date(2021, 1, 2, 3, 4, 5, 7),
         false,
         "equalTo",
         "input must be equal to 2021-02-02T11:04:05.006Z",
