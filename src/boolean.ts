@@ -9,6 +9,7 @@ import {
 } from "./types";
 
 export interface FluentBooleanValidator extends FluentValidator<boolean> {
+  defaultedTo(value: boolean): FluentBooleanValidator;
   isFalse(errorCode?: string, errorMessage?: string): FluentBooleanValidator;
   isTrue(errorCode?: string, errorMessage?: string): FluentBooleanValidator;
   shouldThrow(): FluentBooleanValidator;
@@ -24,6 +25,12 @@ export class BooleanValidator
     options?: ValidatorOptions
   ) {
     super(parent ?? "boolean", normalizers, validators, options);
+  }
+
+  defaultedTo(value: boolean): FluentBooleanValidator {
+    return this.normalizedWith((input) => {
+      return input == null ? value : input;
+    });
   }
 
   isFalse(errorCode?: string, errorMessage?: string): FluentBooleanValidator {
