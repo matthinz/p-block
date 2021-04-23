@@ -1,7 +1,6 @@
 import { V } from ".";
-import { ValidationError } from "./errors";
-import { ObjectValidator } from "./object";
-import { Path, ValidationErrorDetails, Validator } from "./types";
+import { runValidationTests } from "./test-utils";
+import { Path } from "./types";
 
 describe("isObject()", () => {
   describe("withProperties", () => {
@@ -61,13 +60,7 @@ describe("isObject()", () => {
       ],
     ];
 
-    tests.forEach((params) => runValidationTests(validator, ...params));
-
-    describe("throwing", () => {
-      tests.forEach((params) =>
-        runThrowingTest(validator.shouldThrow(), ...params)
-      );
-    });
+    runValidationTests(validator, tests);
   });
 
   describe("withProperties (2 levels deep)", () => {
@@ -109,95 +102,6 @@ describe("isObject()", () => {
       ],
     ];
 
-    tests.forEach((params) => runValidationTests(validator, ...params));
-
-    describe("throwing", () => {
-      tests.forEach((params) =>
-        runThrowingTest(validator.shouldThrow(), ...params)
-      );
-    });
+    runValidationTests(validator, tests);
   });
 });
-
-function runValidationTests(
-  validator: Validator<any>,
-  input: any,
-  shouldValidate: boolean,
-  errorCode?: string | string[],
-  errorMessage?: string | string[],
-  errorPath?: Path | Path[]
-) {
-  const inputAsJson = input === undefined ? "undefined" : JSON.stringify(input);
-  const desc = `${validator} ${
-    shouldValidate ? "validates" : "does not validate"
-  } ${inputAsJson}`;
-
-  test(desc, () => {
-    expect(validator.validate(input)).toBe(shouldValidate);
-  });
-}
-
-function runThrowingTest(
-  validator: Validator<any>,
-  input: any,
-  shouldValidate: boolean,
-  errorCode?: string | string[],
-  errorMessage?: string | string[],
-  errorPath?: Path | Path[]
-) {
-  const inputAsJson = input === undefined ? "undefined" : JSON.stringify(input);
-  const desc = `${validator} ${
-    shouldValidate ? "validates" : "does not validate"
-  } ${inputAsJson}`;
-
-  test(desc, () => {
-    try {
-      validator.validate(input);
-      expect(shouldValidate).toBe(true);
-    } catch (err) {
-      if (!(err instanceof ValidationError)) {
-        throw err;
-      }
-
-      expect(shouldValidate).toBe(false);
-
-      const expectedErrors: ValidationErrorDetails[] = (Array.isArray(errorCode)
-        ? errorCode
-        : [errorCode]
-      ).map((code, index) => {
-        if (code === undefined) {
-          throw new Error(`No code found at index ${index}`);
-        }
-
-        const message = (Array.isArray(errorMessage)
-          ? errorMessage
-          : [errorMessage])[index];
-        if (message === undefined) {
-          throw new Error(`No error message found for index ${index}`);
-        }
-
-        let path: Path | undefined;
-
-        if (errorPath === undefined) {
-          path = [];
-        } else if (Array.isArray(errorPath[0])) {
-          path = errorPath[index] as Path | undefined;
-        } else {
-          path = errorPath as Path;
-        }
-
-        if (path === undefined) {
-          throw new Error(`No error path found for index ${index}`);
-        }
-
-        return {
-          code,
-          message,
-          path,
-        };
-      });
-
-      expect(err.errors).toStrictEqual(expectedErrors);
-    }
-  });
-}
