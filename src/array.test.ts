@@ -1,7 +1,6 @@
 import { V } from ".";
-import { ValidationError } from "./errors";
 import { runNormalizationTests, runValidationTests } from "./test-utils";
-import { Path, Validator } from "./types";
+import { Path } from "./types";
 
 describe("isArray()", () => {
   const tests: [any, boolean, string?, string?][] = [

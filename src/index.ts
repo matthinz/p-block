@@ -16,14 +16,17 @@ const arrayValidator: FluentArrayValidator<any> = new ArrayValidator();
 const booleanValidator: FluentBooleanValidator = new BooleanValidator();
 const dateValidator: FluentDateValidator = new DateValidator();
 const numberValidator: FluentNumberValidator = new NumberValidator();
-const objectValidator: FluentObjectValidator<{}> = new ObjectValidator();
+const objectValidator: FluentObjectValidator<
+  Record<string, unknown>
+> = new ObjectValidator();
 const stringValidator: FluentStringValidator = new StringValidator();
 
 export const V = {
-  isArray: () => arrayValidator,
-  isBoolean: () => booleanValidator,
-  isDate: () => dateValidator,
-  isNumber: () => numberValidator,
-  isObject: () => objectValidator,
-  isString: () => stringValidator,
+  isArray: (): FluentArrayValidator<any> => arrayValidator,
+  isBoolean: (): FluentBooleanValidator => booleanValidator,
+  isDate: (): FluentDateValidator => dateValidator,
+  isNumber: (): FluentNumberValidator => numberValidator,
+  isObject: (): FluentObjectValidator<Record<string, unknown>> =>
+    objectValidator,
+  isString: (): FluentStringValidator => stringValidator,
 };
