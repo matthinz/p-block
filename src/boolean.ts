@@ -12,6 +12,9 @@ export interface FluentBooleanValidator extends FluentValidator<boolean> {
   defaultedTo(value: boolean): FluentBooleanValidator;
   isFalse(errorCode?: string, errorMessage?: string): FluentBooleanValidator;
   isTrue(errorCode?: string, errorMessage?: string): FluentBooleanValidator;
+  normalizedWith(
+    normalizers: NormalizationFunction | NormalizationFunction[]
+  ): FluentBooleanValidator;
   shouldThrow(): FluentBooleanValidator;
 }
 

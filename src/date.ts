@@ -42,6 +42,10 @@ export interface FluentDateValidator extends FluentValidator<Date> {
     errorMessage?: string
   ): FluentDateValidator;
 
+  normalizedWith(
+    normalizers: NormalizationFunction | NormalizationFunction[]
+  ): FluentDateValidator;
+
   passes(
     validator: ValidationFunction<Date>,
     errorCode?: string,
