@@ -217,6 +217,71 @@ describe("V.isString()", () => {
     });
   });
 
+  describe("parsedAsInteger()", () => {
+    describe("built-in parser, base 10", () => {
+      const validator = V.isString().parsedAsInteger().greaterThan(10);
+      const tests: [any, boolean, string?, string?][] = [
+        [undefined, false, "invalidType"],
+        [{}, false, "invalidType"],
+        [1, false, "greaterThan"],
+        [
+          "foo",
+          false,
+          "parsedAsInteger",
+          "input could not be parsed as an integer",
+        ],
+        ["1", false, "greaterThan"],
+        ["11", true],
+      ];
+      runValidationTests(validator, tests);
+    });
+
+    describe("custom radix", () => {
+      const validator = V.isString().parsedAsInteger(16).greaterThan(10);
+      const tests: [any, boolean, string?, string?][] = [
+        [undefined, false, "invalidType"],
+        [{}, false, "invalidType"],
+        [1, false, "greaterThan"],
+        [
+          "foo",
+          false,
+          "parsedAsInteger",
+          "input could not be parsed as an integer",
+        ],
+        ["1", false, "greaterThan"],
+        ["A", false, "greaterThan"],
+        ["B", true],
+      ];
+      runValidationTests(validator, tests);
+
+      test("throws for radix < 2", () => {
+        expect(() => {
+          V.isString().parsedAsInteger(1);
+        }).toThrow();
+      });
+
+      test("throws for radix < 36", () => {
+        expect(() => {
+          V.isString().parsedAsInteger(37);
+        }).toThrow();
+      });
+    });
+
+    describe("custom parser", () => {
+      const validator = V.isString()
+        .parsedAsInteger((input) => (input ?? "").toString().length)
+        .greaterThan(10);
+      const tests: [any, boolean, string?, string?][] = [
+        [undefined, false, "invalidType"],
+        [{}, false, "invalidType"],
+        [1, false, "greaterThan"],
+        ["1", false, "greaterThan"],
+        ["a long string of more than 10 chars", true],
+      ];
+      runValidationTests(validator, tests);
+    });
+  });
+
   describe("passes()", () => {
     const tests: [string, boolean, string?, string?][] = [
       ["valid input", true],

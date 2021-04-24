@@ -3,6 +3,7 @@ import { enableThrowing, resolveErrorDetails } from "./errors";
 import {
   FluentValidator,
   NormalizationFunction,
+  TypeValidationFunction,
   ValidationContext,
   ValidationFunction,
   ValidatorOptions,
@@ -111,7 +112,7 @@ export class NumberValidator
   extends BasicValidator<any, number>
   implements FluentNumberValidator {
   constructor(
-    parent?: NumberValidator,
+    parent?: NumberValidator | TypeValidationFunction<any, number>,
     normalizers?: NormalizationFunction | NormalizationFunction[],
     validators?: ValidationFunction<number> | ValidationFunction<number>[],
     options?: ValidatorOptions

@@ -1,14 +1,15 @@
 import { BasicValidator } from "./basic";
 import { BooleanValidator, FluentBooleanValidator } from "./boolean";
 import { DateValidator, FluentDateValidator } from "./date";
-import { enableThrowing } from "./errors";
-import { FluentNumberValidator } from "./number";
+import { enableThrowing, resolveErrorDetails } from "./errors";
+import { FluentNumberValidator, NumberValidator } from "./number";
 import {
   FluentValidator,
   NormalizationFunction,
   TypeValidationFunction,
   ValidationContext,
   ValidationFunction,
+  Validator,
   ValidatorOptions,
 } from "./types";
 
@@ -92,7 +93,12 @@ export interface FluentStringValidator extends FluentValidator<string> {
   ): FluentNumberValidator;
 
   parsedAsInteger(
-    base?: number,
+    errorCode?: string,
+    errorMessage?: string
+  ): FluentNumberValidator;
+
+  parsedAsInteger(
+    base: number,
     errorCode?: string,
     errorMessage?: string
   ): FluentNumberValidator;
@@ -379,14 +385,98 @@ export class StringValidator
   }
 
   parsedAsInteger(
-    baseOrParserOrErrorCode?:
+    radixOrParserOrErrorCode?:
       | ((input: string) => number | undefined)
       | number
       | string,
-    errorCode?: string,
+    errorCodeOrErrorMessage?: string,
     errorMessage?: string
   ): FluentNumberValidator {
-    throw new Error();
+    if (typeof radixOrParserOrErrorCode === "number") {
+      if (radixOrParserOrErrorCode < 2 || radixOrParserOrErrorCode > 36) {
+        throw new Error("radix must be between 2 and 36, inclusive");
+      }
+    }
+
+    const normalizer = (input: any): any => {
+      input = this.normalize(input);
+
+      if (typeof input !== "string") {
+        return input;
+      }
+
+      const parser =
+        typeof radixOrParserOrErrorCode === "function"
+          ? radixOrParserOrErrorCode
+          : (input: string) => {
+              const radix =
+                typeof radixOrParserOrErrorCode === "number"
+                  ? radixOrParserOrErrorCode
+                  : 10;
+              const parsed = parseInt(input, radix);
+
+              if (!isFinite(parsed)) {
+                return undefined;
+              }
+
+              // parseInt() will stop reading input when it encounters a
+              // character it is not expecting. Our default parser is
+              // going to be more strict than this.
+
+              const inputWasWellFormed =
+                parsed.toString(radix).toLowerCase() === input.toLowerCase();
+
+              if (!inputWasWellFormed) {
+                return undefined;
+              }
+
+              return parsed;
+            };
+
+      const parsed = parser(input);
+
+      return parsed ?? input;
+    };
+
+    const parentValidator = (
+      input: any,
+      context?: ValidationContext
+    ): input is number => {
+      if (typeof input === "number") {
+        return true;
+      }
+
+      return this.validate(input, context);
+    };
+
+    const validator = (input: any, context?: ValidationContext): boolean => {
+      if (typeof input === "number") {
+        return true;
+      }
+
+      const [code, message] = resolveErrorDetails(
+        "parsedAsInteger",
+        "input could not be parsed as an integer",
+        typeof radixOrParserOrErrorCode === "string"
+          ? radixOrParserOrErrorCode
+          : errorCodeOrErrorMessage,
+        typeof radixOrParserOrErrorCode === "string"
+          ? errorCodeOrErrorMessage
+          : errorMessage
+      );
+
+      return (
+        context?.handleErrors([
+          {
+            code,
+            message,
+            path: context?.path ?? [],
+          },
+        ]) ?? false
+      );
+    };
+
+    return new NumberValidator(parentValidator, normalizer, validator);
   }
 
   passes(
