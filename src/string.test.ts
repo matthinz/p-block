@@ -217,6 +217,52 @@ describe("V.isString()", () => {
     });
   });
 
+  describe("parsedAsFloat()", () => {
+    describe("default parser", () => {
+      const validator = V.isString().parsedAsFloat().greaterThan(10);
+      const tests: [any, boolean, string?, string?][] = [
+        [undefined, false, "invalidType"],
+        [{}, false, "invalidType"],
+        [1, false, "greaterThan"],
+        ["Infinity", false, "parsedAsFloat"],
+        ["+Infinity", false, "parsedAsFloat"],
+        ["-Infinity", false, "parsedAsFloat"],
+        ["foo", false, "parsedAsFloat", "input could not be parsed as a float"],
+        [
+          "11.0.0.0",
+          false,
+          "parsedAsFloat",
+          "input could not be parsed as a float",
+        ],
+        [
+          "11.0.",
+          false,
+          "parsedAsFloat",
+          "input could not be parsed as a float",
+        ],
+        ["1", false, "greaterThan"],
+        ["11.0000001", true],
+        ["11", true],
+        ["11.0", true],
+        ["11.00000", true],
+      ];
+
+      runValidationTests(validator, tests);
+    });
+    describe("custom parser", () => {
+      const validator = V.isString().parsedAsFloat((input) =>
+        input === "answer" ? 42.0 : undefined
+      );
+      const tests: [any, boolean, string?, string?][] = [
+        [undefined, false, "invalidType"],
+        [{}, false, "invalidType"],
+        ["answer", true],
+        ["42", false, "parsedAsFloat"],
+      ];
+      runValidationTests(validator, tests);
+    });
+  });
+
   describe("parsedAsInteger()", () => {
     describe("built-in parser, base 10", () => {
       const validator = V.isString().parsedAsInteger().greaterThan(10);

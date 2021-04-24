@@ -378,10 +378,57 @@ export class StringValidator
 
   parsedAsFloat(
     parserOrErrorCode?: string | ((input: string) => number | undefined),
-    errorCode?: string,
+    errorCodeOrErrorMessage?: string,
     errorMessage?: string
   ): FluentNumberValidator {
-    throw new Error();
+    const normalizer = (input: any): any => {
+      if (typeof input !== "string") {
+        return input;
+      }
+
+      const parser =
+        typeof parserOrErrorCode === "function"
+          ? parserOrErrorCode
+          : defaultFloatParser;
+
+      const parsed = parser(input);
+
+      return parsed ?? input;
+    };
+
+    const parentValidator = (
+      input: any,
+      context?: ValidationContext
+    ): input is number => {
+      if (typeof input === "number") {
+        return true;
+      }
+      return this.validate(input, context);
+    };
+
+    const validator = (input: any, context?: ValidationContext): boolean => {
+      if (typeof input === "number") {
+        return true;
+      }
+
+      const [code, message] = resolveErrorDetails(
+        "parsedAsFloat",
+        "input could not be parsed as a float",
+        typeof parserOrErrorCode === "function"
+          ? errorCodeOrErrorMessage
+          : parserOrErrorCode,
+        typeof parserOrErrorCode === "function"
+          ? errorMessage
+          : errorCodeOrErrorMessage
+      );
+
+      return (
+        context?.handleErrors([{ code, message, path: context?.path ?? [] }]) ??
+        false
+      );
+    };
+
+    return new NumberValidator(parentValidator, normalizer, validator);
   }
 
   parsedAsInteger(
@@ -549,9 +596,25 @@ function defaultIntegerParser(
   const inputWasWellFormed =
     parsed.toString(radix).toLowerCase() === input.toLowerCase();
 
-  if (!inputWasWellFormed) {
+  return inputWasWellFormed ? parsed : undefined;
+}
+
+function defaultFloatParser(input: string): number | undefined {
+  // Allow integers ending in e.g. ".0000" to parse successfully
+  input = input.trim().replace(/\.0+$/, "");
+
+  const parsed = parseFloat(input);
+
+  if (!isFinite(parsed)) {
     return undefined;
   }
 
-  return parsed;
+  // parseFloat() will stop reading input when it encounters a
+  // character it is not expecting. Our default parser is
+  // going to be more strict than this--we verify that stringifying
+  // the resulting value results in the same string.
+
+  const inputWasWellFormed = parsed.toString() === input;
+
+  return inputWasWellFormed ? parsed : undefined;
 }
