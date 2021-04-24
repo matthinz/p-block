@@ -19,21 +19,11 @@ export interface UntypedValidator {
 
 export interface FluentValidator<Type> extends Validator<Type>, Normalizer {
   /**
-   * @param value
-   * @returns A new FluentValidator that substitutes `value` when input is `null` or `undefined`.
-   */
-  defaultedTo(value: Type): FluentValidator<Type>;
-
-  /**
    * @returns A new FluentValidator that requires both `this` and `validator` to pass.
    */
   and<OtherType>(
     validator: Validator<OtherType>
   ): FluentValidator<Type & OtherType>;
-
-  normalizedWith(
-    normalizer: NormalizationFunction | NormalizationFunction[]
-  ): FluentValidator<Type>;
 
   /**
    * @returns A new FluentValidator that requires either `this` or `validator` to pass.
@@ -79,6 +69,10 @@ export interface ValidationContext {
   handleErrors(errors: ValidationErrorDetails[]): false;
   path: Path;
 }
+
+export type PrepareValidationContextFunction = (
+  context?: ValidationContext
+) => ValidationContext | undefined;
 
 export interface ValidationErrorDetails {
   code: string;

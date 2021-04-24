@@ -132,7 +132,7 @@ function stringify(value: any): string {
     if (value === -Infinity) {
       return "<<-Infinity>>";
     }
-    if (isNaN(value)) {
+    if (typeof value === "number" && isNaN(value)) {
       return "<<NaN>>";
     }
     return value;

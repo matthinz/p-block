@@ -27,4 +27,6 @@
   - This is [YAML 1.1](https://yaml.org/type/bool.html). YAML 1.2 allows only `true` or `false`
 - `notEmpty` is just an alias for `minLength(1)` -- should use same error code
 - `normalizedWith` should only take strongly-typed normalization functions
-- `all()`, `any()`, `not()` -- basic logical validators
+- ~~`allOf()`, `anyOf()`~~
+- `not()`
+- `oneOf()`

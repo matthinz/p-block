@@ -17,16 +17,48 @@ export class ValidationError extends Error {
   }
 }
 
-function summarizeErrors(errors: ValidationErrorDetails[]): string {
-  return errors
-    .map(({ code, message, path }) => {
-      if (path.length > 0) {
-        return `${path}: ${code} (${message})`;
+export function combineErrorLists(
+  ...errorLists: ValidationErrorDetails[][]
+): ValidationErrorDetails[] {
+  const errorsByCode: { [code: string]: ValidationErrorDetails[] } = {};
+
+  return errorLists.reduce((result, list) => {
+    list.forEach((err) => {
+      const isDuplicate =
+        errorsByCode[err.code] &&
+        errorsByCode[err.code].find((e) => errorsEqual(err, e));
+
+      if (isDuplicate) {
+        return;
       }
 
-      return `${code} (${message})`;
-    })
-    .join(", ");
+      errorsByCode[err.code] = errorsByCode[err.code] ?? [];
+      errorsByCode[err.code].push(err);
+      result.push(err);
+    });
+    return result;
+  }, []);
+}
+
+function errorsEqual(
+  x: ValidationErrorDetails,
+  y: ValidationErrorDetails
+): boolean {
+  if (x.code !== y.code) {
+    return false;
+  }
+  if (x.message !== y.message) {
+    return false;
+  }
+  if (x.path.length !== y.path.length) {
+    return false;
+  }
+  for (let i = 0; i < x.path.length; i++) {
+    if (x.path[i] !== y.path[i]) {
+      return false;
+    }
+  }
+  return true;
 }
 
 /**
@@ -36,13 +68,17 @@ function summarizeErrors(errors: ValidationErrorDetails[]): string {
 export function enableThrowing(options: ValidatorOptions): ValidatorOptions {
   return {
     ...options,
-    prepareContext(context?: ValidationContext): ValidationContext {
-      return {
-        ...(context ?? { path: [] }),
-        handleErrors(errors: ValidationErrorDetails[]): false {
-          throw new ValidationError(errors);
-        },
-      };
+    prepareContext: prepareContextToEnableThrowing,
+  };
+}
+
+export function prepareContextToEnableThrowing(
+  context?: ValidationContext
+): ValidationContext {
+  return {
+    ...(context ?? { path: [] }),
+    handleErrors(errors: ValidationErrorDetails[]): false {
+      throw new ValidationError(errors);
     },
   };
 }
@@ -69,4 +105,16 @@ export function setErrorOptions(
     errorCode: errorCode ?? options.errorCode,
     errorMessage: errorMessage ?? options.errorMessage,
   };
+}
+
+function summarizeErrors(errors: ValidationErrorDetails[]): string {
+  return errors
+    .map(({ code, message, path }) => {
+      if (path.length > 0) {
+        return `${path}: ${code} (${message})`;
+      }
+
+      return `${code} (${message})`;
+    })
+    .join(", ");
 }
