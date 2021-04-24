@@ -104,13 +104,13 @@ export interface FluentStringValidator extends FluentValidator<string> {
   ): FluentNumberValidator;
 
   /**
-   * @param check
-   * @param errorCode
-   * @param errorMessage
-   * @returns A new FluentStringValidator configured to perform an additional check.
+   * @returns A new FluentStringValidator configured to perform the given additional checks
    */
   passes(
-    validator: ValidationFunction<string> | ValidationFunction<string>[],
+    validators:
+      | ValidationFunction<string>
+      | Validator<string>
+      | (ValidationFunction<string> | Validator<string>)[],
     errorCode?: string,
     errorMessage?: string
   ): FluentStringValidator;
@@ -137,7 +137,10 @@ export class StringValidator
   constructor(
     parent?: TypeValidationFunction<any, string> | StringValidator,
     normalizers?: NormalizationFunction | NormalizationFunction[],
-    validators?: ValidationFunction<string> | ValidationFunction<string>[],
+    validators?:
+      | ValidationFunction<string>
+      | Validator<string>
+      | (ValidationFunction<string> | Validator<string>)[],
     options?: ValidatorOptions
   ) {
     super(parent ?? "string", normalizers, validators, options);
@@ -387,14 +390,24 @@ export class StringValidator
   }
 
   passes(
-    validator: ValidationFunction<string> | ValidationFunction<string>[],
+    validators:
+      | ValidationFunction<string>
+      | Validator<string>
+      | (ValidationFunction<string> | Validator<string>)[],
     errorCode?: string,
     errorMessage?: string
   ): FluentStringValidator {
-    return new StringValidator(this, [], validator, {
+    [errorCode, errorMessage] = resolveErrorDetails(
+      "invalid",
+      "input was invalid",
+      errorCode,
+      errorMessage
+    );
+
+    return new StringValidator(this, [], validators, {
       ...this.options,
-      errorCode: errorCode ?? "invalid",
-      errorMessage: errorMessage ?? "input was invalid",
+      errorCode,
+      errorMessage,
     });
   }
 

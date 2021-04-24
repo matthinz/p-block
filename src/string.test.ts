@@ -235,6 +235,27 @@ describe("V.isString()", () => {
     );
 
     runValidationTests(validator, tests);
+
+    describe("with validator", () => {
+      const validator = V.isString().passes(V.isString().minLength(5));
+      const tests: [any, boolean, string?, string?][] = [
+        [undefined, false, "invalidType"],
+        ["", false, "minLength"],
+      ];
+      runValidationTests(validator, tests);
+
+      describe("can't override errorCode via passes", () => {
+        const validator = V.isString().passes(
+          V.isString().minLength(5),
+          "custom_code"
+        );
+        const tests: [any, boolean, string?, string?][] = [
+          [undefined, false, "invalidType"],
+          ["", false, "minLength"],
+        ];
+        runValidationTests(validator, tests);
+      });
+    });
   });
 
   describe("trimmed()", () => {

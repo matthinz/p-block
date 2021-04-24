@@ -19,27 +19,16 @@ export interface UntypedValidator {
 
 export interface FluentValidator<Type> extends Validator<Type>, Normalizer {
   /**
-   * @returns A new FluentValidator that requires both `this` and `validator` to pass.
-   */
-  and<OtherType>(
-    validator: Validator<OtherType>
-  ): FluentValidator<Type & OtherType>;
-
-  /**
-   * @returns A new FluentValidator that requires either `this` or `validator` to pass.
-   */
-  or<OtherType>(
-    validator: Validator<OtherType>
-  ): FluentValidator<Type | OtherType>;
-
-  /**
    * @param validators
    * @param errorCode Error code assigned to any errors generated.
    * @param errorMessage Error message returned with any errors generated.
    * @returns A new FluentValidator that requires input to pass all of `validators`.
    */
   passes(
-    validators: ValidationFunction<Type> | ValidationFunction<Type>[],
+    validators:
+      | ValidationFunction<Type>
+      | Validator<Type>
+      | (ValidationFunction<Type> | Validator<Type>)[],
     errorCode?: string,
     errorMessage?: string
   ): FluentValidator<Type>;

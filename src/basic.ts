@@ -8,6 +8,7 @@ import {
   Validator,
   ValidatorOptions,
 } from "./types";
+import { createTrackingContext } from "./utils";
 
 const defaultOptions: ValidatorOptions = {
   errorCode: "invalid",
@@ -58,12 +59,12 @@ function createTypeValidator<Type>(
  * Validator that asserts an input is of a a specific type.
  */
 export abstract class BasicValidator<ParentType, Type extends ParentType> {
-  private parent?:
+  private readonly parent?:
     | BasicValidator<any, ParentType>
     | TypeValidationFunction<any, Type>;
-  private normalizers: NormalizationFunction[];
-  private validators: ValidationFunction<Type>[];
-  protected options: ValidatorOptions;
+  private readonly normalizers: NormalizationFunction[];
+  private readonly validators: (ValidationFunction<Type> | Validator<Type>)[];
+  protected readonly options: ValidatorOptions;
 
   constructor(
     parent:
@@ -71,7 +72,10 @@ export abstract class BasicValidator<ParentType, Type extends ParentType> {
       | TypeValidationFunction<any, Type>
       | string,
     normalizers?: NormalizationFunction | NormalizationFunction[],
-    validators?: ValidationFunction<Type> | ValidationFunction<Type>[],
+    validators?:
+      | ValidationFunction<Type>
+      | Validator<Type>
+      | (ValidationFunction<Type> | Validator<Type>)[],
     options?: ValidatorOptions
   ) {
     this.parent =
@@ -97,12 +101,6 @@ export abstract class BasicValidator<ParentType, Type extends ParentType> {
           };
   }
 
-  and<OtherType>(
-    validator: Validator<OtherType>
-  ): FluentValidator<Type & OtherType> {
-    throw new Error();
-  }
-
   /**
    * Given an, applies all configured normalizations.
    * @param input
@@ -123,12 +121,6 @@ export abstract class BasicValidator<ParentType, Type extends ParentType> {
    * @returns A validator that will check for `undefined` or the configured type.
    */
   optional(): FluentValidator<Type | undefined> {
-    throw new Error();
-  }
-
-  or<OtherType>(
-    validator: Validator<OtherType>
-  ): FluentValidator<Type | OtherType> {
     throw new Error();
   }
 
@@ -160,34 +152,30 @@ export abstract class BasicValidator<ParentType, Type extends ParentType> {
       throw new Error("parent was not a BasicValidator or a function");
     }
 
-    let allErrors: ValidationErrorDetails[] = [];
+    const allErrors: ValidationErrorDetails[] = [];
 
-    const recordingContext = {
-      ...(context ?? { path: [] }),
-      handleErrors(errors: ValidationErrorDetails[]): false {
-        if (errors.length === 0) {
-          throw new Error(
-            "ValidationContext.handleErrors() should not be passed an empty array"
-          );
+    const passesValidators = this.validators.reduce<boolean>(
+      (isValid, validator) => {
+        if (!isValid) {
+          return false;
         }
 
-        allErrors = allErrors.concat(
-          errors.map((err) => ({
-            ...err,
-            message: err.message.replace(/:input/g, input),
-          }))
-        );
+        const validatorErrors: ValidationErrorDetails[] = [];
+        const trackingContext = createTrackingContext(validatorErrors, context);
 
-        return false;
+        const validatorPasses =
+          typeof validator === "function"
+            ? validator(input, trackingContext)
+            : validator.validate(input, trackingContext);
+
+        allErrors.push(...validatorErrors);
+
+        return validatorPasses;
       },
-    };
-
-    const passesChecks = this.validators.reduce<boolean>(
-      (isValid, validator) => isValid && validator(input, recordingContext),
       true
     );
 
-    if (passesChecks) {
+    if (passesValidators) {
       return true;
     }
 
