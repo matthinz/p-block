@@ -224,6 +224,9 @@ describe("V.isString()", () => {
         [undefined, false, "invalidType"],
         [{}, false, "invalidType"],
         [1, false, "greaterThan"],
+        ["Infinity", false, "parsedAsInteger"],
+        ["+Infinity", false, "parsedAsInteger"],
+        ["-Infinity", false, "parsedAsInteger"],
         [
           "foo",
           false,
