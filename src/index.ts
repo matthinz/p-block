@@ -6,7 +6,6 @@ import { FluentDateValidator, DateValidator } from "./date";
 import { FluentNumberValidator, NumberValidator } from "./number";
 import { FluentObjectValidator, ObjectValidator } from "./object";
 import { FluentStringValidator, StringValidator } from "./string";
-import { NeverValidator } from "./never";
 import { AlwaysValidator } from "./always";
 import { Validator } from "./types";
 
