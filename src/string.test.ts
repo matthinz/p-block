@@ -230,8 +230,28 @@ describe("V.isString()", () => {
           "parsedAsInteger",
           "input could not be parsed as an integer",
         ],
+        [
+          "11.0.0.0",
+          false,
+          "parsedAsInteger",
+          "input could not be parsed as an integer",
+        ],
+        [
+          "11.0.",
+          false,
+          "parsedAsInteger",
+          "input could not be parsed as an integer",
+        ],
+        [
+          "11.0000001",
+          false,
+          "parsedAsInteger",
+          "input could not be parsed as an integer",
+        ],
         ["1", false, "greaterThan"],
         ["11", true],
+        ["11.0", true],
+        ["11.00000", true],
       ];
       runValidationTests(validator, tests);
     });

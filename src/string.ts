@@ -408,30 +408,12 @@ export class StringValidator
       const parser =
         typeof radixOrParserOrErrorCode === "function"
           ? radixOrParserOrErrorCode
-          : (input: string) => {
-              const radix =
-                typeof radixOrParserOrErrorCode === "number"
-                  ? radixOrParserOrErrorCode
-                  : 10;
-              const parsed = parseInt(input, radix);
-
-              if (!isFinite(parsed)) {
-                return undefined;
-              }
-
-              // parseInt() will stop reading input when it encounters a
-              // character it is not expecting. Our default parser is
-              // going to be more strict than this.
-
-              const inputWasWellFormed =
-                parsed.toString(radix).toLowerCase() === input.toLowerCase();
-
-              if (!inputWasWellFormed) {
-                return undefined;
-              }
-
-              return parsed;
-            };
+          : defaultIntegerParser.bind(
+              undefined,
+              typeof radixOrParserOrErrorCode === "number"
+                ? radixOrParserOrErrorCode
+                : 10
+            );
 
       const parsed = parser(input);
 
@@ -544,4 +526,32 @@ function defaultDateParser(input: string): Date | undefined {
   } catch (err) {
     return undefined;
   }
+}
+
+function defaultIntegerParser(
+  radix: number,
+  input: string
+): number | undefined {
+  // Allow integers ending in e.g. ".0000" to parse successfully
+  input = input.trim().replace(/\.0+$/, "");
+
+  const parsed = parseInt(input, radix);
+
+  if (!isFinite(parsed)) {
+    return undefined;
+  }
+
+  // parseInt() will stop reading input when it encounters a
+  // character it is not expecting. Our default parser is
+  // going to be more strict than this--we verify that stringifying
+  // the resulting value at the same radix results in the same string.
+
+  const inputWasWellFormed =
+    parsed.toString(radix).toLowerCase() === input.toLowerCase();
+
+  if (!inputWasWellFormed) {
+    return undefined;
+  }
+
+  return parsed;
 }
