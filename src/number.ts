@@ -232,13 +232,21 @@ export class NumberValidator
   }
 
   roundedTo(decimalPlaces = 0): FluentNumberValidator {
-    const exp = Math.pow(10, decimalPlaces);
-    return new NumberValidator(
-      this,
-      (num) => Math.round(num * exp) / exp,
-      [],
-      this.options
-    );
+    const normalizer = (input: any) => {
+      if (typeof input !== "number") {
+        return input;
+      }
+
+      if (!isFinite(input)) {
+        return input;
+      }
+
+      const exp = Math.pow(10, decimalPlaces);
+
+      return Math.round(input * exp) / exp;
+    };
+
+    return new NumberValidator(this, normalizer, [], this.options);
   }
 
   shouldThrow(): FluentNumberValidator {
@@ -246,12 +254,18 @@ export class NumberValidator
   }
 
   truncated(): FluentNumberValidator {
-    return new NumberValidator(
-      this,
-      (num) => Math.floor(num),
-      [],
-      this.options
-    );
+    const normalizer = (input: any) => {
+      if (typeof input !== "number") {
+        return input;
+      }
+
+      if (!isFinite(input)) {
+        return input;
+      }
+
+      return Math.floor(input);
+    };
+    return new NumberValidator(this, normalizer, [], this.options);
   }
 
   private passesComparison(

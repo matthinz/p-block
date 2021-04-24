@@ -1,5 +1,5 @@
 import { V } from ".";
-import { runValidationTests } from "./test-utils";
+import { runNormalizationTests, runValidationTests } from "./test-utils";
 
 describe("isNumber()", () => {
   describe("validate()", () => {
@@ -99,5 +99,26 @@ describe("isNumber()", () => {
       ],
     ];
     runValidationTests(validator, tests);
+  });
+
+  describe("roundedTo()", () => {
+    const validator = V.isNumber().roundedTo(2);
+    const tests: [any, any, boolean][] = [
+      [undefined, undefined, false],
+      ["", "", false],
+      [NaN, NaN, false],
+      [2.586, 2.59, true],
+    ];
+    runNormalizationTests(validator, tests);
+  });
+
+  describe("truncated()", () => {
+    const validator = V.isNumber().truncated();
+    const tests: [any, any, boolean][] = [
+      [undefined, undefined, false],
+      ["", "", false],
+      [2.586, 2, true],
+    ];
+    runNormalizationTests(validator, tests);
   });
 });
