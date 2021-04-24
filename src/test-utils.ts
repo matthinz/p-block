@@ -57,7 +57,15 @@ export function runValidationTests<Type>(
       shouldValidate ? "should validate" : "should not validate"
     }`;
     test(desc, () => {
-      expect(validator.validate(input)).toBe(shouldValidate);
+      const didValidate = validator.validate(input);
+
+      if (shouldValidate && !didValidate) {
+        if (validator.shouldThrow) {
+          validator.shouldThrow().validate(input);
+        }
+      }
+
+      expect(didValidate).toBe(shouldValidate);
     });
   });
 
