@@ -179,6 +179,7 @@ describe("V.isString()", () => {
         [{}, false, "invalidType"],
         ["", false, "parsedAsDate", "input could not be parsed as a Date"],
         ["", false, "parsedAsDate", "input could not be parsed as a Date"],
+        ["2021-04-21", true],
         ["2021-04-21T15:47:47+00:00", true],
         ["2021-04-21T15:47:47Z", true],
         ["20210421T154747Z", false],
@@ -189,6 +190,7 @@ describe("V.isString()", () => {
       const normalizationTests: [any, any, boolean][] = [
         [null, null, false],
         [undefined, undefined, false],
+        ["2021-04-21", new Date(2021, 3, 21), true],
         [
           "2021-04-21T15:47:47+00:00",
           new Date(Date.UTC(2021, 3, 21, 15, 47, 47)),

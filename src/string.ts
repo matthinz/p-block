@@ -557,6 +557,8 @@ function defaultBooleanParser(input: string): boolean | undefined {
 }
 
 function defaultDateParser(input: string): Date | undefined {
+  const JUST_DATE = /^(\d{4})-(\d{1,2})-(\d{1,2})$/;
+
   try {
     /*
      * > Note: Parsing of date strings with the Date constructor (and
@@ -567,9 +569,21 @@ function defaultDateParser(input: string): Date | undefined {
      * >   - Support for ISO 8601 formats differs in that date-only strings (e.g. "1970-01-01") are treated as UTC, not local.
      * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date
      */
-    const date = new Date(input);
 
-    return isNaN((date as unknown) as number) ? undefined : date;
+    let date: Date;
+
+    const m = JUST_DATE.exec(input);
+    if (m) {
+      date = new Date(
+        parseInt(m[1], 10),
+        parseInt(m[2], 10) - 1,
+        parseInt(m[3], 10)
+      );
+    } else {
+      date = new Date(input);
+    }
+
+    return isNaN(date.getTime()) ? undefined : date;
   } catch (err) {
     return undefined;
   }
