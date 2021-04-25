@@ -1,17 +1,17 @@
 import { BasicValidator } from "./basic";
 import { BooleanValidator, FluentBooleanValidator } from "./boolean";
 import { DateValidator, FluentDateValidator } from "./date";
-import { enableThrowing, resolveErrorDetails } from "./errors";
+import { resolveErrorDetails } from "./errors";
 import { FluentNumberValidator, NumberValidator } from "./number";
 import {
   FluentValidator,
   NormalizationFunction,
   TypeValidationFunction,
-  ValidationContext,
+  ValidationErrorDetails,
   ValidationFunction,
   Validator,
-  ValidatorOptions,
 } from "./types";
+import { composeValidators } from "./utils";
 
 export interface FluentStringValidator extends FluentValidator<string> {
   /**
@@ -133,18 +133,14 @@ export interface FluentStringValidator extends FluentValidator<string> {
 }
 
 export class StringValidator
-  extends BasicValidator<any, string>
+  extends BasicValidator<string>
   implements FluentStringValidator {
   constructor(
     parent?: TypeValidationFunction<any, string> | StringValidator,
     normalizers?: NormalizationFunction | NormalizationFunction[],
-    validators?:
-      | ValidationFunction<string>
-      | Validator<string>
-      | (ValidationFunction<string> | Validator<string>)[],
-    options?: ValidatorOptions
+    validator?: ValidationFunction<string> | Validator<string>
   ) {
-    super(parent ?? "string", normalizers, validators, options);
+    super(parent ?? "string", normalizers, validator);
   }
 
   defaultedTo(value: string): FluentStringValidator {
@@ -199,18 +195,20 @@ export class StringValidator
     errorCode?: string,
     errorMessage?: string
   ): FluentStringValidator {
-    return this.passes(
-      (input) => input.length >= min,
-      errorCode ?? "minLength",
-      errorMessage ??
-        `input length must be greater than or equal to ${min} character(s)`
+    [errorCode, errorMessage] = resolveErrorDetails(
+      "minLength",
+      `input length must be greater than or equal to ${min} character(s)`,
+      errorCode,
+      errorMessage
     );
+
+    return this.passes((input) => input.length >= min, errorCode, errorMessage);
   }
 
   normalizedWith(
     normalizer: NormalizationFunction | NormalizationFunction[]
   ): FluentStringValidator {
-    return new StringValidator(this, normalizer, [], this.options);
+    return new StringValidator(this, normalizer);
   }
 
   notEmpty(errorCode?: string, errorMessage?: string): FluentStringValidator {
@@ -230,6 +228,26 @@ export class StringValidator
     errorCodeOrErrorMessage?: string,
     errorMessage?: string
   ): FluentBooleanValidator {
+    // parentValidator's job is to be the new "root" for the hierarchy of
+    // Boolean validators. It can "lie" about input being a boolean if
+    // `normalizer` will be able to do something about it.
+    const parentValidator = (
+      input: any,
+      errors?: ValidationErrorDetails[]
+    ): input is boolean => {
+      if (typeof input === "boolean") {
+        return true;
+      }
+
+      const parse = this.parse(input);
+      if (!parse.success) {
+        errors?.push(...parse.errors);
+        return false;
+      }
+
+      return true;
+    };
+
     // The normalizer's job is taking arbitrary input and attempt to parse
     // it as a boolean value. If parsing fails, it will return input unmodified.
     const normalizer = (input: any): any => {
@@ -252,22 +270,7 @@ export class StringValidator
       return input;
     };
 
-    // parentValidator's job is to be the new "root" for the hierarchy of
-    // Boolean validators.
-    const parentValidator = (
-      input: any,
-      context?: ValidationContext
-    ): input is boolean => {
-      if (typeof input === "boolean") {
-        return true;
-      }
-
-      // This may return `true` even though input is not a boolean.
-      // However, the next validator (below) will fix that.
-      return this.validate(input, context);
-    };
-
-    const validator = (input: any, context?: ValidationContext): boolean => {
+    const validator = (input: any): true | ValidationErrorDetails => {
       if (typeof input === "boolean") {
         return true;
       }
@@ -289,15 +292,11 @@ export class StringValidator
             : errorMessage) ?? code;
       }
 
-      return (
-        context?.handleErrors([
-          {
-            code,
-            message,
-            path: context?.path ?? [],
-          },
-        ]) ?? false
-      );
+      return {
+        code,
+        message,
+        path: [],
+      };
     };
 
     return new BooleanValidator(parentValidator, normalizer, validator);
@@ -308,6 +307,23 @@ export class StringValidator
     errorCodeOrErrorMessage?: string,
     errorMessage?: string
   ): FluentDateValidator {
+    const parentValidator = (
+      input: any,
+      errors?: ValidationErrorDetails[]
+    ): input is Date => {
+      if (input instanceof Date) {
+        return true;
+      }
+
+      const parse = this.parse(input);
+      if (!parse.success) {
+        errors?.push(...parse.errors);
+        return false;
+      }
+
+      return true;
+    };
+
     const normalizer = (input: any): any => {
       input = this.normalize(input);
 
@@ -325,18 +341,7 @@ export class StringValidator
       return parsed === undefined ? input : parsed;
     };
 
-    const parentValidator = (
-      input: any,
-      context?: ValidationContext
-    ): input is Date => {
-      if (input instanceof Date) {
-        return true;
-      }
-
-      return this.validate(input, context);
-    };
-
-    const validator = (input: any, context?: ValidationContext): boolean => {
+    const validator = (input: any): true | ValidationErrorDetails => {
       if (input instanceof Date) {
         return true;
       }
@@ -357,15 +362,7 @@ export class StringValidator
             : errorCodeOrErrorMessage) ?? code;
       }
 
-      return (
-        context?.handleErrors([
-          {
-            code,
-            message,
-            path: context?.path ?? [],
-          },
-        ]) ?? false
-      );
+      return { code, message, path: [] };
     };
 
     return new DateValidator(parentValidator, normalizer, validator);
@@ -376,6 +373,23 @@ export class StringValidator
     errorCodeOrErrorMessage?: string,
     errorMessage?: string
   ): FluentNumberValidator {
+    const parentValidator = (
+      input: any,
+      errors?: ValidationErrorDetails[]
+    ): input is number => {
+      if (typeof input === "number") {
+        return true;
+      }
+
+      const parsed = this.parse(input);
+      if (!parsed.success) {
+        errors?.push(...parsed.errors);
+        return false;
+      }
+
+      return true;
+    };
+
     const normalizer = (input: any): any => {
       if (typeof input !== "string") {
         return input;
@@ -391,17 +405,7 @@ export class StringValidator
       return parsed ?? input;
     };
 
-    const parentValidator = (
-      input: any,
-      context?: ValidationContext
-    ): input is number => {
-      if (typeof input === "number") {
-        return true;
-      }
-      return this.validate(input, context);
-    };
-
-    const validator = (input: any, context?: ValidationContext): boolean => {
+    const validator = (input: any): true | ValidationErrorDetails => {
       if (typeof input === "number") {
         return true;
       }
@@ -417,10 +421,7 @@ export class StringValidator
           : errorCodeOrErrorMessage
       );
 
-      return (
-        context?.handleErrors([{ code, message, path: context?.path ?? [] }]) ??
-        false
-      );
+      return { code, message, path: [] };
     };
 
     return new NumberValidator(parentValidator, normalizer, validator);
@@ -439,6 +440,23 @@ export class StringValidator
         throw new Error("radix must be between 2 and 36, inclusive");
       }
     }
+
+    const parentValidator = (
+      input: any,
+      errors?: ValidationErrorDetails[]
+    ): input is number => {
+      if (typeof input === "number") {
+        return true;
+      }
+
+      const parsed = this.parse(input);
+      if (!parsed.success) {
+        errors?.push(...parsed.errors);
+        return false;
+      }
+
+      return true;
+    };
 
     const normalizer = (input: any): any => {
       input = this.normalize(input);
@@ -462,18 +480,7 @@ export class StringValidator
       return parsed ?? input;
     };
 
-    const parentValidator = (
-      input: any,
-      context?: ValidationContext
-    ): input is number => {
-      if (typeof input === "number") {
-        return true;
-      }
-
-      return this.validate(input, context);
-    };
-
-    const validator = (input: any, context?: ValidationContext): boolean => {
+    const validator = (input: any): true | ValidationErrorDetails => {
       if (typeof input === "number") {
         return true;
       }
@@ -489,15 +496,11 @@ export class StringValidator
           : errorMessage
       );
 
-      return (
-        context?.handleErrors([
-          {
-            code,
-            message,
-            path: context?.path ?? [],
-          },
-        ]) ?? false
-      );
+      return {
+        code,
+        message,
+        path: [],
+      };
     };
 
     return new NumberValidator(parentValidator, normalizer, validator);
@@ -511,18 +514,20 @@ export class StringValidator
     errorCode?: string,
     errorMessage?: string
   ): FluentStringValidator {
-    [errorCode, errorMessage] = resolveErrorDetails(
+    const [effectiveErrorCode, effectiveErrorMessage] = resolveErrorDetails(
       "invalid",
       "input was invalid",
       errorCode,
       errorMessage
     );
 
-    return new StringValidator(this, [], validators, {
-      ...this.options,
-      errorCode,
-      errorMessage,
-    });
+    const validator = composeValidators(
+      validators,
+      effectiveErrorCode,
+      effectiveErrorMessage
+    );
+
+    return new StringValidator(this, [], validator);
   }
 
   trimmed(): FluentStringValidator {

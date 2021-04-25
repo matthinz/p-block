@@ -1,5 +1,4 @@
-import { ValidationError } from "./errors";
-import { Normalizer, Path, Validator } from "./types";
+import { Normalizer, Path, ValidationErrorDetails, Validator } from "./types";
 
 export function runNormalizationTests<Type>(
   validator:
@@ -48,70 +47,47 @@ export function runValidationTests<Type>(
     (Path | Path[])?
   ][]
 ): void {
-  tests.forEach(([input, shouldValidate]) => {
-    const desc = `${stringify(input)} ${
-      shouldValidate ? "should validate" : "should not validate"
-    }`;
-    test(desc, () => {
-      const didValidate = validator.validate(input);
+  tests.forEach(
+    ([input, shouldValidate, errorCodes, errorMessages, errorPaths]) => {
+      const desc = `${stringify(input)} ${
+        shouldValidate ? "should validate" : "should not validate"
+      }`;
+      test(desc, () => {
+        const parseResult = validator.parse(input);
 
-      if (shouldValidate && !didValidate) {
-        validator.TEMPORARY_validateAndThrow(input);
-      }
+        if (errorCodes !== undefined) {
+          errorCodes = Array.isArray(errorCodes) ? errorCodes : [errorCodes];
+          expect(parseResult.errors).toHaveLength(errorCodes.length);
+          expect(
+            parseResult.errors.map((e: ValidationErrorDetails) => e.code)
+          ).toStrictEqual(errorCodes);
+        }
 
-      expect(didValidate).toBe(shouldValidate);
-    });
-  });
+        if (errorMessages !== undefined) {
+          errorMessages = Array.isArray(errorMessages)
+            ? errorMessages
+            : [errorMessages];
+          expect(parseResult.errors).toHaveLength(errorMessages.length);
+          expect(
+            parseResult.errors.map((e: ValidationErrorDetails) => e.message)
+          ).toStrictEqual(errorMessages);
+        }
 
-  describe("throwing", () => {
-    tests.forEach(
-      ([input, shouldValidate, errorCodes, errorMessages, errorPaths]) => {
-        const desc = `${stringify(input)} ${
-          shouldValidate ? "should not throw" : "should throw"
-        }`;
-        test(desc, () => {
-          try {
-            validator.TEMPORARY_validateAndThrow(input);
-            expect(shouldValidate).toBe(true);
-          } catch (err) {
-            if (!(err instanceof ValidationError)) {
-              throw err;
-            }
-
-            if (errorCodes !== undefined) {
-              errorCodes = Array.isArray(errorCodes)
-                ? errorCodes
-                : [errorCodes];
-              expect(err.errors).toHaveLength(errorCodes.length);
-              expect(err.errors.map(({ code }) => code)).toStrictEqual(
-                errorCodes
-              );
-            }
-
-            if (errorMessages !== undefined) {
-              errorMessages = Array.isArray(errorMessages)
-                ? errorMessages
-                : [errorMessages];
-              expect(err.errors).toHaveLength(errorMessages.length);
-              expect(err.errors.map(({ message }) => message)).toStrictEqual(
-                errorMessages
-              );
-            }
-
-            if (errorPaths !== undefined) {
-              if (!Array.isArray(errorPaths[0])) {
-                errorPaths = [errorPaths as Path];
-              }
-              expect(err.errors).toHaveLength(errorPaths.length);
-              expect(err.errors.map(({ path }) => path)).toStrictEqual(
-                errorPaths
-              );
-            }
+        if (errorPaths !== undefined) {
+          if (!Array.isArray(errorPaths[0])) {
+            errorPaths = [errorPaths as Path];
           }
-        });
-      }
-    );
-  });
+          expect(parseResult.errors).toHaveLength(errorPaths.length);
+          expect(
+            parseResult.errors.map((e: ValidationErrorDetails) => e.path)
+          ).toStrictEqual(errorPaths);
+        }
+
+        expect(parseResult).toHaveProperty("success", shouldValidate);
+        expect(validator.validate(input)).toBe(parseResult.success);
+      });
+    }
+  );
 }
 
 function stringify(value: any): string {

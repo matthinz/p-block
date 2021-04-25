@@ -1,12 +1,12 @@
 import { BasicValidator } from "./basic";
-import { enableThrowing, setErrorOptions } from "./errors";
 import {
   FluentValidator,
   NormalizationFunction,
   TypeValidationFunction,
   ValidationFunction,
-  ValidatorOptions,
+  Validator,
 } from "./types";
+import { composeValidators } from "./utils";
 
 export interface FluentBooleanValidator extends FluentValidator<boolean> {
   defaultedTo(value: boolean): FluentBooleanValidator;
@@ -18,15 +18,14 @@ export interface FluentBooleanValidator extends FluentValidator<boolean> {
 }
 
 export class BooleanValidator
-  extends BasicValidator<any, boolean>
+  extends BasicValidator<boolean>
   implements FluentBooleanValidator {
   constructor(
     parent?: BooleanValidator | TypeValidationFunction<any, boolean>,
     normalizers?: NormalizationFunction | NormalizationFunction[],
-    validators?: ValidationFunction<boolean> | ValidationFunction<boolean>[],
-    options?: ValidatorOptions
+    validator?: ValidationFunction<boolean> | Validator<boolean>
   ) {
-    super(parent ?? "boolean", normalizers, validators, options);
+    super(parent ?? "boolean", normalizers, validator);
   }
 
   defaultedTo(value: boolean): FluentBooleanValidator {
@@ -54,19 +53,21 @@ export class BooleanValidator
   normalizedWith(
     normalizers: NormalizationFunction | NormalizationFunction[]
   ): FluentBooleanValidator {
-    return new BooleanValidator(this, normalizers, [], this.options);
+    return new BooleanValidator(this, normalizers);
   }
 
   passes(
-    validator: ValidationFunction<boolean>,
+    validators:
+      | ValidationFunction<boolean>
+      | Validator<boolean>
+      | (ValidationFunction<boolean> | Validator<boolean>)[],
     errorCode?: string,
     errorMessage?: string
   ): FluentBooleanValidator {
     return new BooleanValidator(
       this,
       [],
-      validator,
-      setErrorOptions(this.options, errorCode, errorMessage)
+      composeValidators(validators, errorCode, errorMessage)
     );
   }
 }

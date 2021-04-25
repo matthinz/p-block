@@ -1,13 +1,14 @@
 import { BasicValidator } from "./basic";
-import { enableThrowing, resolveErrorDetails, setErrorOptions } from "./errors";
+import { resolveErrorDetails } from "./errors";
 import {
   FluentValidator,
   NormalizationFunction,
   TypeValidationFunction,
-  ValidationContext,
+  ValidationErrorDetails,
   ValidationFunction,
-  ValidatorOptions,
+  Validator,
 } from "./types";
+import { composeValidators } from "./utils";
 
 export interface FluentDateValidator extends FluentValidator<Date> {
   defaultedTo(value: Date): FluentDateValidator;
@@ -53,45 +54,38 @@ export interface FluentDateValidator extends FluentValidator<Date> {
   ): FluentDateValidator;
 }
 
-function isDate(input: any, context?: ValidationContext): input is Date {
+function isDate(input: any, errors?: ValidationErrorDetails[]): input is Date {
   if (input == null || !(input instanceof Date)) {
-    return (
-      context?.handleErrors([
-        {
-          code: "invalidType",
-          message: "input must be a Date",
-          path: context?.path ?? [],
-        },
-      ]) ?? false
-    );
+    errors?.push({
+      code: "invalidType",
+      message: "input must be a Date",
+      path: [],
+    });
+    return false;
   }
 
   // e.g. new Date("not a real date") yields a Date that is also NaN.
-  if (isNaN((input as unknown) as number)) {
-    return (
-      context?.handleErrors([
-        {
-          code: "invalidDate",
-          message: "input must represent a valid Date",
-          path: context?.path ?? [],
-        },
-      ]) ?? false
-    );
+  if (isNaN(input.getTime())) {
+    errors?.push({
+      code: "invalidDate",
+      message: "input must represent a valid Date",
+      path: [],
+    });
+    return false;
   }
 
   return true;
 }
 
 export class DateValidator
-  extends BasicValidator<any, Date>
+  extends BasicValidator<Date>
   implements FluentDateValidator {
   constructor(
     parent?: DateValidator | TypeValidationFunction<any, Date>,
     normalizers?: NormalizationFunction | NormalizationFunction[],
-    validators?: ValidationFunction<Date> | ValidationFunction<Date>[],
-    options?: ValidatorOptions
+    validator?: ValidationFunction<Date> | Validator<Date>
   ) {
-    super(parent ?? isDate, normalizers, validators, options);
+    super(parent ?? isDate, normalizers, validator);
   }
 
   defaultedTo(value: Date): FluentDateValidator {
@@ -181,15 +175,17 @@ export class DateValidator
   }
 
   passes(
-    validator: ValidationFunction<Date>,
+    validators:
+      | ValidationFunction<Date>
+      | Validator<Date>
+      | (ValidationFunction<Date> | Validator<Date>),
     errorCode?: string,
     errorMessage?: string
   ): FluentDateValidator {
     return new DateValidator(
       this,
       [],
-      validator,
-      setErrorOptions(this.options, errorCode, errorMessage)
+      composeValidators(validators, errorCode, errorMessage)
     );
   }
 
@@ -201,7 +197,7 @@ export class DateValidator
     providedErrorCode?: string,
     providedErrorMessage?: string
   ): FluentDateValidator {
-    return this.passes((input, context?: ValidationContext) => {
+    return this.passes((input) => {
       const comparator = typeof value === "function" ? value() : value;
 
       if (comparison(input, comparator)) {
@@ -215,15 +211,11 @@ export class DateValidator
         providedErrorMessage
       );
 
-      return (
-        context?.handleErrors([
-          {
-            code: errorCode,
-            message: errorMessage,
-            path: context?.path ?? [],
-          },
-        ]) ?? false
-      );
+      return {
+        code: errorCode,
+        message: errorMessage,
+        path: [],
+      };
     });
   }
 }

@@ -2,6 +2,8 @@
  * Interface for a validator of the given type.
  */
 export interface Validator<Type> {
+  parse(input: any): ParseResult<Type>;
+
   /**
    * @param input
    * @returns Whether input validates.
@@ -39,23 +41,11 @@ export interface Normalizer {
 export interface ValidatorOptions {
   errorCode: string;
   errorMessage: string | ((input: any) => string);
-  prepareContext?: (
-    context?: ValidationContext
-  ) => ValidationContext | undefined;
 }
 
 export type PathElement = string | number;
 
 export type Path = PathElement[];
-
-export interface ValidationContext {
-  handleErrors(errors: ValidationErrorDetails[]): false;
-  path: Path;
-}
-
-export type PrepareValidationContextFunction = (
-  context?: ValidationContext
-) => ValidationContext | undefined;
 
 export interface ValidationErrorDetails {
   code: string;
@@ -64,13 +54,24 @@ export interface ValidationErrorDetails {
 }
 
 export type ValidationFunction<Type> = (
-  input: Type,
-  context?: ValidationContext
-) => boolean;
+  input: Type
+) => boolean | ValidationErrorDetails | ValidationErrorDetails[];
 
+/**
+ * A function that makes a type assertion and optionally reports errors
+ * by adding them to `errors`.
+ */
 export type TypeValidationFunction<InputType, OutputType extends InputType> = (
   input: InputType,
-  context?: ValidationContext
+  errors?: ValidationErrorDetails[]
 ) => input is OutputType;
 
 export type NormalizationFunction = (input: any) => any;
+
+export type ParseResult<Type> =
+  | {
+      success: true;
+      errors: [];
+      parsed: Type;
+    }
+  | { success: false; errors: ValidationErrorDetails[] };

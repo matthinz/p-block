@@ -53,6 +53,16 @@ describe("isArray()", () => {
 
       runValidationTests(validator, tests);
     });
+
+    describe("with validator", () => {
+      const validator = V.isArray()
+        .of(V.isString())
+        .allItemsPass(V.isString().minLength(2));
+      const tests: [any, boolean, string[]?, string[]?, Path[]?][] = [
+        [undefined, false, ["invalidType"], [""], [[]]],
+        [["foo", "bar", "a"], false, ["minLength"], [""], [[2]]],
+      ];
+    });
   });
 
   describe("defaultedTo()", () => {

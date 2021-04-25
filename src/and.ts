@@ -1,57 +1,35 @@
-import { combineErrorLists, prepareContextToEnableThrowing } from "./errors";
-import {
-  PrepareValidationContextFunction,
-  ValidationContext,
-  ValidationErrorDetails,
-  Validator,
-} from "./types";
-import { createTrackingContext } from "./utils";
+import { combineErrorLists } from "./errors";
+import { ParseResult, Validator } from "./types";
 
 export class AndValidator<Left, Right> implements Validator<Left & Right> {
   private readonly left: Validator<Left>;
   private readonly right: Validator<Right>;
-  private readonly prepareContext?: PrepareValidationContextFunction;
 
-  constructor(
-    left: Validator<Left>,
-    right: Validator<Right>,
-    prepareContext?: PrepareValidationContextFunction
-  ) {
+  constructor(left: Validator<Left>, right: Validator<Right>) {
     this.left = left;
     this.right = right;
-    this.prepareContext = prepareContext;
   }
 
-  TEMPORARY_validateAndThrow(
-    input: any,
-    context?: ValidationContext
-  ): input is Left & Right {
-    return this.validate(input, prepareContextToEnableThrowing(context));
+  parse(input: any): ParseResult<Left & Right> {
+    const leftResult = this.left.parse(input);
+    const rightResult = this.right.parse(input);
+
+    if (leftResult.success && rightResult.success) {
+      throw new Error("Not implemented");
+    }
+
+    return {
+      success: false,
+      errors: combineErrorLists(leftResult.errors, rightResult.errors),
+    };
   }
 
-  validate(input: any, context?: ValidationContext): input is Left & Right {
-    if (this.prepareContext) {
-      context = this.prepareContext(context);
-    }
+  TEMPORARY_validateAndThrow(input: any): input is Left & Right {
+    return this.validate(input);
+  }
 
-    const leftErrors: ValidationErrorDetails[] = [];
-    const leftIsValid = this.left.validate(
-      input,
-      createTrackingContext(leftErrors, context)
-    );
-
-    const rightErrors: ValidationErrorDetails[] = [];
-    const rightIsValid = this.right.validate(
-      input,
-      createTrackingContext(rightErrors, context)
-    );
-
-    if (leftIsValid && rightIsValid) {
-      return true;
-    }
-
-    return (
-      context?.handleErrors(combineErrorLists(leftErrors, rightErrors)) ?? false
-    );
+  validate(input: any): input is Left & Right {
+    const { success } = this.parse(input);
+    return success;
   }
 }

@@ -1,16 +1,16 @@
 import { BasicValidator } from "./basic";
-import { enableThrowing } from "./errors";
 import {
   FluentValidator,
   NormalizationFunction,
-  ValidationContext,
   ValidationErrorDetails,
   ValidationFunction,
   Validator,
-  ValidatorOptions,
 } from "./types";
+import { composeValidators } from "./utils";
 
-type ValidatorDictionary = { [property: string]: Validator<any> };
+type ValidatorDictionary = {
+  [property: string]: Validator<any>;
+};
 
 export interface FluentObjectValidator<Type extends Record<string, unknown>>
   extends FluentValidator<Type> {
@@ -53,33 +53,49 @@ export interface FluentObjectValidator<Type extends Record<string, unknown>>
   >;
 }
 
-function checkIsObject<Type extends Record<string, unknown>>(
+function isObject<Type extends Record<string, unknown>>(
   input: any,
-  context?: ValidationContext
+  errors?: ValidationErrorDetails[]
 ): input is Type {
   if (typeof input === "object" && input != null && !Array.isArray(input)) {
     return true;
   }
-  return (
-    context?.handleErrors([
-      { code: "invalidType", message: "input must be an object", path: [] },
-    ]) ?? false
-  );
+
+  errors?.push({
+    code: "invalidType",
+    message: "input must be an object",
+    path: [],
+  });
+  return false;
 }
 
 export class ObjectValidator<
     ParentType extends Record<string, unknown>,
     Type extends ParentType
   >
-  extends BasicValidator<ParentType, Type>
+  extends BasicValidator<Type>
   implements FluentObjectValidator<Type> {
   constructor(
     parent?: ObjectValidator<any, ParentType>,
     normalizers?: NormalizationFunction | NormalizationFunction[],
-    validators?: ValidationFunction<Type> | ValidationFunction<Type>[],
-    options?: ValidatorOptions
+    validator?: ValidationFunction<Type> | Validator<Type>
   ) {
-    super(parent ?? checkIsObject, normalizers, validators, options);
+    super(
+      (input: any, errors?: ValidationErrorDetails[]): input is Type => {
+        if (parent) {
+          const parsed = parent.parse(input);
+          if (!parsed.success) {
+            errors?.push(...parsed.errors);
+            return false;
+          }
+          return true;
+        }
+
+        return isObject(input, errors);
+      },
+      normalizers,
+      validator
+    );
   }
 
   defaultedTo<Defaults extends { [property in keyof Type]?: Type[property] }>(
@@ -105,19 +121,22 @@ export class ObjectValidator<
   normalizedWith(
     normalizers: NormalizationFunction | NormalizationFunction[]
   ): FluentObjectValidator<Type> {
-    return new ObjectValidator(this, normalizers, [], this.options);
+    return new ObjectValidator(this, normalizers);
   }
 
   passes(
-    validators: ValidationFunction<Type> | ValidationFunction<Type>[],
+    validators:
+      | ValidationFunction<Type>
+      | Validator<Type>
+      | (ValidationFunction<Type> | Validator<Type>)[],
     errorCode?: string,
     errorMessage?: string
   ): FluentObjectValidator<Type> {
-    return new ObjectValidator(this, [], validators, {
-      ...this.options,
-      errorCode: errorCode ?? this.options.errorCode,
-      errorMessage: errorMessage ?? this.options.errorMessage,
-    });
+    return new ObjectValidator(
+      this,
+      [],
+      composeValidators(validators, errorCode, errorMessage)
+    );
   }
 
   /**
@@ -146,92 +165,55 @@ export class ObjectValidator<
       };
 
     function validateObjectProperties(
-      input: Type,
-      context?: ValidationContext
-    ): input is NextType {
-      const errorsByProperty: {
-        [property: string]: ValidationErrorDetails[] | undefined;
-      } = {};
-
-      const result = Object.keys(properties).reduce<boolean>(
-        (allPropertiesValid, propertyName) => {
-          const propertyValue = (input as { [property: string]: any })[
+      input: Type
+    ): true | ValidationErrorDetails[] {
+      const errors = Object.keys(properties).reduce<ValidationErrorDetails[]>(
+        (errors, propertyName) => {
+          const propertyValue = (input as Record<string, unknown>)[
             propertyName
           ];
           const propertyValidator = properties[propertyName];
-          const propertyContext = {
-            ...(context ?? { handleError: () => false }),
-            path: [...(context?.path ?? []), propertyName],
-          };
+          const propertyResult = propertyValidator.parse(propertyValue);
 
-          const isValid = propertyValidator.validate(propertyValue, {
-            ...propertyContext,
-
-            // Capture errors during property validation.
-            // (We'll clean them up and augment them with metadata below)
-            handleErrors(errors: ValidationErrorDetails[]) {
-              // SPECIAL CASE: When the value of the property is `undefined`,
-              //               we interpret an `invalidType` validation failure
-              //               here as meaning "this property is required"
-              const isRequiredError =
-                propertyValue === undefined &&
-                errors.length === 1 &&
-                errors[0].code === "invalidType";
-
-              if (isRequiredError) {
-                errors = [
-                  {
-                    code: "required",
-                    message: `input must include property '${propertyName}'`,
-                    path: [],
-                  },
-                ];
-              }
-
-              if (errors.length > 0) {
-                errorsByProperty[propertyName] = errors;
-              }
-
-              return false;
-            },
-          });
-
-          if (isValid) {
-            return allPropertiesValid;
+          if (propertyResult.success) {
+            return errors;
           }
 
-          return false;
+          if (propertyResult.errors.length === 0) {
+            throw new Error("Validator cannot return empty error array");
+          }
+
+          if (
+            propertyValue === undefined &&
+            propertyResult.errors.length === 1 &&
+            propertyResult.errors[0].code === "invalidType"
+          ) {
+            errors.push({
+              code: "required",
+              message: `input must include property '${propertyName}'`,
+              path: [...propertyResult.errors[0].path, propertyName],
+            });
+          } else {
+            errors.push(
+              ...propertyResult.errors.map((e) => ({
+                ...e,
+                path: [propertyName, ...e.path],
+              }))
+            );
+          }
+
+          return errors;
         },
-        true
+        []
       );
 
-      if (result === true) {
-        return true;
-      }
-
-      return (
-        context?.handleErrors(
-          Object.keys(errorsByProperty)
-            .map((propertyName) => {
-              const errors = errorsByProperty[propertyName];
-              return (errors ?? []).map((error) => ({
-                ...error,
-                path: [...(context?.path ?? []), propertyName],
-              }));
-            })
-            .reduce<ValidationErrorDetails[]>(
-              (result, errors) => [...result, ...errors],
-              []
-            )
-        ) ?? false
-      );
+      return errors.length === 0 || errors;
     }
 
     return new ObjectValidator<Type, NextType>(
       this,
       [],
-      validateObjectProperties,
-      this.options
+      validateObjectProperties
     );
   }
 }

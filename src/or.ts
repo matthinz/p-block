@@ -1,59 +1,32 @@
-import { combineErrorLists, prepareContextToEnableThrowing } from "./errors";
-import {
-  PrepareValidationContextFunction,
-  ValidationContext,
-  ValidationErrorDetails,
-  Validator,
-} from "./types";
-import { createTrackingContext, pathsEqual } from "./utils";
+import { combineErrorLists } from "./errors";
+import { ParseResult, ValidationErrorDetails, Validator } from "./types";
+import { pathsEqual } from "./utils";
 
 export class OrValidator<Left, Right> implements Validator<Left | Right> {
   private readonly left: Validator<Left>;
   private readonly right: Validator<Right>;
-  private readonly prepareContext?: PrepareValidationContextFunction;
 
-  constructor(
-    left: Validator<Left>,
-    right: Validator<Right>,
-    prepareContext?: PrepareValidationContextFunction
-  ) {
+  constructor(left: Validator<Left>, right: Validator<Right>) {
     this.left = left;
     this.right = right;
-    this.prepareContext = prepareContext;
   }
 
-  TEMPORARY_validateAndThrow(
-    input: any,
-    context?: ValidationContext
-  ): input is Left | Right {
-    return this.validate(input, prepareContextToEnableThrowing(context));
-  }
-
-  validate(input: any, context?: ValidationContext): input is Left | Right {
-    context = this.prepareContext ? this.prepareContext(context) : context;
-
-    const leftErrors: ValidationErrorDetails[] = [];
-    const leftIsValid = this.left.validate(
-      input,
-      createTrackingContext(leftErrors, context)
-    );
-    if (leftIsValid) {
-      return true;
+  parse(input: any): ParseResult<Left | Right> {
+    const leftResult = this.left.parse(input);
+    if (leftResult.success) {
+      return leftResult;
     }
 
-    const rightErrors: ValidationErrorDetails[] = [];
-    const rightIsValid = this.right.validate(
-      input,
-      createTrackingContext(rightErrors, context)
-    );
-    if (rightIsValid) {
-      return true;
+    const rightResult = this.right.parse(input);
+    if (rightResult.success) {
+      return rightResult;
     }
 
     // For intersections on code + path, combine into a single error.
-    const errors = combineErrorLists(leftErrors, rightErrors).reduce<
-      ValidationErrorDetails[]
-    >((result, err) => {
+    const errors = combineErrorLists(
+      leftResult.errors,
+      rightResult.errors
+    ).reduce<ValidationErrorDetails[]>((result, err) => {
       const existing = result.find(
         (e) => e.code === err.code && pathsEqual(e.path, err.path)
       );
@@ -67,6 +40,18 @@ export class OrValidator<Left, Right> implements Validator<Left | Right> {
       return result;
     }, []);
 
-    return context?.handleErrors(errors) ?? false;
+    return {
+      success: false,
+      errors,
+    };
+  }
+
+  TEMPORARY_validateAndThrow(input: any): input is Left | Right {
+    return this.validate(input);
+  }
+
+  validate(input: any): input is Left | Right {
+    const { success } = this.parse(input);
+    return success;
   }
 }

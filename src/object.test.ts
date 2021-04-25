@@ -98,7 +98,12 @@ describe("isObject()", () => {
           "input must include property 'state'",
           "input must include property 'zip'",
         ],
-        [["address"], ["address"], ["address"], ["address"]],
+        [
+          ["address", "street"],
+          ["address", "city"],
+          ["address", "state"],
+          ["address", "zip"],
+        ],
       ],
     ];
 

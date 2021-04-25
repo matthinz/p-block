@@ -16,7 +16,7 @@ export { FluentNumberValidator } from "./number";
 export { FluentObjectValidator } from "./object";
 export { FluentStringValidator } from "./string";
 
-const arrayValidator: FluentArrayValidator<any> = new ArrayValidator();
+const arrayValidator: FluentArrayValidator<any> = new ArrayValidator<any>();
 const booleanValidator: FluentBooleanValidator = new BooleanValidator();
 const dateValidator: FluentDateValidator = new DateValidator();
 const numberValidator: FluentNumberValidator = new NumberValidator();
