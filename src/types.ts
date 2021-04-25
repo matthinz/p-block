@@ -7,6 +7,8 @@ export interface Validator<Type> {
    * @returns Whether input validates.
    */
   validate: TypeValidationFunction<any, Type>;
+
+  TEMPORARY_validateAndThrow: TypeValidationFunction<any, Type>;
 }
 
 export interface UntypedValidator {

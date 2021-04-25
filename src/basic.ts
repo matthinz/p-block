@@ -1,3 +1,4 @@
+import { enableThrowing, prepareContextToEnableThrowing } from "./errors";
 import {
   FluentValidator,
   NormalizationFunction,
@@ -126,6 +127,13 @@ export abstract class BasicValidator<ParentType, Type extends ParentType> {
 
   toString(): string {
     return this.validators.map((validator) => validator.toString()).join(", ");
+  }
+
+  TEMPORARY_validateAndThrow(
+    input: any,
+    context?: ValidationContext
+  ): input is Type {
+    return this.validate(input, prepareContextToEnableThrowing(context));
   }
 
   /**

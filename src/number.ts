@@ -98,11 +98,6 @@ export interface FluentNumberValidator extends FluentValidator<number> {
   roundedTo(decimalPlaces: number): FluentNumberValidator;
 
   /**
-   * @returns A new FluentNumberValidator, configured to throw exceptions.
-   */
-  shouldThrow(): FluentNumberValidator;
-
-  /**
    * @returns A new FluentNumberValidator, derived from this one, that truncates the decimal portion of its input before validation.
    */
   truncated(): FluentNumberValidator;
@@ -247,10 +242,6 @@ export class NumberValidator
     };
 
     return new NumberValidator(this, normalizer, [], this.options);
-  }
-
-  shouldThrow(): FluentNumberValidator {
-    return new NumberValidator(this, [], [], enableThrowing(this.options));
   }
 
   truncated(): FluentNumberValidator {

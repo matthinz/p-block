@@ -56,11 +56,6 @@ export interface FluentArrayValidator<ItemType>
     errorCode?: string,
     errorMessage?: string
   ): FluentArrayValidator<ItemType>;
-
-  /**
-   * @returns A new FluentArrayValidator, configured to throw exceptions.
-   */
-  shouldThrow(): FluentArrayValidator<ItemType>;
 }
 
 function defaultArrayValidator<ItemType>(
@@ -178,10 +173,6 @@ export class ArrayValidator<ParentItemType, ItemType extends ParentItemType>
         },
       }
     );
-  }
-
-  shouldThrow(): FluentArrayValidator<ItemType> {
-    return new ArrayValidator(this, [], [], enableThrowing(this.options));
   }
 }
 

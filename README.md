@@ -31,5 +31,6 @@
 - `not()`
 - `oneOf()`
 - ~~`StringValidator.parsedAsDate("2020-04-24")` should produce dates in local time zone~~
-- `shouldThrow()` is dumb -- this should be a top-level option on `Validator<T>` (e.g. `validateAndThrowErrors()`)
+- ~~`shouldThrow()` is dumb -- this should be a top-level option on `Validator<T>` (e.g. `validateAndThrowErrors()`)~~
+- Finalize Validator API -- separate validation (a type assertion) and parsing (normalization + type assertion)
 - `V.isString().parsedAsInteger().validate(Infinity)` should fail

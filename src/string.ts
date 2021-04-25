@@ -122,11 +122,6 @@ export interface FluentStringValidator extends FluentValidator<string> {
   ): FluentStringValidator;
 
   /**
-   * @returns A FluentStringValidator, derived from this one, configured to throw exceptions on validation failure.
-   */
-  shouldThrow(): FluentStringValidator;
-
-  /**
    * @returns A FluentStringValidator, derived from this one, that trims leading and trailing whitespace from input before validation.
    */
   trimmed(): FluentStringValidator;
@@ -528,10 +523,6 @@ export class StringValidator
       errorCode,
       errorMessage,
     });
-  }
-
-  shouldThrow(): FluentStringValidator {
-    return new StringValidator(this, [], [], enableThrowing(this.options));
   }
 
   trimmed(): FluentStringValidator {

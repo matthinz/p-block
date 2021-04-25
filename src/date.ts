@@ -51,8 +51,6 @@ export interface FluentDateValidator extends FluentValidator<Date> {
     errorCode?: string,
     errorMessage?: string
   ): FluentDateValidator;
-
-  shouldThrow(): FluentDateValidator;
 }
 
 function isDate(input: any, context?: ValidationContext): input is Date {
@@ -193,10 +191,6 @@ export class DateValidator
       validator,
       setErrorOptions(this.options, errorCode, errorMessage)
     );
-  }
-
-  shouldThrow(): FluentDateValidator {
-    return new DateValidator(this, [], [], enableThrowing(this.options));
   }
 
   private passesComparison(

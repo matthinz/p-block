@@ -22,12 +22,11 @@ export class AndValidator<Left, Right> implements Validator<Left & Right> {
     this.prepareContext = prepareContext;
   }
 
-  shouldThrow(): AndValidator<Left, Right> {
-    return new AndValidator(
-      this.left,
-      this.right,
-      prepareContextToEnableThrowing
-    );
+  TEMPORARY_validateAndThrow(
+    input: any,
+    context?: ValidationContext
+  ): input is Left & Right {
+    return this.validate(input, prepareContextToEnableThrowing(context));
   }
 
   validate(input: any, context?: ValidationContext): input is Left & Right {

@@ -1,10 +1,6 @@
 import { ValidationError } from "./errors";
 import { Normalizer, Path, Validator } from "./types";
 
-type TestableValidator<Type> = Validator<Type> & {
-  shouldThrow?: () => TestableValidator<Type>;
-};
-
 export function runNormalizationTests<Type>(
   validator:
     | (Validator<Type> & Normalizer)
@@ -43,7 +39,7 @@ export function runNormalizationTests<Type>(
 }
 
 export function runValidationTests<Type>(
-  validator: TestableValidator<Type>,
+  validator: Validator<Type>,
   tests: [
     any,
     boolean,
@@ -60,20 +56,12 @@ export function runValidationTests<Type>(
       const didValidate = validator.validate(input);
 
       if (shouldValidate && !didValidate) {
-        if (validator.shouldThrow) {
-          validator.shouldThrow().validate(input);
-        }
+        validator.TEMPORARY_validateAndThrow(input);
       }
 
       expect(didValidate).toBe(shouldValidate);
     });
   });
-
-  if (typeof validator.shouldThrow !== "function") {
-    return;
-  }
-
-  const throwingValidator = validator.shouldThrow();
 
   describe("throwing", () => {
     tests.forEach(
@@ -83,7 +71,7 @@ export function runValidationTests<Type>(
         }`;
         test(desc, () => {
           try {
-            throwingValidator.validate(input);
+            validator.TEMPORARY_validateAndThrow(input);
             expect(shouldValidate).toBe(true);
           } catch (err) {
             if (!(err instanceof ValidationError)) {

@@ -15,7 +15,6 @@ export interface FluentBooleanValidator extends FluentValidator<boolean> {
   normalizedWith(
     normalizers: NormalizationFunction | NormalizationFunction[]
   ): FluentBooleanValidator;
-  shouldThrow(): FluentBooleanValidator;
 }
 
 export class BooleanValidator
@@ -56,10 +55,6 @@ export class BooleanValidator
     normalizers: NormalizationFunction | NormalizationFunction[]
   ): FluentBooleanValidator {
     return new BooleanValidator(this, normalizers, [], this.options);
-  }
-
-  shouldThrow(): FluentBooleanValidator {
-    return new BooleanValidator(this, [], [], enableThrowing(this.options));
   }
 
   passes(

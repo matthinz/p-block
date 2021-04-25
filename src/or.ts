@@ -22,12 +22,11 @@ export class OrValidator<Left, Right> implements Validator<Left | Right> {
     this.prepareContext = prepareContext;
   }
 
-  shouldThrow(): OrValidator<Left, Right> {
-    return new OrValidator(
-      this.left,
-      this.right,
-      prepareContextToEnableThrowing
-    );
+  TEMPORARY_validateAndThrow(
+    input: any,
+    context?: ValidationContext
+  ): input is Left | Right {
+    return this.validate(input, prepareContextToEnableThrowing(context));
   }
 
   validate(input: any, context?: ValidationContext): input is Left | Right {

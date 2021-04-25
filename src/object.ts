@@ -31,11 +31,6 @@ export interface FluentObjectValidator<Type extends Record<string, unknown>>
   ): FluentObjectValidator<Type>;
 
   /**
-   * @returns A new validator, derived from this one, that throws errors on validation failures.
-   */
-  shouldThrow(): FluentObjectValidator<Type>;
-
-  /**
    * @param properties
    * @returns A new validator, derived from this one, that verifies that all properties
    *          listed in `properties` are present and pass validation rules supplied.
@@ -123,15 +118,6 @@ export class ObjectValidator<
       errorCode: errorCode ?? this.options.errorCode,
       errorMessage: errorMessage ?? this.options.errorMessage,
     });
-  }
-
-  shouldThrow(): FluentObjectValidator<Type> {
-    return new ObjectValidator<Type, Type>(
-      this,
-      [],
-      [],
-      enableThrowing(this.options)
-    );
   }
 
   /**
