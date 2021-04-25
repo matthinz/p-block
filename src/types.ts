@@ -11,14 +11,6 @@ export interface Validator<Type> {
   TEMPORARY_validateAndThrow: TypeValidationFunction<any, Type>;
 }
 
-export interface UntypedValidator {
-  /**
-   * @param inputs
-   * @returns Whether input validates
-   */
-  validate: (input: any) => boolean;
-}
-
 export interface FluentValidator<Type> extends Validator<Type>, Normalizer {
   /**
    * @param validators
