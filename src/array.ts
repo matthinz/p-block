@@ -243,6 +243,17 @@ function createArrayItemValidator<ItemType>(
                 path: [...validationResult.path, index],
               });
             }
+            return result;
+          }
+
+          const parsed = validator.parse(item);
+          if (!parsed.success) {
+            result.push(
+              ...parsed.errors.map((e) => ({
+                ...e,
+                path: [...e.path, index],
+              }))
+            );
           }
         });
         return result;

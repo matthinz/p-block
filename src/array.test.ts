@@ -59,9 +59,16 @@ describe("isArray()", () => {
         .of(V.isString())
         .allItemsPass(V.isString().minLength(2));
       const tests: [any, boolean, string[]?, string[]?, Path[]?][] = [
-        [undefined, false, ["invalidType"], [""], [[]]],
-        [["foo", "bar", "a"], false, ["minLength"], [""], [[2]]],
+        [undefined, false, ["invalidType"], ["input must be an array"], [[]]],
+        [
+          ["foo", "bar", "a"],
+          false,
+          ["minLength"],
+          ["input length must be greater than or equal to 2 character(s)"],
+          [[2]],
+        ],
       ];
+      runValidationTests(validator, tests);
     });
   });
 
