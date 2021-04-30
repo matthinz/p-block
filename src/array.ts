@@ -3,6 +3,7 @@ import { resolveErrorDetails } from "./errors";
 import {
   FluentValidator,
   NormalizationFunction,
+  Normalizer,
   TypeValidationFunction,
   ValidationErrorDetails,
   ValidationFunction,
@@ -167,9 +168,26 @@ export class ArrayValidator<ItemType>
       }, true);
     };
 
+    const normalizer = (input: any): any => {
+      input = this.normalize(input);
+
+      if (!Array.isArray(input)) {
+        return input;
+      }
+
+      if (typeof validator !== "function") {
+        const { normalize } = validator as any;
+        if (typeof normalize === "function") {
+          input = input.map((item) => normalize.call(validator, item));
+        }
+      }
+
+      return input;
+    };
+
     return new ArrayValidator<NextItemType>(
       parentValidator,
-      [],
+      normalizer,
       createArrayItemValidator([validator])
     );
   }

@@ -81,6 +81,18 @@ describe("isArray()", () => {
       [[], [], true],
     ];
     runNormalizationTests(validator, tests);
+
+    describe("combined with item normalization", () => {
+      const validator = V.isArray()
+        .defaultedTo(["foo", undefined, null, "bar"])
+        .of(V.isString().defaultedTo(""));
+      const tests: [any, any, boolean][] = [
+        [undefined, ["foo", "", "", "bar"], true],
+        [null, ["foo", "", "", "bar"], true],
+        [[undefined, null], ["", ""], true],
+      ];
+      runNormalizationTests(validator, tests);
+    });
   });
 
   describe("maxLength", () => {
