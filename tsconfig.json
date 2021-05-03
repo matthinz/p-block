@@ -1,8 +1,12 @@
 {
   "include": ["src/**/*.ts"],
   "compilerOptions": {
-    "lib": ["ES2017"],
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "commonjs",
     "outDir": "dist",
-    "strict": true
+    "skipLibCheck": true,
+    "strict": true,
+    "target": "ES2015"
   }
 }
