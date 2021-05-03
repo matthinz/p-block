@@ -1,10 +1,9 @@
 import { V } from ".";
-import { runNormalizationTests, runValidationTests } from "./test-utils";
-import { Path } from "./types";
+import { ParsingTest, runParsingTests } from "./test-utils";
 
 describe("isBoolean()", () => {
   describe("validate()", () => {
-    const tests: [any, boolean, string?, string?, Path?][] = [
+    const tests: ParsingTest<boolean>[] = [
       [undefined, false, "invalidType", "input must be of type 'boolean'"],
       [null, false, "invalidType", "input must be of type 'boolean'"],
       [{}, false, "invalidType", "input must be of type 'boolean'"],
@@ -12,50 +11,51 @@ describe("isBoolean()", () => {
       [true, true],
       [false, true],
     ];
-    runValidationTests(V.isBoolean(), tests);
+    runParsingTests(V.isBoolean(), tests);
   });
 
   describe("defaultedTo()", () => {
     const validator = V.isBoolean().defaultedTo(false);
 
-    const tests: [any, any, boolean][] = [
-      [undefined, false, true],
-      [null, false, true],
-      [0, 0, false],
-      [1, 1, false],
-      [{}, {}, false],
-      [[], [], false],
+    const tests: ParsingTest<boolean>[] = [
+      [undefined, true, false],
+      [null, true, false],
+      [0, false, "invalidType"],
+      [1, false, "invalidType"],
+      [{}, false, "invalidType"],
+      [[], false, "invalidType"],
     ];
 
-    runNormalizationTests(validator, tests);
+    runParsingTests(validator, tests);
   });
 
   describe("isFalse()", () => {
-    const tests: [any, boolean, string?, string?, Path?][] = [
+    const tests: ParsingTest<boolean>[] = [
       [undefined, false, "invalidType"],
       [true, false, "isFalse", "input must be false"],
       [false, true],
     ];
-    runValidationTests(V.isBoolean().isFalse(), tests);
+    runParsingTests(V.isBoolean().isFalse(), tests);
   });
 
   describe("isTrue()", () => {
-    const tests: [any, boolean, string?, string?, Path?][] = [
+    const tests: ParsingTest<boolean>[] = [
       [undefined, false, "invalidType"],
       [false, false, "isTrue", "input must be true"],
       [true, true],
     ];
-    runValidationTests(V.isBoolean().isTrue(), tests);
+    runParsingTests(V.isBoolean().isTrue(), tests);
   });
 
   describe("normalizedWith()", () => {
-    const tests: [any, any, boolean][] = [
-      [undefined, false, true],
-      [null, false, true],
-      [true, true, true],
+    const tests: ParsingTest<boolean>[] = [
+      [undefined, false, "invalidType"],
+      [null, false, "invalidType"],
+      [false, true, true],
+      [true, true, false],
     ];
-    runNormalizationTests(
-      V.isBoolean().normalizedWith((input) => !!input),
+    runParsingTests(
+      V.isBoolean().normalizedWith((input) => !input),
       tests
     );
   });

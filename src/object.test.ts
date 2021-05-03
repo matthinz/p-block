@@ -1,6 +1,5 @@
 import { V } from ".";
-import { runNormalizationTests, runValidationTests } from "./test-utils";
-import { Path } from "./types";
+import { ParsingTest, runParsingTests } from "./test-utils";
 
 describe("isObject()", () => {
   describe("withProperties", () => {
@@ -9,13 +8,10 @@ describe("isObject()", () => {
       lastName: V.isString(),
     });
 
-    const tests: [
-      any,
-      boolean,
-      (string | string[])?,
-      (string | string[])?,
-      (Path | Path[])?
-    ][] = [
+    const tests: ParsingTest<{
+      firstName: string;
+      lastName: string;
+    }>[] = [
       [undefined, false, "invalidType", "input must be an object", []],
       [null, false, "invalidType", "input must be an object", []],
       [[], false, "invalidType", "input must be an object", []],
@@ -60,7 +56,7 @@ describe("isObject()", () => {
       ],
     ];
 
-    runValidationTests(validator, tests);
+    runParsingTests(validator, tests);
   });
 
   describe("withProperties (2 levels deep)", () => {
@@ -74,7 +70,17 @@ describe("isObject()", () => {
       }),
     });
 
-    const tests: [any, boolean, string[]?, string[]?, Path[]?][] = [
+    type TestType = {
+      name: string;
+      address: {
+        street: string;
+        city: string;
+        state: string;
+        zip: string;
+      };
+    };
+
+    const tests: ParsingTest<TestType>[] = [
       [
         {},
         false,
@@ -107,7 +113,7 @@ describe("isObject()", () => {
       ],
     ];
 
-    runValidationTests(validator, tests);
+    runParsingTests(validator, tests);
   });
 
   describe("defaultedTo()", () => {
@@ -120,19 +126,20 @@ describe("isObject()", () => {
         name: "Chris Exampleton",
       });
 
-    const tests: [any, any, boolean][] = [
-      [undefined, undefined, false],
-      [null, null, false],
-      [123, 123, false],
-      [{}, { name: "Chris Exampleton" }, false],
-      [
-        { name: "Pat Exampleton", age: 99 },
-        { name: "Pat Exampleton", age: 99 },
-        true,
-      ],
-      [{ age: 99 }, { name: "Chris Exampleton", age: 99 }, true],
+    type TestType = {
+      name: string;
+      age: number;
+    };
+
+    const tests: ParsingTest<TestType>[] = [
+      [undefined, false, "required", "input must include property 'age'"],
+      [null, false, "required", "input must include property 'age'"],
+      [123, false, "invalidType"],
+      [{}, false, "required", "input must include property 'age'"],
+      [{ name: "Pat Exampleton", age: 99 }, true],
+      [{ age: 99 }, true, { name: "Chris Exampleton", age: 99 }],
     ];
 
-    runNormalizationTests(validator, tests);
+    runParsingTests(validator, tests);
   });
 });

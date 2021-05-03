@@ -6,12 +6,26 @@ import { FluentNumberValidator, NumberValidator } from "./number";
 import {
   FluentValidator,
   NormalizationFunction,
-  TypeValidationFunction,
+  Normalizer,
+  ParseResult,
+  ParsingFunction,
   ValidationErrorDetails,
   ValidationFunction,
   Validator,
 } from "./types";
-import { composeValidators } from "./utils";
+
+const InvalidTypeParseResult: ParseResult<string> = {
+  success: false,
+  errors: [
+    {
+      code: "invalidType",
+      message: "input must be of type 'string'",
+      path: [],
+    },
+  ],
+};
+
+const EmptyErrorArray: ReadonlyArray<ValidationErrorDetails> = [];
 
 export interface FluentStringValidator extends FluentValidator<string> {
   /**
@@ -53,16 +67,13 @@ export interface FluentStringValidator extends FluentValidator<string> {
   ): FluentStringValidator;
 
   normalizedWith(
-    normalizer: NormalizationFunction | NormalizationFunction[]
+    normalizer:
+      | NormalizationFunction<string>
+      | Normalizer<string>
+      | (NormalizationFunction<string> | Normalizer<string>)[]
   ): FluentStringValidator;
 
   notEmpty(errorCode?: string, errorMessage?: string): FluentStringValidator;
-
-  parsedAs<Type>(
-    parser: ((input: string) => Type) | undefined,
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentValidator<Type>;
 
   parsedAsBoolean(
     errorCode?: string,
@@ -133,18 +144,19 @@ export interface FluentStringValidator extends FluentValidator<string> {
 }
 
 export class StringValidator
-  extends BasicValidator<string>
+  extends BasicValidator<string, FluentStringValidator>
   implements FluentStringValidator {
   constructor(
-    parent?: TypeValidationFunction<any, string> | StringValidator,
-    normalizers?: NormalizationFunction | NormalizationFunction[],
-    validator?: ValidationFunction<string> | Validator<string>
+    parser?: ParsingFunction<string>,
+    normalizer?: NormalizationFunction<string>,
+    validator?: ValidationFunction<string>
   ) {
-    super(parent ?? "string", normalizers, validator);
-  }
-
-  defaultedTo(value: string): FluentStringValidator {
-    return this.normalizedWith((input) => input ?? value);
+    super(
+      StringValidator,
+      parser ?? defaultStringParser,
+      normalizer,
+      validator
+    );
   }
 
   isIn(
@@ -205,12 +217,6 @@ export class StringValidator
     return this.passes((input) => input.length >= min, errorCode, errorMessage);
   }
 
-  normalizedWith(
-    normalizer: NormalizationFunction | NormalizationFunction[]
-  ): FluentStringValidator {
-    return new StringValidator(this, normalizer);
-  }
-
   notEmpty(errorCode?: string, errorMessage?: string): FluentStringValidator {
     return this.minLength(
       1,
@@ -219,87 +225,20 @@ export class StringValidator
     );
   }
 
-  parsedAs<Type>(): FluentValidator<Type> {
-    throw new Error();
-  }
-
   parsedAsBoolean(
     parserOrErrorCode?: ((input: string) => boolean | undefined) | string,
     errorCodeOrErrorMessage?: string,
     errorMessage?: string
   ): FluentBooleanValidator {
-    // parentValidator's job is to be the new "root" for the hierarchy of
-    // Boolean validators. It can "lie" about input being a boolean if
-    // `normalizer` will be able to do something about it.
-    const parentValidator = (
-      input: any,
-      errors?: ValidationErrorDetails[]
-    ): input is boolean => {
-      if (typeof input === "boolean") {
-        return true;
-      }
-
-      const parse = this.parse(input);
-      if (!parse.success) {
-        errors?.push(...parse.errors);
-        return false;
-      }
-
-      return true;
-    };
-
-    // The normalizer's job is taking arbitrary input and attempt to parse
-    // it as a boolean value. If parsing fails, it will return input unmodified.
-    const normalizer = (input: any): any => {
-      input = this.normalize(input);
-
-      if (typeof input !== "string") {
-        return input;
-      }
-
-      const parser =
-        typeof parserOrErrorCode === "function"
-          ? parserOrErrorCode
-          : defaultBooleanParser;
-
-      const parsed = parser(input);
-      if (parsed !== undefined) {
-        return parsed;
-      }
-
-      return input;
-    };
-
-    const validator = (input: any): true | ValidationErrorDetails => {
-      if (typeof input === "boolean") {
-        return true;
-      }
-
-      let code =
-        typeof parserOrErrorCode === "string"
-          ? parserOrErrorCode
-          : errorCodeOrErrorMessage;
-
-      let message: string | undefined;
-
-      if (code === undefined) {
-        code = "parsedAsBoolean";
-        message = "input could not be parsed as a boolean";
-      } else {
-        message =
-          (typeof parserOrErrorCode === "string"
-            ? errorCodeOrErrorMessage
-            : errorMessage) ?? code;
-      }
-
-      return {
-        code,
-        message,
-        path: [],
-      };
-    };
-
-    return new BooleanValidator(parentValidator, normalizer, validator);
+    return this.internalParsedAs(
+      BooleanValidator,
+      defaultBooleanParser,
+      "parsedAsBoolean",
+      "input could not be parsed as a boolean",
+      parserOrErrorCode,
+      errorCodeOrErrorMessage,
+      errorMessage
+    );
   }
 
   parsedAsDate(
@@ -307,65 +246,15 @@ export class StringValidator
     errorCodeOrErrorMessage?: string,
     errorMessage?: string
   ): FluentDateValidator {
-    const parentValidator = (
-      input: any,
-      errors?: ValidationErrorDetails[]
-    ): input is Date => {
-      if (input instanceof Date) {
-        return true;
-      }
-
-      const parse = this.parse(input);
-      if (!parse.success) {
-        errors?.push(...parse.errors);
-        return false;
-      }
-
-      return true;
-    };
-
-    const normalizer = (input: any): any => {
-      input = this.normalize(input);
-
-      if (typeof input !== "string") {
-        return input;
-      }
-
-      const parser =
-        typeof parserOrErrorCode === "function"
-          ? parserOrErrorCode
-          : defaultDateParser;
-
-      const parsed = parser(input);
-
-      return parsed === undefined ? input : parsed;
-    };
-
-    const validator = (input: any): true | ValidationErrorDetails => {
-      if (input instanceof Date) {
-        return true;
-      }
-
-      let code =
-        typeof parserOrErrorCode === "function"
-          ? errorCodeOrErrorMessage
-          : parserOrErrorCode;
-      let message: string;
-
-      if (code === undefined) {
-        code = "parsedAsDate";
-        message = "input could not be parsed as a Date";
-      } else {
-        message =
-          (typeof parserOrErrorCode === "function"
-            ? errorMessage
-            : errorCodeOrErrorMessage) ?? code;
-      }
-
-      return { code, message, path: [] };
-    };
-
-    return new DateValidator(parentValidator, normalizer, validator);
+    return this.internalParsedAs(
+      DateValidator,
+      defaultDateParser,
+      "parsedAsDate",
+      "input could not be parsed as a Date",
+      parserOrErrorCode,
+      errorCodeOrErrorMessage,
+      errorMessage
+    );
   }
 
   parsedAsFloat(
@@ -373,58 +262,15 @@ export class StringValidator
     errorCodeOrErrorMessage?: string,
     errorMessage?: string
   ): FluentNumberValidator {
-    const parentValidator = (
-      input: any,
-      errors?: ValidationErrorDetails[]
-    ): input is number => {
-      if (typeof input === "number") {
-        return true;
-      }
-
-      const parsed = this.parse(input);
-      if (!parsed.success) {
-        errors?.push(...parsed.errors);
-        return false;
-      }
-
-      return true;
-    };
-
-    const normalizer = (input: any): any => {
-      if (typeof input !== "string") {
-        return input;
-      }
-
-      const parser =
-        typeof parserOrErrorCode === "function"
-          ? parserOrErrorCode
-          : defaultFloatParser;
-
-      const parsed = parser(input);
-
-      return parsed ?? input;
-    };
-
-    const validator = (input: any): true | ValidationErrorDetails => {
-      if (typeof input === "number") {
-        return true;
-      }
-
-      const [code, message] = resolveErrorDetails(
-        "parsedAsFloat",
-        "input could not be parsed as a float",
-        typeof parserOrErrorCode === "function"
-          ? errorCodeOrErrorMessage
-          : parserOrErrorCode,
-        typeof parserOrErrorCode === "function"
-          ? errorMessage
-          : errorCodeOrErrorMessage
-      );
-
-      return { code, message, path: [] };
-    };
-
-    return new NumberValidator(parentValidator, normalizer, validator);
+    return this.internalParsedAs(
+      NumberValidator,
+      defaultFloatParser,
+      "parsedAsFloat",
+      "input could not be parsed as a float",
+      parserOrErrorCode,
+      errorCodeOrErrorMessage,
+      errorMessage
+    );
   }
 
   parsedAsInteger(
@@ -439,95 +285,21 @@ export class StringValidator
       if (radixOrParserOrErrorCode < 2 || radixOrParserOrErrorCode > 36) {
         throw new Error("radix must be between 2 and 36, inclusive");
       }
+      radixOrParserOrErrorCode = defaultIntegerParser.bind(
+        undefined,
+        radixOrParserOrErrorCode
+      );
     }
 
-    const parentValidator = (
-      input: any,
-      errors?: ValidationErrorDetails[]
-    ): input is number => {
-      if (typeof input === "number") {
-        return true;
-      }
-
-      const parsed = this.parse(input);
-      if (!parsed.success) {
-        errors?.push(...parsed.errors);
-        return false;
-      }
-
-      return true;
-    };
-
-    const normalizer = (input: any): any => {
-      input = this.normalize(input);
-
-      if (typeof input !== "string") {
-        return input;
-      }
-
-      const parser =
-        typeof radixOrParserOrErrorCode === "function"
-          ? radixOrParserOrErrorCode
-          : defaultIntegerParser.bind(
-              undefined,
-              typeof radixOrParserOrErrorCode === "number"
-                ? radixOrParserOrErrorCode
-                : 10
-            );
-
-      const parsed = parser(input);
-
-      return parsed ?? input;
-    };
-
-    const validator = (input: any): true | ValidationErrorDetails => {
-      if (typeof input === "number") {
-        return true;
-      }
-
-      const [code, message] = resolveErrorDetails(
-        "parsedAsInteger",
-        "input could not be parsed as an integer",
-        typeof radixOrParserOrErrorCode === "string"
-          ? radixOrParserOrErrorCode
-          : errorCodeOrErrorMessage,
-        typeof radixOrParserOrErrorCode === "string"
-          ? errorCodeOrErrorMessage
-          : errorMessage
-      );
-
-      return {
-        code,
-        message,
-        path: [],
-      };
-    };
-
-    return new NumberValidator(parentValidator, normalizer, validator);
-  }
-
-  passes(
-    validators:
-      | ValidationFunction<string>
-      | Validator<string>
-      | (ValidationFunction<string> | Validator<string>)[],
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentStringValidator {
-    const [effectiveErrorCode, effectiveErrorMessage] = resolveErrorDetails(
-      "invalid",
-      "input was invalid",
-      errorCode,
+    return this.internalParsedAs(
+      NumberValidator,
+      defaultIntegerParser.bind(undefined, 10),
+      "parsedAsInteger",
+      "input could not be parsed as an integer",
+      radixOrParserOrErrorCode,
+      errorCodeOrErrorMessage,
       errorMessage
     );
-
-    const validator = composeValidators(
-      validators,
-      effectiveErrorCode,
-      effectiveErrorMessage
-    );
-
-    return new StringValidator(this, [], validator);
   }
 
   trimmed(): FluentStringValidator {
@@ -536,6 +308,68 @@ export class StringValidator
 
   upperCased(): FluentStringValidator {
     return this.normalizedWith((str) => str.toUpperCase());
+  }
+
+  protected internalParsedAs<Type, ValidatorType extends FluentValidator<Type>>(
+    ctor: { new (parser: ParsingFunction<Type>): ValidatorType },
+    defaultParser: (input: string) => Type | undefined,
+    defaultErrorCode: string,
+    defaultErrorMessage: string,
+    parserOrErrorCode?: ((input: string) => Type | undefined) | string,
+    errorCodeOrErrorMessage?: string,
+    errorMessage?: string
+  ): ValidatorType {
+    const nextParser = (input: unknown): ParseResult<Type> => {
+      const stringParseResult = this.parse(input);
+      if (!stringParseResult.success) {
+        return stringParseResult;
+      }
+
+      const typedParser =
+        typeof parserOrErrorCode === "function"
+          ? parserOrErrorCode
+          : defaultParser;
+
+      const value = typedParser(stringParseResult.parsed);
+
+      if (value !== undefined) {
+        return {
+          success: true,
+          errors: [],
+          parsed: value,
+        };
+      }
+
+      let code =
+        typeof parserOrErrorCode === "function"
+          ? errorCodeOrErrorMessage
+          : parserOrErrorCode;
+
+      let message =
+        typeof parserOrErrorCode === "function"
+          ? errorMessage
+          : errorCodeOrErrorMessage;
+
+      if (code == null) {
+        code = defaultErrorCode;
+        message = defaultErrorMessage;
+      } else {
+        message = message ?? code;
+      }
+
+      return {
+        success: false,
+        errors: [
+          {
+            code,
+            message,
+            path: [],
+          },
+        ],
+      };
+    };
+
+    return new ctor(nextParser);
   }
 }
 
@@ -627,4 +461,14 @@ function defaultFloatParser(input: string): number | undefined {
   const inputWasWellFormed = parsed.toString() === input;
 
   return inputWasWellFormed ? parsed : undefined;
+}
+
+function defaultStringParser(input: unknown): ParseResult<string> {
+  return typeof input === "string"
+    ? {
+        success: true,
+        errors: EmptyErrorArray as [],
+        parsed: input,
+      }
+    : InvalidTypeParseResult;
 }

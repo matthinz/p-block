@@ -3,12 +3,11 @@ import { resolveErrorDetails } from "./errors";
 import {
   FluentValidator,
   NormalizationFunction,
-  TypeValidationFunction,
-  ValidationErrorDetails,
+  NormalizerArgs,
+  ParseResult,
+  ParsingFunction,
   ValidationFunction,
-  Validator,
 } from "./types";
-import { composeValidators } from "./utils";
 
 export interface FluentDateValidator extends FluentValidator<Date> {
   defaultedTo(value: Date): FluentDateValidator;
@@ -43,9 +42,7 @@ export interface FluentDateValidator extends FluentValidator<Date> {
     errorMessage?: string
   ): FluentDateValidator;
 
-  normalizedWith(
-    normalizers: NormalizationFunction | NormalizationFunction[]
-  ): FluentDateValidator;
+  normalizedWith(normalizers: NormalizerArgs<Date>): FluentDateValidator;
 
   passes(
     validator: ValidationFunction<Date>,
@@ -54,42 +51,15 @@ export interface FluentDateValidator extends FluentValidator<Date> {
   ): FluentDateValidator;
 }
 
-function isDate(input: any, errors?: ValidationErrorDetails[]): input is Date {
-  if (input == null || !(input instanceof Date)) {
-    errors?.push({
-      code: "invalidType",
-      message: "input must be a Date",
-      path: [],
-    });
-    return false;
-  }
-
-  // e.g. new Date("not a real date") yields a Date that is also NaN.
-  if (isNaN(input.getTime())) {
-    errors?.push({
-      code: "invalidDate",
-      message: "input must represent a valid Date",
-      path: [],
-    });
-    return false;
-  }
-
-  return true;
-}
-
 export class DateValidator
-  extends BasicValidator<Date>
+  extends BasicValidator<Date, FluentDateValidator>
   implements FluentDateValidator {
   constructor(
-    parent?: DateValidator | TypeValidationFunction<any, Date>,
-    normalizers?: NormalizationFunction | NormalizationFunction[],
-    validator?: ValidationFunction<Date> | Validator<Date>
+    parser?: ParsingFunction<Date>,
+    normalizer?: NormalizationFunction<Date>,
+    validator?: ValidationFunction<Date>
   ) {
-    super(parent ?? isDate, normalizers, validator);
-  }
-
-  defaultedTo(value: Date): FluentDateValidator {
-    return this.normalizedWith((input) => input ?? value);
+    super(DateValidator, parser ?? defaultDateParser, normalizer, validator);
   }
 
   equalTo(
@@ -168,27 +138,6 @@ export class DateValidator
     );
   }
 
-  normalizedWith(
-    normalizers: NormalizationFunction[] | NormalizationFunction
-  ): FluentDateValidator {
-    return new DateValidator(this, normalizers);
-  }
-
-  passes(
-    validators:
-      | ValidationFunction<Date>
-      | Validator<Date>
-      | (ValidationFunction<Date> | Validator<Date>),
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentDateValidator {
-    return new DateValidator(
-      this,
-      [],
-      composeValidators(validators, errorCode, errorMessage)
-    );
-  }
-
   private passesComparison(
     value: Date | (() => Date),
     comparison: (lhs: Date, rhs: Date) => boolean,
@@ -218,4 +167,39 @@ export class DateValidator
       };
     });
   }
+}
+
+function defaultDateParser(input: unknown): ParseResult<Date> {
+  if (input == null || !(input instanceof Date)) {
+    return {
+      success: false,
+      errors: [
+        {
+          code: "invalidType",
+          message: "input must be a Date",
+          path: [],
+        },
+      ],
+    };
+  }
+
+  // e.g. new Date("not a real date") yields a Date that is also NaN.
+  if (isNaN(input.getTime())) {
+    return {
+      success: false,
+      errors: [
+        {
+          code: "invalidDate",
+          message: "input must represent a valid Date",
+          path: [],
+        },
+      ],
+    };
+  }
+
+  return {
+    success: true,
+    errors: [],
+    parsed: input,
+  };
 }

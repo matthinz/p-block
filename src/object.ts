@@ -2,14 +2,16 @@ import { BasicValidator } from "./basic";
 import {
   FluentValidator,
   NormalizationFunction,
+  Parser,
+  ParseResult,
+  ParsingFunction,
   ValidationErrorDetails,
   ValidationFunction,
   Validator,
 } from "./types";
-import { composeValidators } from "./utils";
 
 type ValidatorDictionary = {
-  [property: string]: Validator<any>;
+  [property: string]: Validator<unknown>;
 };
 
 export interface FluentObjectValidator<Type extends Record<string, unknown>>
@@ -53,96 +55,44 @@ export interface FluentObjectValidator<Type extends Record<string, unknown>>
   >;
 }
 
-function isObject<Type extends Record<string, unknown>>(
-  input: any,
-  errors?: ValidationErrorDetails[]
-): input is Type {
-  if (typeof input === "object" && input != null && !Array.isArray(input)) {
-    return true;
-  }
-
-  errors?.push({
-    code: "invalidType",
-    message: "input must be an object",
-    path: [],
-  });
-  return false;
-}
-
 export class ObjectValidator<
     ParentType extends Record<string, unknown>,
     Type extends ParentType
   >
-  extends BasicValidator<Type>
+  extends BasicValidator<Type, FluentObjectValidator<Type>>
   implements FluentObjectValidator<Type> {
   constructor(
-    parent?: ObjectValidator<any, ParentType>,
-    normalizers?: NormalizationFunction | NormalizationFunction[],
-    validator?: ValidationFunction<Type> | Validator<Type>
+    parser: ParsingFunction<Type>,
+    normalizer?: NormalizationFunction<Type>,
+    validator?: ValidationFunction<Type>
   ) {
-    super(
-      (input: any, errors?: ValidationErrorDetails[]): input is Type => {
-        if (parent) {
-          const parsed = parent.parse(input);
-          if (!parsed.success) {
-            errors?.push(...parsed.errors);
-            return false;
-          }
-          return true;
-        }
-
-        return isObject(input, errors);
-      },
-      normalizers,
-      validator
-    );
+    super(ObjectValidator, parser, normalizer, validator);
   }
 
   defaultedTo<Defaults extends { [property in keyof Type]?: Type[property] }>(
     defaults: Defaults
   ): FluentObjectValidator<Type> {
-    return this.normalizedWith((input) => {
-      if (input == null || typeof input !== "object") {
-        return input;
+    const nextParser = (input: unknown): ParseResult<Type> => {
+      if (input == null) {
+        input = { ...defaults };
+      } else {
+        const parsed = defaultObjectParser(input);
+        if (parsed.success) {
+          input = [
+            ...Object.keys(defaults),
+            ...Object.keys(parsed.parsed),
+          ].reduce((obj, key) => {
+            return { ...obj, [key]: parsed.parsed[key] ?? defaults[key] };
+          }, {});
+        }
       }
 
-      const result: Record<string, unknown> = {};
+      return this.parse(input);
+    };
 
-      const keys = [...Object.keys(defaults), ...Object.keys(input)];
-
-      keys.forEach((key) => {
-        result[key] = input[key] ?? defaults[key];
-      });
-
-      return result;
-    });
+    return this.derive(nextParser, this.normalizer, this.validator);
   }
 
-  normalizedWith(
-    normalizers: NormalizationFunction | NormalizationFunction[]
-  ): FluentObjectValidator<Type> {
-    return new ObjectValidator(this, normalizers);
-  }
-
-  passes(
-    validators:
-      | ValidationFunction<Type>
-      | Validator<Type>
-      | (ValidationFunction<Type> | Validator<Type>)[],
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentObjectValidator<Type> {
-    return new ObjectValidator(
-      this,
-      [],
-      composeValidators(validators, errorCode, errorMessage)
-    );
-  }
-
-  /**
-   * @param properties
-   * @returns A new ObjectValidator that checks that all properties pass the provided validators.
-   */
   withProperties<Properties extends ValidatorDictionary>(
     properties: Properties
   ): FluentObjectValidator<
@@ -164,14 +114,15 @@ export class ObjectValidator<
           : never;
       };
 
-    function validateObjectProperties(
-      input: Type
-    ): true | ValidationErrorDetails[] {
+    const nextParser = (input: unknown): ParseResult<NextType> => {
+      const prevParseResult = this.parse(input);
+      if (!prevParseResult.success) {
+        return prevParseResult;
+      }
+
       const errors = Object.keys(properties).reduce<ValidationErrorDetails[]>(
         (errors, propertyName) => {
-          const propertyValue = (input as Record<string, unknown>)[
-            propertyName
-          ];
+          const propertyValue = prevParseResult.parsed[propertyName];
           const propertyValidator = properties[propertyName];
           const propertyResult = propertyValidator.parse(propertyValue);
 
@@ -180,7 +131,7 @@ export class ObjectValidator<
           }
 
           if (propertyResult.errors.length === 0) {
-            throw new Error("Validator cannot return empty error array");
+            throw new Error("Failed parse() cannot return empty error array");
           }
 
           if (
@@ -207,13 +158,43 @@ export class ObjectValidator<
         []
       );
 
-      return errors.length === 0 || errors;
-    }
+      if (errors.length === 0) {
+        return {
+          success: true,
+          errors: [],
+          parsed: prevParseResult.parsed as NextType,
+        };
+      }
 
-    return new ObjectValidator<Type, NextType>(
-      this,
-      [],
-      validateObjectProperties
-    );
+      return {
+        success: false,
+        errors,
+      };
+    };
+
+    return new ObjectValidator<Type, NextType>(nextParser);
   }
+}
+
+export function defaultObjectParser(
+  input: unknown
+): ParseResult<Record<string, unknown>> {
+  if (typeof input !== "object" || input == null || Array.isArray(input)) {
+    return {
+      success: false,
+      errors: [
+        {
+          code: "invalidType",
+          message: "input must be an object",
+          path: [],
+        },
+      ],
+    };
+  }
+
+  return {
+    success: true,
+    errors: [],
+    parsed: input as Record<string, unknown>,
+  };
 }

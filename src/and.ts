@@ -24,10 +24,6 @@ export class AndValidator<Left, Right> implements Validator<Left & Right> {
     };
   }
 
-  TEMPORARY_validateAndThrow(input: any): input is Left & Right {
-    return this.validate(input);
-  }
-
   validate(input: any): input is Left & Right {
     const { success } = this.parse(input);
     return success;

@@ -3,13 +3,19 @@ import { resolveErrorDetails } from "./errors";
 import {
   FluentValidator,
   NormalizationFunction,
-  TypeValidationFunction,
+  NormalizerArgs,
+  Parser,
+  ParseResult,
+  ParsingFunction,
   ValidationErrorDetails,
   ValidationFunction,
-  Validator,
-  ValidatorOptions,
+  ValidatorArgs,
 } from "./types";
-import { composeValidators } from "./utils";
+import {
+  composeNormalizers,
+  composeValidators,
+  createDefaultParser,
+} from "./utils";
 
 export interface FluentNumberValidator extends FluentValidator<number> {
   defaultedTo(value: number): FluentNumberValidator;
@@ -77,9 +83,7 @@ export interface FluentNumberValidator extends FluentValidator<number> {
   /**
    * @returns A new FluentNumberValidator, derived from this one, that normalizes inputs using the given normalization functions.
    */
-  normalizedWith(
-    normalizer: NormalizationFunction | NormalizationFunction[]
-  ): FluentNumberValidator;
+  normalizedWith(normalizer: NormalizerArgs<number>): FluentNumberValidator;
 
   /**
    * @param validators
@@ -88,7 +92,7 @@ export interface FluentNumberValidator extends FluentValidator<number> {
    * @returns A new FluentValidator that requires input to pass all of `validators`.
    */
   passes(
-    validators: ValidationFunction<number> | ValidationFunction<number>[],
+    validators: ValidatorArgs<number>,
     errorCode?: string,
     errorMessage?: string
   ): FluentNumberValidator;
@@ -106,28 +110,14 @@ export interface FluentNumberValidator extends FluentValidator<number> {
 }
 
 export class NumberValidator
-  extends BasicValidator<number>
+  extends BasicValidator<number, FluentNumberValidator>
   implements FluentNumberValidator {
   constructor(
-    parent?: NumberValidator | TypeValidationFunction<any, number>,
-    normalizers?: NormalizationFunction | NormalizationFunction[],
-    validator?: ValidationFunction<number> | Validator<number>,
-    options?: ValidatorOptions
+    parser?: ParsingFunction<number>,
+    normalizer?: NormalizationFunction<number>,
+    validator?: ValidationFunction<number>
   ) {
-    const noArgumentsSupplied =
-      parent === undefined &&
-      normalizers === undefined &&
-      validator === undefined &&
-      options === undefined;
-    if (noArgumentsSupplied) {
-      validator = validateNumberIsFinite;
-    }
-
-    super(parent ?? "number", normalizers, validator);
-  }
-
-  defaultedTo(value: number): FluentNumberValidator {
-    return this.normalizedWith((input) => (input == null ? value : input));
+    super(NumberValidator, parser ?? finiteNumberParser, normalizer, validator);
   }
 
   equalTo(
@@ -205,61 +195,26 @@ export class NumberValidator
     );
   }
 
-  normalizedWith(
-    normalizers: NormalizationFunction | NormalizationFunction[]
-  ): FluentNumberValidator {
-    return new NumberValidator(
-      this,
-      Array.isArray(normalizers) ? normalizers : [normalizers]
-    );
-  }
-
-  passes(
-    validators:
-      | ValidationFunction<number>
-      | Validator<number>
-      | (ValidationFunction<number> | Validator<number>)[],
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentNumberValidator {
-    return new NumberValidator(
-      this,
-      [],
-      composeValidators(validators, errorCode, errorMessage)
-    );
-  }
-
   roundedTo(decimalPlaces = 0): FluentNumberValidator {
-    const normalizer = (input: any) => {
-      if (typeof input !== "number") {
-        return input;
-      }
-
-      if (!isFinite(input)) {
-        return input;
-      }
-
+    const nextNormalizer = (input: number) => {
       const exp = Math.pow(10, decimalPlaces);
-
       return Math.round(input * exp) / exp;
     };
 
-    return new NumberValidator(this, normalizer);
+    return new NumberValidator(
+      this.parser,
+      composeNormalizers(this.normalizer, nextNormalizer),
+      this.validator
+    );
   }
 
   truncated(): FluentNumberValidator {
-    const normalizer = (input: any) => {
-      if (typeof input !== "number") {
-        return input;
-      }
-
-      if (!isFinite(input)) {
-        return input;
-      }
-
-      return Math.floor(input);
-    };
-    return new NumberValidator(this, normalizer);
+    const nextNormalizer = (input: number) => Math.floor(input);
+    return new NumberValidator(
+      this.parser,
+      composeNormalizers(this.normalizer, nextNormalizer),
+      this.validator
+    );
   }
 
   private passesComparison(
@@ -290,18 +245,34 @@ export class NumberValidator
         path: [],
       };
     }
-    return new NumberValidator(this, [], comparisonValidator);
+    return new NumberValidator(
+      this.parser,
+      this.normalizer,
+      composeValidators(this.validator, comparisonValidator)
+    );
   }
 }
 
-function validateNumberIsFinite(input: number): true | ValidationErrorDetails {
-  if (!isFinite(input)) {
+const defaultNumberParser = createDefaultParser<number>("number");
+
+function finiteNumberParser(input: unknown): ParseResult<number> {
+  const result = defaultNumberParser(input);
+  if (!result.success) {
+    return result;
+  }
+
+  if (!isFinite(result.parsed)) {
     return {
-      code: "invalidNumber",
-      message: "input must be a finite number",
-      path: [],
+      success: false,
+      errors: [
+        {
+          code: "invalidNumber",
+          message: "input must be a finite number",
+          path: [],
+        },
+      ],
     };
   }
 
-  return true;
+  return result;
 }

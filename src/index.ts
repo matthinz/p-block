@@ -1,10 +1,18 @@
 import { AndValidator } from "./and";
 import { OrValidator } from "./or";
-import { FluentArrayValidator, ArrayValidator } from "./array";
+import {
+  FluentArrayValidator,
+  ArrayValidator,
+  defaultArrayParser,
+} from "./array";
 import { FluentBooleanValidator, BooleanValidator } from "./boolean";
 import { FluentDateValidator, DateValidator } from "./date";
 import { FluentNumberValidator, NumberValidator } from "./number";
-import { FluentObjectValidator, ObjectValidator } from "./object";
+import {
+  defaultObjectParser,
+  FluentObjectValidator,
+  ObjectValidator,
+} from "./object";
 import { FluentStringValidator, StringValidator } from "./string";
 import { AlwaysValidator } from "./always";
 import { Validator } from "./types";
@@ -16,13 +24,15 @@ export { FluentNumberValidator } from "./number";
 export { FluentObjectValidator } from "./object";
 export { FluentStringValidator } from "./string";
 
-const arrayValidator: FluentArrayValidator<any> = new ArrayValidator<any>();
+const arrayValidator: FluentArrayValidator<unknown> = new ArrayValidator<unknown>(
+  defaultArrayParser
+);
 const booleanValidator: FluentBooleanValidator = new BooleanValidator();
 const dateValidator: FluentDateValidator = new DateValidator();
 const numberValidator: FluentNumberValidator = new NumberValidator();
 const objectValidator: FluentObjectValidator<
   Record<string, unknown>
-> = new ObjectValidator();
+> = new ObjectValidator(defaultObjectParser);
 const stringValidator: FluentStringValidator = new StringValidator();
 
 class FluentValidationRoot {
@@ -52,7 +62,7 @@ class FluentValidationRoot {
     ) as Result;
   }
 
-  isArray(): FluentArrayValidator<any> {
+  isArray(): FluentArrayValidator<unknown> {
     return arrayValidator;
   }
 

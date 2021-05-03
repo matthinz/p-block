@@ -1,56 +1,158 @@
 import {
+  NormalizationFunction,
+  NormalizerArgs,
+  Parser,
+  ParseResult,
+  ParsingFunction,
   Path,
-  ValidationErrorDetails,
   ValidationFunction,
-  Validator,
+  ValidatorArgs,
 } from "./types";
 
-export function composeValidators<Type>(
-  validators:
-    | ValidationFunction<Type>
-    | Validator<Type>
-    | (ValidationFunction<Type> | Validator<Type>)[],
-  defaultErrorCode?: string,
-  defaultErrorMessage?: string
+export function applyErrorDetails<Type>(
+  validator: ValidationFunction<Type>,
+  defaultErrorCode: string,
+  defaultErrorMessage: string,
+  preferredErrorCode?: string,
+  preferredErrorMessage?: string
 ): ValidationFunction<Type> {
-  return function validate(input: Type): true | ValidationErrorDetails[] {
-    const errors = (Array.isArray(validators)
-      ? validators
-      : [validators]
-    ).reduce<ValidationErrorDetails[]>((result, validator) => {
-      if (typeof validator === "function") {
-        const validationResult = validator(input);
-        if (validationResult === false) {
-          if (defaultErrorCode === undefined) {
-            throw new Error(
-              "ValidationFunction return `false`, but not default error code is set"
-            );
-          }
-          result.push({
-            code: defaultErrorCode,
-            message: defaultErrorMessage ?? defaultErrorCode,
-            path: [],
-          });
-        } else if (validationResult !== true) {
-          if (Array.isArray(validationResult)) {
-            result.push(...validationResult);
-          } else {
-            result.push(validationResult);
-          }
-        }
-      } else {
-        const parseResult = validator.parse(input);
-        if (!parseResult.success) {
-          if (parseResult.errors.length === 0) {
-            throw new Error("Parsing failed but did not provide any errors.");
-          }
-          result.push(...parseResult.errors);
-        }
+  return (input: Type) => {
+    const validationResult = validator(input);
+
+    if (validationResult === false) {
+      if (preferredErrorCode != null) {
+        return {
+          code: preferredErrorCode,
+          message: preferredErrorMessage ?? preferredErrorCode,
+          path: [],
+        };
       }
-      return result;
-    }, []);
-    return errors.length === 0 || errors;
+
+      return {
+        code: defaultErrorCode,
+        message: defaultErrorMessage ?? defaultErrorCode,
+        path: [],
+      };
+    }
+
+    return validationResult;
   };
+}
+
+export function buildParsingFunction<Type>(
+  parser: ParsingFunction<Type>,
+  normalizer?: NormalizationFunction<Type>,
+  validator?: ValidationFunction<Type>
+): ParsingFunction<Type> {
+  if (!(normalizer || validator)) {
+    return parser;
+  }
+
+  return (input: unknown): ParseResult<Type> => {
+    const initialParseResult = parser(input);
+    if (!initialParseResult.success) {
+      return initialParseResult;
+    }
+
+    const value = normalizer
+      ? normalizer(initialParseResult.parsed)
+      : initialParseResult.parsed;
+
+    if (!validator) {
+      return {
+        success: true,
+        errors: [],
+        parsed: value,
+      };
+    }
+
+    const validationResult = validator(value);
+
+    if (validationResult === true) {
+      return {
+        success: true,
+        errors: [],
+        parsed: value,
+      };
+    } else if (validationResult === false) {
+      throw new Error(
+        "Validation failed but no error code could be determined"
+      );
+    }
+
+    return {
+      success: false,
+      errors: Array.isArray(validationResult)
+        ? validationResult
+        : [validationResult],
+    };
+  };
+}
+
+/**
+ * Takes a set of things that _could_ normalize an input and returns a single
+ * function that applies them all.
+ */
+export function composeNormalizers<Type>(
+  ...normalizers: NormalizerArgs<Type>[]
+): NormalizationFunction<Type> {
+  function reducer(
+    result: NormalizationFunction<Type>,
+    normalizer: NormalizerArgs<Type>
+  ): NormalizationFunction<Type> {
+    if (!normalizer) {
+      return result;
+    }
+
+    if (Array.isArray(normalizer)) {
+      return normalizer.reduce(reducer, result);
+    }
+
+    if (typeof normalizer === "function") {
+      return (input: Type) => normalizer(result(input));
+    }
+
+    return (input: Type) => normalizer.normalize(result(input));
+  }
+
+  return normalizers.reduce(reducer, (input: Type) => input);
+}
+
+/**
+ * Takes a set of things that can be used to validate an input and returns
+ * a ValidationFunction that applies them in sequence.
+ */
+export function composeValidators<Type>(
+  ...validators: ValidatorArgs<Type>[]
+): ValidationFunction<Type> {
+  function reducer(
+    result: ValidationFunction<Type>,
+    validator: ValidatorArgs<Type>
+  ): ValidationFunction<Type> {
+    if (!validator) {
+      return result;
+    }
+
+    if (Array.isArray(validator)) {
+      return validator.reduce(reducer, result);
+    }
+
+    return function (input: Type) {
+      const validationResult = result(input);
+      if (validationResult !== true) {
+        return validationResult;
+      }
+
+      if (typeof validator === "function") {
+        return validator(input);
+      }
+
+      const parsed = validator.parse(input);
+      return parsed.success || parsed.errors;
+    };
+  }
+
+  return validators.reduce(reducer, () => true);
 }
 
 export function pathsEqual(x: Path, y: Path): boolean {
@@ -68,4 +170,42 @@ export function pathsEqual(x: Path, y: Path): boolean {
   }
 
   return true;
+}
+
+export function createDefaultParser<Type>(
+  type: string | Function // eslint-disable-line
+): ParsingFunction<Type> {
+  return (input: unknown): ParseResult<Type> => {
+    if (typeof type === "string") {
+      if (typeof input !== type) {
+        return {
+          success: false,
+          errors: [
+            {
+              code: "invalidType",
+              message: `input must be of type '${type}'`,
+              path: [],
+            },
+          ],
+        };
+      }
+    } else if (!(input instanceof type)) {
+      return {
+        success: false,
+        errors: [
+          {
+            code: "invalidType",
+            message: `input must be an instance of ${type}`,
+            path: [],
+          },
+        ],
+      };
+    }
+
+    return {
+      success: true,
+      errors: [],
+      parsed: input as Type,
+    };
+  };
 }

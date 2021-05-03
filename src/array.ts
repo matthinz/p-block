@@ -3,13 +3,20 @@ import { resolveErrorDetails } from "./errors";
 import {
   FluentValidator,
   NormalizationFunction,
-  Normalizer,
-  TypeValidationFunction,
+  NormalizerArgs,
+  Parser,
+  ParseResult,
+  ParsingFunction,
   ValidationErrorDetails,
   ValidationFunction,
   Validator,
+  ValidatorArgs,
 } from "./types";
-import { composeValidators } from "./utils";
+import {
+  applyErrorDetails,
+  buildParsingFunction,
+  composeValidators,
+} from "./utils";
 
 export interface FluentArrayValidator<ItemType>
   extends FluentValidator<ItemType[]> {
@@ -34,7 +41,7 @@ export interface FluentArrayValidator<ItemType>
   ): FluentArrayValidator<ItemType>;
 
   normalizedWith(
-    normalizer: NormalizationFunction | NormalizationFunction[]
+    normalizer: NormalizerArgs<ItemType[]>
   ): FluentArrayValidator<ItemType>;
 
   /**
@@ -51,45 +58,97 @@ export interface FluentArrayValidator<ItemType>
    * @returns A new FluentValidator that requires input to pass all of `validators`.
    */
   passes(
-    validators:
-      | ValidationFunction<ItemType[]>
-      | ValidationFunction<ItemType[]>[],
+    validators: ValidatorArgs<ItemType[]>,
     errorCode?: string,
     errorMessage?: string
   ): FluentArrayValidator<ItemType>;
 }
 
 export class ArrayValidator<ItemType>
-  extends BasicValidator<ItemType[]>
+  extends BasicValidator<ItemType[], FluentArrayValidator<ItemType>>
   implements FluentArrayValidator<ItemType> {
   constructor(
-    parent?: ArrayValidator<ItemType> | TypeValidationFunction<any, ItemType[]>,
-    normalizers?: NormalizationFunction | NormalizationFunction[],
-    validator?: ValidationFunction<ItemType[]> | Validator<ItemType[]>
+    parser: ParsingFunction<ItemType[]>,
+    normalizer?: NormalizationFunction<ItemType[]>,
+    validator?: ValidationFunction<ItemType[]>
   ) {
-    super(parent ?? isArray, normalizers, validator);
+    super(ArrayValidator, parser, normalizer, validator);
   }
 
   defaultedTo(value: ItemType[]): FluentArrayValidator<ItemType> {
-    return this.normalizedWith((input) => input ?? value);
+    const nextParser = (input: unknown): ParseResult<ItemType[]> => {
+      if (input == null) {
+        return {
+          success: true,
+          errors: [],
+          parsed: value,
+        };
+      }
+
+      return this.parser(input);
+    };
+
+    return new ArrayValidator(nextParser, this.normalizer, this.validator);
   }
 
   allItemsPass(
-    validator: ValidationFunction<ItemType> | Validator<ItemType>,
+    validators:
+      | ValidationFunction<ItemType>
+      | Validator<ItemType>
+      | (ValidationFunction<ItemType> | Validator<ItemType>)[],
     errorCode?: string,
     errorMessage?: string
   ): FluentArrayValidator<ItemType> {
-    [errorCode, errorMessage] = resolveErrorDetails(
-      "allItemsPass",
-      "all items in input array must pass the check",
-      errorCode,
-      errorMessage
+    const itemValidator = composeValidators(validators);
+
+    const nextValidator = composeValidators(
+      this.validator,
+      (input: ItemType[]) => {
+        const errors = input.reduce<ValidationErrorDetails[]>(
+          (errors, item, index) => {
+            const itemResult = itemValidator(item);
+
+            if (itemResult === false) {
+              const [code, message] = resolveErrorDetails(
+                "allItemsPass",
+                "all items in input array must pass the check",
+                errorCode,
+                errorMessage
+              );
+
+              errors.push({
+                code,
+                message,
+                path: [index],
+              });
+              return errors;
+            } else if (Array.isArray(itemResult)) {
+              errors.push(
+                ...itemResult.map((e) => ({
+                  ...e,
+                  path: [...e.path, index],
+                }))
+              );
+            } else if (itemResult !== true) {
+              errors.push({
+                ...itemResult,
+                path: [...itemResult.path, index],
+              });
+            }
+
+            return errors;
+          },
+          []
+        );
+
+        return errors.length === 0 || errors;
+      }
     );
 
     return new ArrayValidator(
-      this,
-      [],
-      createArrayItemValidator([validator], errorCode, errorMessage)
+      this.parser,
+      this.normalizer,
+      composeValidators(this.validator, nextValidator)
     );
   }
 
@@ -117,168 +176,77 @@ export class ArrayValidator<ItemType>
     );
   }
 
-  normalizedWith(
-    normalizers: NormalizationFunction | NormalizationFunction[]
-  ): FluentArrayValidator<ItemType> {
-    return new ArrayValidator(this, normalizers);
-  }
-
   of<NextItemType extends ItemType>(
-    validator:
-      | TypeValidationFunction<ItemType, NextItemType>
-      | Validator<NextItemType>
+    validator: Validator<NextItemType>
   ): FluentArrayValidator<NextItemType> {
-    const parentValidator = (
-      input: any,
-      errors?: ValidationErrorDetails[]
-    ): input is NextItemType[] => {
+    const nextParser = (input: unknown): ParseResult<NextItemType[]> => {
       const parsed = this.parse(input);
       if (!parsed.success) {
-        errors?.push(...parsed.errors);
-        return false;
+        return parsed;
       }
 
-      return parsed.parsed.reduce<boolean>((allValid, item, index) => {
-        if (typeof validator === "function") {
-          const itemErrors: ValidationErrorDetails[] = [];
-          if (!validator(item, itemErrors)) {
-            errors?.push(
-              ...itemErrors.map((e: ValidationErrorDetails) => ({
+      // TODO: Optimize this reduce()
+
+      return parsed.parsed.reduce<ParseResult<NextItemType[]>>(
+        (result, item, index) => {
+          const itemParse = validator.parse(item);
+          if (itemParse.success) {
+            if (result.success) {
+              return {
+                success: true,
+                errors: [],
+                parsed: [...result.parsed, itemParse.parsed],
+              };
+            } else {
+              return result;
+            }
+          }
+
+          return {
+            success: false,
+            errors: [
+              ...result.errors,
+              ...itemParse.errors.map((e) => ({
                 ...e,
                 path: [...e.path, index],
-              }))
-            );
-            return false;
-          }
-          return true;
-        }
-
-        const itemParse = validator.parse(item);
-        if (!itemParse.success) {
-          errors?.push(
-            ...itemParse.errors.map((e: ValidationErrorDetails) => ({
-              ...e,
-              path: [...e.path, index],
-            }))
-          );
-          return false;
-        }
-
-        return allValid;
-      }, true);
+              })),
+            ],
+          };
+        },
+        { success: true, errors: [], parsed: [] }
+      );
     };
 
-    const normalizer = (input: any): any => {
-      input = this.normalize(input);
-
-      if (!Array.isArray(input)) {
-        return input;
-      }
-
-      if (typeof validator !== "function") {
-        const { normalize } = validator as any;
-        if (typeof normalize === "function") {
-          input = input.map((item) => normalize.call(validator, item));
-        }
-      }
-
-      return input;
-    };
-
-    return new ArrayValidator<NextItemType>(
-      parentValidator,
-      normalizer,
-      createArrayItemValidator([validator])
-    );
+    return new ArrayValidator(nextParser);
   }
 
   passes(
-    validators:
-      | ValidationFunction<ItemType[]>
-      | Validator<ItemType[]>
-      | (ValidationFunction<ItemType[]> | Validator<ItemType[]>)[],
+    validators: ValidatorArgs<ItemType[]>,
     errorCode?: string,
     errorMessage?: string
   ): FluentArrayValidator<ItemType> {
     return new ArrayValidator<ItemType>(
-      this,
-      [],
-      composeValidators(validators, errorCode, errorMessage)
+      this.parser,
+      this.normalizer,
+      applyErrorDetails(
+        composeValidators(this.validator, validators),
+        "invalid",
+        "input was invalid",
+        errorCode,
+        errorMessage
+      )
     );
   }
 }
 
-function isArray(
-  input: any,
-  errors?: ValidationErrorDetails[]
-): input is any[] {
-  if (!Array.isArray(input)) {
-    errors?.push({
-      code: "invalidType",
-      message: "input must be an array",
-      path: [],
-    });
-    return false;
-  }
-  return true;
-}
+export function defaultArrayParser(input: unknown): ParseResult<unknown[]> {
+  if (!Array.isArray(input))
+    return {
+      success: false,
+      errors: [
+        { code: "invalidType", message: "input must be an array", path: [] },
+      ],
+    };
 
-function createArrayItemValidator<ItemType>(
-  validators: (ValidationFunction<ItemType> | Validator<ItemType>)[],
-  errorCode?: string,
-  errorMessage?: string
-): (input: ItemType[]) => true | ValidationErrorDetails[] {
-  return function validateArrayItems(
-    input: ItemType[]
-  ): true | ValidationErrorDetails[] {
-    const errors = input.reduce<ValidationErrorDetails[]>(
-      (result, item, index) => {
-        validators.every((validator) => {
-          if (typeof validator === "function") {
-            const validationResult = validator(item);
-            if (validationResult === false) {
-              if (errorCode === undefined) {
-                throw new Error("Error code not specified");
-              }
-              result.push({
-                code: errorCode,
-                message: errorMessage ?? errorCode,
-                path: [index],
-              });
-            } else if (Array.isArray(validationResult)) {
-              if (validationResult.length === 0) {
-                throw new Error("Returning an empty array is not supported");
-              }
-              result.push(
-                ...validationResult.map((e) => ({
-                  ...e,
-                  path: [...e.path, index],
-                }))
-              );
-            } else if (validationResult !== true) {
-              errors.push({
-                ...validationResult,
-                path: [...validationResult.path, index],
-              });
-            }
-            return result;
-          }
-
-          const parsed = validator.parse(item);
-          if (!parsed.success) {
-            result.push(
-              ...parsed.errors.map((e) => ({
-                ...e,
-                path: [...e.path, index],
-              }))
-            );
-          }
-        });
-        return result;
-      },
-      []
-    );
-
-    return errors.length === 0 || errors;
-  };
+  return { success: true, errors: [], parsed: input };
 }

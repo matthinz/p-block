@@ -1,93 +1,100 @@
-import { Normalizer, Path, ValidationErrorDetails, Validator } from "./types";
+import { Parser, Path } from "./types";
 
-export function runNormalizationTests<Type>(
-  validator:
-    | (Validator<Type> & Normalizer)
-    | [Validator<Type> & Normalizer, any, any, boolean][],
-  tests?: [any, any, boolean][] | undefined
+// cspell:ignore arrayify
+
+export type ParsingTest<Type> =
+  | [unknown, true, Type?]
+  | [
+      unknown,
+      false,
+      (string | string[])?,
+      (string | string[])?,
+      (Path | Path[])?
+    ];
+
+export type ParsingTestWithParser<Type> =
+  | [Parser<Type>, unknown, true, Type?]
+  | [
+      Parser<Type>,
+      unknown,
+      false,
+      (string | string[])?,
+      (string | string[])?,
+      (Path | Path[])?
+    ];
+
+export function runParsingTests<Type>(
+  parserOrTests: Parser<Type> | ParsingTestWithParser<Type>[],
+  tests?: ParsingTest<Type>[]
 ): void {
-  const testsWithValidator: [
-    Validator<Type> & Normalizer,
-    any,
-    any,
-    boolean
-  ][] = Array.isArray(validator)
-    ? validator
-    : (tests ?? []).map((params) => [validator, ...params]);
+  const testsWithParser: ParsingTestWithParser<Type>[] = Array.isArray(
+    parserOrTests
+  )
+    ? parserOrTests
+    : (tests ?? []).map((test) => [parserOrTests, ...test]);
 
-  describe("normalize()", () => {
-    testsWithValidator.forEach(([validator, input, expected]) => {
-      test(`${stringify(input)} normalizes to ${stringify(expected)}`, () => {
-        const actual = validator.normalize(input);
-        expect(actual).toStrictEqual(expected);
-      });
-    });
+  describe("parse()", () => {
+    testsWithParser.forEach((testParams) => {
+      const [parser, input] = testParams;
 
-    describe("validate()", () => {
-      testsWithValidator.forEach(
-        ([validator, input, expected, shouldValidate]) => {
-          test(`${stringify(input)} normalizes to ${stringify(expected)} and ${
-            shouldValidate ? "validates" : "does not validate"
-          }`, () => {
-            expect(validator.validate(input)).toBe(shouldValidate);
-          });
+      describe(stringify(input), () => {
+        const parseResult = parser.parse(input);
+
+        if (testParams[2]) {
+          const expected = testParams[3] ?? (input as Type);
+          test("does not return errors", () =>
+            expect(parseResult.errors).toHaveLength(0));
+          test("succeeds", () =>
+            expect(parseResult).toHaveProperty("success", true));
+          test(`parses to ${stringify(expected)}`, () =>
+            expect(parseResult.success && parseResult.parsed).toStrictEqual(
+              expected
+            ));
+          return;
         }
-      );
+
+        test("fails", () =>
+          expect(parseResult).toHaveProperty("success", false));
+
+        const expectedErrorCodes = testParams[3]
+          ? Array.isArray(testParams[3])
+            ? testParams[3]
+            : [testParams[3]]
+          : [];
+        const expectedErrorMessages = testParams[4]
+          ? Array.isArray(testParams[4])
+            ? testParams[4]
+            : [testParams[4]]
+          : [];
+        const expectedErrorPaths = testParams[5]
+          ? isPath(testParams[5])
+            ? [testParams[5]]
+            : testParams[5]
+          : [];
+
+        if (expectedErrorCodes.length > 0) {
+          test("returns correct error code(s)", () =>
+            expect(
+              !parseResult.success && parseResult.errors.map((e) => e.code)
+            ).toStrictEqual(expectedErrorCodes));
+        }
+
+        if (expectedErrorMessages.length > 0) {
+          test("returns correct error message(s)", () =>
+            expect(
+              !parseResult.success && parseResult.errors.map((e) => e.message)
+            ).toStrictEqual(expectedErrorMessages));
+        }
+
+        if (expectedErrorPaths.length > 0) {
+          test("returns correct error path(s)", () =>
+            expect(
+              !parseResult.success && parseResult.errors.map((e) => e.path)
+            ).toStrictEqual(expectedErrorPaths));
+        }
+      });
     });
   });
-}
-
-export function runValidationTests<Type>(
-  validator: Validator<Type>,
-  tests: [
-    any,
-    boolean,
-    (string | string[])?,
-    (string | string[])?,
-    (Path | Path[])?
-  ][]
-): void {
-  tests.forEach(
-    ([input, shouldValidate, errorCodes, errorMessages, errorPaths]) => {
-      const desc = `${stringify(input)} ${
-        shouldValidate ? "should validate" : "should not validate"
-      }`;
-      test(desc, () => {
-        const parseResult = validator.parse(input);
-
-        if (errorCodes !== undefined) {
-          errorCodes = Array.isArray(errorCodes) ? errorCodes : [errorCodes];
-          expect(parseResult.errors).toHaveLength(errorCodes.length);
-          expect(
-            parseResult.errors.map((e: ValidationErrorDetails) => e.code)
-          ).toStrictEqual(errorCodes);
-        }
-
-        if (errorMessages !== undefined) {
-          errorMessages = Array.isArray(errorMessages)
-            ? errorMessages
-            : [errorMessages];
-          expect(parseResult.errors).toHaveLength(errorMessages.length);
-          expect(
-            parseResult.errors.map((e: ValidationErrorDetails) => e.message)
-          ).toStrictEqual(errorMessages);
-        }
-
-        if (errorPaths !== undefined) {
-          if (!Array.isArray(errorPaths[0])) {
-            errorPaths = [errorPaths as Path];
-          }
-          expect(parseResult.errors).toHaveLength(errorPaths.length);
-          expect(
-            parseResult.errors.map((e: ValidationErrorDetails) => e.path)
-          ).toStrictEqual(errorPaths);
-        }
-
-        expect(parseResult).toHaveProperty("success", shouldValidate);
-        expect(validator.validate(input)).toBe(parseResult.success);
-      });
-    }
-  );
 }
 
 function stringify(value: any): string {
@@ -109,4 +116,11 @@ function stringify(value: any): string {
     }
     return value;
   }).replace(/"<<(.+)>>"/g, "$1");
+}
+
+function isPath(input: unknown): input is Path {
+  return (
+    Array.isArray(input) &&
+    input.every((item) => typeof item === "string" || typeof item === "number")
+  );
 }

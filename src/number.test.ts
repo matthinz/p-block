@@ -1,10 +1,10 @@
 import { V } from ".";
-import { runNormalizationTests, runValidationTests } from "./test-utils";
+import { ParsingTest, runParsingTests } from "./test-utils";
 
 describe("isNumber()", () => {
-  describe("validate()", () => {
+  describe("stock", () => {
     const validator = V.isNumber();
-    const tests: [any, boolean, string?, string?][] = [
+    const tests: ParsingTest<number>[] = [
       [undefined, false, "invalidType", "input must be of type 'number'"],
       [null, false, "invalidType", "input must be of type 'number'"],
       ["1234", false, "invalidType", "input must be of type 'number'"],
@@ -15,11 +15,11 @@ describe("isNumber()", () => {
       [-Infinity, false, "invalidNumber", "input must be a finite number"],
       [NaN, false, "invalidNumber", "input must be a finite number"],
     ];
-    runValidationTests(validator, tests);
+    runParsingTests(validator, tests);
   });
   describe("equalTo()", () => {
     const validator = V.isNumber().equalTo(42);
-    const tests: [any, boolean, string?, string?][] = [
+    const tests: ParsingTest<number>[] = [
       [undefined, false, "invalidType"],
       [null, false, "invalidType"],
       ["abc", false, "invalidType"],
@@ -29,12 +29,12 @@ describe("isNumber()", () => {
       [42, true],
       [42.0, true],
     ];
-    runValidationTests(validator, tests);
+    runParsingTests(validator, tests);
   });
 
   describe("greaterThan()", () => {
     const validator = V.isNumber().greaterThan(42);
-    const tests: [any, boolean, string?, string?][] = [
+    const tests: ParsingTest<number>[] = [
       [undefined, false, "invalidType"],
       [null, false, "invalidType"],
       ["abc", false, "invalidType"],
@@ -44,12 +44,12 @@ describe("isNumber()", () => {
       [42.0001, true],
       [43, true],
     ];
-    runValidationTests(validator, tests);
+    runParsingTests(validator, tests);
   });
 
   describe("greaterThanOrEqualTo()", () => {
     const validator = V.isNumber().greaterThanOrEqualTo(42);
-    const tests: [any, boolean, string?, string?][] = [
+    const tests: ParsingTest<number>[] = [
       [undefined, false, "invalidType"],
       [null, false, "invalidType"],
       ["abc", false, "invalidType"],
@@ -64,12 +64,12 @@ describe("isNumber()", () => {
       [42.0001, true],
       [43, true],
     ];
-    runValidationTests(validator, tests);
+    runParsingTests(validator, tests);
   });
 
   describe("lessThan()", () => {
     const validator = V.isNumber().lessThan(42);
-    const tests: [any, boolean, string?, string?][] = [
+    const tests: ParsingTest<number>[] = [
       [undefined, false, "invalidType"],
       [null, false, "invalidType"],
       ["abc", false, "invalidType"],
@@ -78,12 +78,12 @@ describe("isNumber()", () => {
       [41.999999999999, true],
       [42, false, "lessThan", "input must be less than 42"],
     ];
-    runValidationTests(validator, tests);
+    runParsingTests(validator, tests);
   });
 
   describe("lessThanOrEqualTo()", () => {
     const validator = V.isNumber().lessThanOrEqualTo(42);
-    const tests: [any, boolean, string?, string?][] = [
+    const tests: ParsingTest<number>[] = [
       [undefined, false, "invalidType"],
       [null, false, "invalidType"],
       ["abc", false, "invalidType"],
@@ -98,27 +98,30 @@ describe("isNumber()", () => {
         "input must be less than or equal to 42",
       ],
     ];
-    runValidationTests(validator, tests);
+    runParsingTests(validator, tests);
   });
 
   describe("roundedTo()", () => {
     const validator = V.isNumber().roundedTo(2);
-    const tests: [any, any, boolean][] = [
-      [undefined, undefined, false],
-      ["", "", false],
-      [NaN, NaN, false],
-      [2.586, 2.59, true],
+    const tests: ParsingTest<number>[] = [
+      [undefined, false, "invalidType"],
+      ["", false, "invalidType"],
+      [NaN, false, "invalidNumber"],
+      [Infinity, false, "invalidNumber"],
+      [-Infinity, false, "invalidNumber"],
+      [2.586, true, 2.59],
     ];
-    runNormalizationTests(validator, tests);
+    runParsingTests(validator, tests);
   });
 
   describe("truncated()", () => {
     const validator = V.isNumber().truncated();
-    const tests: [any, any, boolean][] = [
-      [undefined, undefined, false],
-      ["", "", false],
-      [2.586, 2, true],
+    const tests: ParsingTest<number>[] = [
+      [undefined, false, "invalidType"],
+      ["", false, "invalidType"],
+      [2.586, true, 2],
+      [2, true, 2],
     ];
-    runNormalizationTests(validator, tests);
+    runParsingTests(validator, tests);
   });
 });

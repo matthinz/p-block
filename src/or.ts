@@ -27,12 +27,15 @@ export class OrValidator<Left, Right> implements Validator<Left | Right> {
       leftResult.errors,
       rightResult.errors
     ).reduce<ValidationErrorDetails[]>((result, err) => {
-      const existing = result.find(
+      const existingIndex = result.findIndex(
         (e) => e.code === err.code && pathsEqual(e.path, err.path)
       );
 
-      if (existing) {
-        existing.message = `${existing.message} OR ${err.message}`;
+      if (existingIndex >= 0) {
+        result[existingIndex] = {
+          ...result[existingIndex],
+          message: `${result[existingIndex].message} OR ${err.message}`,
+        };
       } else {
         result.push(err);
       }
@@ -44,10 +47,6 @@ export class OrValidator<Left, Right> implements Validator<Left | Right> {
       success: false,
       errors,
     };
-  }
-
-  TEMPORARY_validateAndThrow(input: any): input is Left | Right {
-    return this.validate(input);
   }
 
   validate(input: any): input is Left | Right {

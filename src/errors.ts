@@ -1,4 +1,4 @@
-import { ValidationErrorDetails, ValidatorOptions } from "./types";
+import { ValidationErrorDetails } from "./types";
 
 export class ValidationError extends Error {
   readonly errors: ValidationErrorDetails[];
@@ -67,18 +67,6 @@ export function resolveErrorDetails(
     return [defaultErrorCode, defaultErrorMessage];
   }
   return [providedErrorCode, providedErrorMessage ?? providedErrorCode];
-}
-
-export function setErrorOptions(
-  options: ValidatorOptions,
-  errorCode?: string,
-  errorMessage?: string
-): ValidatorOptions {
-  return {
-    ...options,
-    errorCode: errorCode ?? options.errorCode,
-    errorMessage: errorMessage ?? options.errorMessage,
-  };
 }
 
 function summarizeErrors(errors: ValidationErrorDetails[]): string {

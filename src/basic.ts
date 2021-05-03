@@ -1,148 +1,141 @@
 import {
   FluentValidator,
   NormalizationFunction,
+  NormalizerArgs,
   ParseResult,
-  TypeValidationFunction,
-  ValidationErrorDetails,
+  ParsingFunction,
   ValidationFunction,
-  Validator,
+  ValidatorArgs,
 } from "./types";
+import {
+  applyErrorDetails,
+  composeNormalizers,
+  composeValidators,
+} from "./utils";
 
-function createTypeValidator<Type>(
-  type: string
-): TypeValidationFunction<any, Type> {
-  return function validateType(
-    input: any,
-    errors?: ValidationErrorDetails[]
-  ): input is Type {
-    if (typeof input === type) {
-      return true;
-    }
-
-    if (errors) {
-      errors.push({
-        code: "invalidType",
-        message: `input must be of type '${type}'`,
-        path: [],
-      });
-    }
-
-    return false;
-  };
-}
-
-export abstract class BasicValidator<Type> {
-  private readonly parent: Validator<Type> | TypeValidationFunction<any, Type>;
-  private readonly normalizers: NormalizationFunction[];
-  private readonly validator?: ValidationFunction<Type> | Validator<Type>;
+export abstract class BasicValidator<
+  Type,
+  ValidatorType extends FluentValidator<Type>
+> {
+  protected readonly parser: ParsingFunction<Type>;
+  protected readonly normalizer?: NormalizationFunction<Type>;
+  protected readonly validator?: ValidationFunction<Type>;
+  private readonly ctor: new (
+    parser: ParsingFunction<Type>,
+    normalizer?: NormalizationFunction<Type>,
+    validator?: ValidationFunction<Type>
+  ) => ValidatorType;
 
   constructor(
-    parent: Validator<Type> | TypeValidationFunction<any, Type> | string,
-    normalizers?: NormalizationFunction | NormalizationFunction[],
-    validator?: ValidationFunction<Type> | Validator<Type>
+    ctor: new (
+      parser: ParsingFunction<Type>,
+      normalizer?: NormalizationFunction<Type>,
+      validator?: ValidationFunction<Type>
+    ) => ValidatorType,
+    parser: ParsingFunction<Type>,
+    normalizer?: NormalizationFunction<Type>,
+    validator?: ValidationFunction<Type>
   ) {
-    this.parent =
-      typeof parent === "string" ? createTypeValidator<Type>(parent) : parent;
-    this.normalizers = normalizers
-      ? Array.isArray(normalizers)
-        ? normalizers
-        : [normalizers]
-      : [];
+    this.ctor = ctor;
+    this.parser = parser;
+    this.normalizer = normalizer;
     this.validator = validator;
   }
 
-  /**
-   * Given an, applies all configured normalizations.
-   * @param input
-   * @returns Normalized version of `input`.
-   */
-  normalize(input: any): any {
-    if (this.parent instanceof BasicValidator) {
-      input = this.parent.normalize(input);
-    }
+  defaultedTo(value: Type): ValidatorType {
+    const nextParser = (input: unknown): ParseResult<Type> => {
+      if (input == null) {
+        return {
+          success: true,
+          errors: [],
+          parsed: value,
+        };
+      }
 
-    return this.normalizers.reduce(
-      (result, normalizer) => normalizer(result),
-      input
+      return this.parser(input);
+    };
+
+    return this.derive(nextParser, this.normalizer, this.validator);
+  }
+
+  normalize(input: Type): Type {
+    return this.normalizer ? this.normalizer(input) : input;
+  }
+
+  normalizedWith(normalizers: NormalizerArgs<Type>): ValidatorType {
+    return this.derive(
+      this.parser,
+      composeNormalizers(this.normalizer, normalizers),
+      this.validator
     );
   }
 
-  /**
-   * @returns A validator that will check for `undefined` or the configured type.
-   */
   optional(): FluentValidator<Type | undefined> {
     throw new Error();
   }
 
   parse(input: unknown): ParseResult<Type> {
-    input = this.normalize(input);
+    const parsed = this.parser(input);
 
-    const { parent, validator } = this;
-    let parsed: Type;
-
-    if (typeof parent === "function") {
-      const parentErrors: ValidationErrorDetails[] = [];
-      if (parent(input, parentErrors)) {
-        parsed = input;
-      } else {
-        if (parentErrors.length === 0) {
-          throw new Error(
-            "TypeValidationFunction did not provide error details"
-          );
-        }
-        return {
-          success: false,
-          errors: parentErrors,
-        };
-      }
-    } else {
-      const parentResult = parent.parse(input);
-      if (!parentResult.success) {
-        return parentResult;
-      }
-      parsed = parentResult.parsed;
+    if (!parsed.success) {
+      return parsed;
     }
 
-    if (!validator) {
-      return {
-        success: true,
-        errors: [],
-        parsed,
-      };
-    }
+    const normalizedInput = this.normalize(parsed.parsed);
 
-    if (typeof validator === "function") {
-      const validationResult = validator(parsed);
-      if (validationResult === true) {
-        return {
-          success: true,
-          errors: [],
-          parsed,
-        };
-      } else if (validationResult === false) {
-        throw new Error("Validator did not provide error details");
-      } else if (Array.isArray(validationResult)) {
-        return {
-          success: false,
-          errors: validationResult,
-        };
-      } else {
+    if (this.validator) {
+      const validationResult = this.validator(normalizedInput);
+      if (validationResult === false) {
+        throw new Error(
+          "No error code could be determined to report validation failure"
+        );
+      } else if (validationResult !== true) {
+        const errors = Array.isArray(validationResult)
+          ? validationResult
+          : [validationResult];
         return {
           success: false,
-          errors: [validationResult],
+          errors,
         };
       }
     }
 
-    return validator.parse(parsed);
+    return {
+      success: true,
+      errors: [],
+      parsed: normalizedInput,
+    };
+  }
+  passes(
+    validators: ValidatorArgs<Type>,
+    errorCode?: string,
+    errorMessage?: string
+  ): ValidatorType {
+    const validator = applyErrorDetails(
+      composeValidators(this.validator, validators),
+      "invalid",
+      "input was invalid",
+      errorCode,
+      errorMessage
+    );
+
+    return this.derive(this.parser, this.normalizer, validator);
   }
 
-  TEMPORARY_validateAndThrow(input: any): input is Type {
-    return this.validate(input);
-  }
-
-  validate(input: any): input is Type {
+  validate(input: unknown): input is Type {
     const { success } = this.parse(input);
     return success;
+  }
+
+  protected derive(
+    parser?: ParsingFunction<Type>,
+    normalizer?: NormalizationFunction<Type>,
+    validator?: ValidationFunction<Type>
+  ): ValidatorType {
+    return new this.ctor(
+      parser ?? this.parser,
+      composeNormalizers(this.normalizer, normalizer),
+      composeValidators(this.validator, validator)
+    );
   }
 }
