@@ -78,6 +78,20 @@ describe("isArray()", () => {
     });
   });
 
+  describe("filtered", () => {
+    const validator = V.isArray()
+      .of(V.isString())
+      .filtered((s) => s.length > 3);
+
+    const tests: ParsingTest<string[]>[] = [
+      [undefined, false, "invalidType"],
+      [["foo", "bar"], true, []],
+      [["foo", "bar", "bazz"], true, ["bazz"]],
+    ];
+
+    runParsingTests(validator, tests);
+  });
+
   describe("maxLength", () => {
     const validator = V.isArray().maxLength(2);
     const tests: ParsingTest<unknown[]>[] = [

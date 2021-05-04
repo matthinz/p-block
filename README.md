@@ -40,7 +40,7 @@
 - Track more metadata for validators
   - Input example(s)
   - Description
-- ArrayValidator.filtered()
+- ~~ArrayValidator.filtered()~~
 - ArrayValidator.mapped()
 - .optional(),
 - V.isInteger(),

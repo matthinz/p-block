@@ -21,6 +21,14 @@ export interface FluentArrayValidator<ItemType>
 
   defaultedTo(value: ItemType[]): FluentArrayValidator<ItemType>;
 
+  /**
+   * Normalizes the input array by filtering it.
+   * @param predicate
+   */
+  filtered(
+    predicate: (item: ItemType, index: number, array: ItemType[]) => boolean
+  ): FluentArrayValidator<ItemType>;
+
   maxLength(
     value: number,
     errorCode?: string,
@@ -124,6 +132,12 @@ export class ArrayValidator<ItemType>
       this.normalizer,
       composeValidators(this.validator, nextValidator)
     );
+  }
+
+  filtered(
+    predicate: (item: ItemType, index: number, array: ItemType[]) => boolean
+  ): FluentArrayValidator<ItemType> {
+    return this.normalizedWith((array) => array.filter(predicate));
   }
 
   maxLength(
