@@ -92,6 +92,20 @@ describe("isArray()", () => {
     runParsingTests(validator, tests);
   });
 
+  describe("mapped", () => {
+    const validator = V.isArray()
+      .of(V.isString())
+      .mapped((s) => s.toUpperCase());
+
+    const tests: ParsingTest<string[]>[] = [
+      [undefined, false, "invalidType"],
+      [[], true, []],
+      [["foo", "bar"], true, ["FOO", "BAR"]],
+    ];
+
+    runParsingTests(validator, tests);
+  });
+
   describe("maxLength", () => {
     const validator = V.isArray().maxLength(2);
     const tests: ParsingTest<unknown[]>[] = [

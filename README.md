@@ -41,7 +41,7 @@
   - Input example(s)
   - Description
 - ~~ArrayValidator.filtered()~~
-- ArrayValidator.mapped()
+- ~~ArrayValidator.mapped()~~
 - .optional(),
 - V.isInteger(),
 - .propertyPasses()

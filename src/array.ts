@@ -23,11 +23,16 @@ export interface FluentArrayValidator<ItemType>
 
   /**
    * Normalizes the input array by filtering it.
+   *
    * @param predicate
    */
   filtered(
     predicate: (item: ItemType, index: number, array: ItemType[]) => boolean
   ): FluentArrayValidator<ItemType>;
+
+  mapped<NextItemType>(
+    callback: (item: ItemType, index: number, array: ItemType[]) => NextItemType
+  ): FluentArrayValidator<NextItemType>;
 
   maxLength(
     value: number,
@@ -138,6 +143,23 @@ export class ArrayValidator<ItemType>
     predicate: (item: ItemType, index: number, array: ItemType[]) => boolean
   ): FluentArrayValidator<ItemType> {
     return this.normalizedWith((array) => array.filter(predicate));
+  }
+
+  mapped<NextItemType>(
+    callback: (item: ItemType, index: number, array: ItemType[]) => NextItemType
+  ): FluentArrayValidator<NextItemType> {
+    const nextParser = (input: unknown): ParseResult<NextItemType[]> => {
+      const parsed = this.parse(input);
+      if (!parsed.success) {
+        return parsed;
+      }
+      return {
+        success: true,
+        errors: [],
+        parsed: parsed.parsed.map(callback),
+      };
+    };
+    return new ArrayValidator(nextParser);
   }
 
   maxLength(
