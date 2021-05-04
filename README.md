@@ -36,3 +36,23 @@
 - `V.isString().parsedAsInteger().validate(Infinity)` should fail
 - `V.isString().parsedAsDate().validate(new Date("not a date"))` should fail
 ~~- `V.isUrl()` and `V.isString().parsedAsURL()`
+- `V.isString().parsedAsUUID()`
+- Track more metadata for validators
+  - Input example(s)
+  - Description
+- ArrayValidator.filtered()
+- ArrayValidator.mapped()
+- .optional(),
+- V.isInteger(),
+- .propertyPasses()
+- .propertiesMatch()
+- Examples
+  - Checkout
+  - Registration
+  - Login
+  - Environment Variables
+  - Argv
+  - JSON schema
+- Clarify parsing vs validation
+- Support for type verification (no parsing / normalization done?)
+- And validator success case
