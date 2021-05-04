@@ -348,6 +348,24 @@ describe("V.isString()", () => {
     });
   });
 
+  describe("parsedAsURL()", () => {
+    const validator = V.isString().parsedAsURL().httpsOnly();
+    const tests: ParsingTest<URL>[] = [
+      [undefined, false, "invalidType"],
+      [null, false, "invalidType"],
+      [new URL("https://www.example.org"), false, "invalidType"],
+      ["alskjdf", false, "parsedAsURL", "input cannot be parsed as a URL"],
+      [
+        "http://www.example.org",
+        false,
+        "invalidProtocol",
+        "input must be a URL using protocol 'https:'",
+      ],
+      ["https://www.example.org", true, new URL("https://www.example.org")],
+    ];
+    runParsingTests(validator, tests);
+  });
+
   describe("passes()", () => {
     const tests: ParsingTest<string>[] = [
       ["valid input", true],

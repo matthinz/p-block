@@ -16,6 +16,7 @@ import {
 import { FluentStringValidator, StringValidator } from "./string";
 import { AlwaysValidator } from "./always";
 import { Validator } from "./types";
+import { FluentUrlValidator, UrlValidator } from "./url";
 
 export { FluentArrayValidator } from "./array";
 export { FluentBooleanValidator } from "./boolean";
@@ -34,6 +35,7 @@ const objectValidator: FluentObjectValidator<
   Record<string, unknown>
 > = new ObjectValidator(defaultObjectParser);
 const stringValidator: FluentStringValidator = new StringValidator();
+const urlValidator: FluentUrlValidator = new UrlValidator();
 
 class FluentValidationRoot {
   allOf<Type>(...validators: Validator<Type>[]): Validator<Type> {
@@ -84,6 +86,10 @@ class FluentValidationRoot {
 
   isString(): FluentStringValidator {
     return stringValidator;
+  }
+
+  isURL(): FluentUrlValidator {
+    return urlValidator;
   }
 }
 

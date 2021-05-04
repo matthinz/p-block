@@ -35,3 +35,4 @@
 - Finalize Validator API -- separate validation (a type assertion) and parsing (normalization + type assertion)
 - `V.isString().parsedAsInteger().validate(Infinity)` should fail
 - `V.isString().parsedAsDate().validate(new Date("not a date"))` should fail
+~~- `V.isUrl()` and `V.isString().parsedAsURL()`

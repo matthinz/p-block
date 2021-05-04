@@ -13,6 +13,7 @@ import {
   ValidationFunction,
   Validator,
 } from "./types";
+import { FluentUrlValidator, UrlValidator } from "./url";
 
 const InvalidTypeParseResult: ParseResult<string> = {
   success: false,
@@ -119,6 +120,14 @@ export interface FluentStringValidator extends FluentValidator<string> {
     errorCode?: string,
     errorMessage?: string
   ): FluentNumberValidator;
+
+  parsedAsURL(errorCode?: string, errorMessage?: string): FluentUrlValidator;
+
+  parsedAsURL(
+    parser: (input: string) => URL | undefined,
+    errorCode?: string,
+    errorMessage?: string
+  ): FluentUrlValidator;
 
   /**
    * @returns A new FluentStringValidator configured to perform the given additional checks
@@ -302,6 +311,22 @@ export class StringValidator
     );
   }
 
+  parsedAsURL(
+    parserOrErrorCode?: string | ((input: string) => URL | undefined),
+    errorCodeOrErrorMessage?: string,
+    errorMessage?: string
+  ): FluentUrlValidator {
+    return this.internalParsedAs(
+      UrlValidator,
+      defaultURLParser,
+      "parsedAsURL",
+      "input cannot be parsed as a URL",
+      parserOrErrorCode,
+      errorCodeOrErrorMessage,
+      errorMessage
+    );
+  }
+
   trimmed(): FluentStringValidator {
     return this.normalizedWith((str) => str.trim());
   }
@@ -471,4 +496,12 @@ function defaultStringParser(input: unknown): ParseResult<string> {
         parsed: input,
       }
     : InvalidTypeParseResult;
+}
+
+function defaultURLParser(input: string): URL | undefined {
+  try {
+    return new URL(input);
+  } catch (err) {
+    return;
+  }
 }

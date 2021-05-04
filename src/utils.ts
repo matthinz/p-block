@@ -195,7 +195,7 @@ export function createDefaultParser<Type>(
         errors: [
           {
             code: "invalidType",
-            message: `input must be an instance of ${type}`,
+            message: `input must be an instance of ${type.name}`,
             path: [],
           },
         ],
