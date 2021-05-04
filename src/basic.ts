@@ -1,11 +1,9 @@
 import {
-  FluentValidator,
   NormalizationFunction,
-  NormalizerArgs,
+  Parser,
   ParseResult,
   ParsingFunction,
   ValidationFunction,
-  ValidatorArgs,
 } from "./types";
 import {
   applyErrorDetails,
@@ -13,10 +11,7 @@ import {
   composeValidators,
 } from "./utils";
 
-export abstract class BasicValidator<
-  Type,
-  ValidatorType extends FluentValidator<Type>
-> {
+export abstract class BasicValidator<Type, ValidatorType extends Parser<Type>> {
   protected readonly parser: ParsingFunction<Type>;
   protected readonly normalizer?: NormalizationFunction<Type>;
   protected readonly validator?: ValidationFunction<Type>;
@@ -62,16 +57,17 @@ export abstract class BasicValidator<
     return this.normalizer ? this.normalizer(input) : input;
   }
 
-  normalizedWith(normalizers: NormalizerArgs<Type>): ValidatorType {
+  normalizedWith(
+    ...normalizers: (
+      | NormalizationFunction<Type>
+      | NormalizationFunction<Type>[]
+    )[]
+  ): ValidatorType {
     return this.derive(
       this.parser,
-      composeNormalizers(this.normalizer, normalizers),
+      composeNormalizers(this.normalizer, ...normalizers),
       this.validator
     );
-  }
-
-  optional(): FluentValidator<Type | undefined> {
-    throw new Error();
   }
 
   parse(input: unknown): ParseResult<Type> {
@@ -107,7 +103,7 @@ export abstract class BasicValidator<
     };
   }
   passes(
-    validators: ValidatorArgs<Type>,
+    validators: ValidationFunction<Type> | ValidationFunction<Type>[],
     errorCode?: string,
     errorMessage?: string
   ): ValidatorType {

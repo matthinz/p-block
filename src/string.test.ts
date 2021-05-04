@@ -1,9 +1,5 @@
 import { V } from ".";
-import {
-  ParsingTest,
-  ParsingTestWithParser,
-  runParsingTests,
-} from "./test-utils";
+import { ParsingTest, runParsingTests } from "./test-utils";
 
 // cspell:ignore abcdefghi abcdefghij abcdefghijk falses
 
@@ -384,27 +380,6 @@ describe("V.isString()", () => {
     );
 
     runParsingTests(validator, tests);
-
-    describe("with validator", () => {
-      const validator = V.isString().passes(V.isString().minLength(5));
-      const tests: ParsingTest<string>[] = [
-        [undefined, false, "invalidType"],
-        ["", false, "minLength"],
-      ];
-      runParsingTests(validator, tests);
-
-      describe("can't override errorCode via passes", () => {
-        const validator = V.isString().passes(
-          V.isString().minLength(5),
-          "custom_code"
-        );
-        const tests: ParsingTest<string>[] = [
-          [undefined, false, "invalidType"],
-          ["", false, "minLength"],
-        ];
-        runParsingTests(validator, tests);
-      });
-    });
   });
 
   describe("trimmed()", () => {

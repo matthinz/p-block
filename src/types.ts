@@ -1,6 +1,6 @@
 /**
  * Function responsible for taking unknown input and attempting to parse it
- * into a known, strongly-typed state.
+ * into a known, strongly-typed result.
  * @param input
  */
 export type ParsingFunction<Type> = (input: unknown) => ParseResult<Type>;
@@ -27,6 +27,35 @@ export interface Parser<Type> {
   readonly parse: ParsingFunction<Type>;
 }
 
+export interface FluentParser<Type, FluentParserInterface extends Parser<Type>>
+  extends Parser<Type> {
+  normalizedWith(
+    ...normalizers: (
+      | NormalizationFunction<Type>
+      | NormalizationFunction<Type>[]
+    )[]
+  ): FluentParserInterface;
+
+  /**
+   * @param validators
+   * @param errorCode Error code assigned to any errors generated.
+   * @param errorMessage Error message returned with any errors generated.
+   * @returns A new FluentValidator that requires input to pass all of `validators`.
+   */
+  passes(
+    validators: ValidationFunction<Type> | ValidationFunction<Type>[],
+    errorCode?: string,
+    errorMessage?: string
+  ): FluentParserInterface;
+}
+
+/**
+ * Utility type used to extract the type produced by a parser.
+ */
+export type ParsedType<ParserType> = ParserType extends Parser<infer Type>
+  ? Type
+  : never;
+
 /**
  * Normalization takes strongly-typed input and performs an additional pass on
  * it, for example to remove leading and trailing whitespace from a string.
@@ -34,13 +63,6 @@ export interface Parser<Type> {
  * `ParsingFunction` for that.
  */
 export type NormalizationFunction<Type> = (input: Type) => Type;
-
-/**
- * Object-oriented wrapper around a ParsingFunction.
- */
-export interface Normalizer<Type> {
-  readonly normalize: NormalizationFunction<Type>;
-}
 
 /**
  * Validation takes a strongly-typed input and returns one of the following:
@@ -57,14 +79,6 @@ export type ValidationFunction<Type> = (
   input: Type
 ) => boolean | ValidationErrorDetails | ValidationErrorDetails[];
 
-export interface Validator<Type> extends Parser<Type> {
-  /**
-   * Performs a type assertion on the given input.
-   * @param input
-   */
-  validate(input: unknown): input is Type;
-}
-
 export type PathElement = string | number;
 
 export type Path = ReadonlyArray<PathElement>;
@@ -74,20 +88,3 @@ export interface ValidationErrorDetails {
   readonly message: string;
   readonly path: Path;
 }
-
-export interface FluentValidator<Type>
-  extends Normalizer<Type>,
-    Validator<Type>,
-    Parser<Type> {}
-
-export type NormalizerArgs<Type> =
-  | undefined
-  | NormalizationFunction<Type>
-  | Normalizer<Type>
-  | (NormalizationFunction<Type> | Normalizer<Type>)[];
-
-export type ValidatorArgs<Type> =
-  | undefined
-  | ValidationFunction<Type>
-  | Validator<Type>
-  | (ValidationFunction<Type> | Validator<Type>)[];

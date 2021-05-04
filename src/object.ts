@@ -1,35 +1,23 @@
 import { BasicValidator } from "./basic";
 import {
-  FluentValidator,
+  FluentParser,
   NormalizationFunction,
+  ParsedType,
   Parser,
   ParseResult,
   ParsingFunction,
   ValidationErrorDetails,
   ValidationFunction,
-  Validator,
 } from "./types";
 
-type ValidatorDictionary = {
-  [property: string]: Validator<unknown>;
+type ParserDictionary = {
+  [property: string]: Parser<unknown>;
 };
 
 export interface FluentObjectValidator<Type extends Record<string, unknown>>
-  extends FluentValidator<Type> {
+  extends FluentParser<Type, FluentObjectValidator<Type>> {
   defaultedTo<Defaults extends { [property in keyof Type]?: Type[property] }>(
     values: Defaults
-  ): FluentObjectValidator<Type>;
-
-  /**
-   * @param validators
-   * @param errorCode Error code assigned to any errors generated.
-   * @param errorMessage Error message returned with any errors generated.
-   * @returns A new FluentValidator that requires input to pass all of `validators`.
-   */
-  passes(
-    validators: ValidationFunction<Type> | ValidationFunction<Type>[],
-    errorCode?: string,
-    errorMessage?: string
   ): FluentObjectValidator<Type>;
 
   /**
@@ -38,19 +26,17 @@ export interface FluentObjectValidator<Type extends Record<string, unknown>>
    *          listed in `properties` are present and pass validation rules supplied.
    */
   withProperties<
-    PropertyValidators extends {
-      [property: string]: Validator<any>;
+    PropertyParsers extends {
+      [property: string]: Parser<any>;
     }
   >(
-    properties: PropertyValidators
+    properties: PropertyParsers
   ): FluentObjectValidator<
     Type &
       {
-        [property in keyof PropertyValidators]: typeof properties[property] extends Validator<
-          infer T
-        >
-          ? T
-          : never;
+        [property in keyof PropertyParsers]: ParsedType<
+          typeof properties[property]
+        >;
       }
   >;
 }
@@ -93,25 +79,17 @@ export class ObjectValidator<
     return this.derive(nextParser, this.normalizer, this.validator);
   }
 
-  withProperties<Properties extends ValidatorDictionary>(
+  withProperties<Properties extends ParserDictionary>(
     properties: Properties
   ): FluentObjectValidator<
     Type &
       {
-        [property in keyof Properties]: typeof properties[property] extends Validator<
-          infer T
-        >
-          ? T
-          : never;
+        [property in keyof Properties]: ParsedType<typeof properties[property]>;
       }
   > {
     type NextType = Type &
       {
-        [property in keyof Properties]: typeof properties[property] extends Validator<
-          infer T
-        >
-          ? T
-          : never;
+        [property in keyof Properties]: ParsedType<typeof properties[property]>;
       };
 
     const nextParser = (input: unknown): ParseResult<NextType> => {

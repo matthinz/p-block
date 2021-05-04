@@ -52,23 +52,6 @@ describe("isArray()", () => {
 
       runParsingTests(validator, tests);
     });
-
-    describe("with validator", () => {
-      const validator = V.isArray()
-        .of(V.isString())
-        .allItemsPass(V.isString().minLength(2));
-      const tests: ParsingTest<string[]>[] = [
-        [undefined, false, ["invalidType"], ["input must be an array"], [[]]],
-        [
-          ["foo", "bar", "a"],
-          false,
-          ["minLength"],
-          ["input length must be greater than or equal to 2 character(s)"],
-          [[2]],
-        ],
-      ];
-      runParsingTests(validator, tests);
-    });
   });
 
   describe("defaultedTo()", () => {

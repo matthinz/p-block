@@ -1,17 +1,17 @@
 import { combineErrorLists } from "./errors";
-import { ParseResult, ValidationErrorDetails, Validator } from "./types";
+import { Parser, ParseResult, ValidationErrorDetails } from "./types";
 import { pathsEqual } from "./utils";
 
-export class OrValidator<Left, Right> implements Validator<Left | Right> {
-  private readonly left: Validator<Left>;
-  private readonly right: Validator<Right>;
+export class OrValidator<Left, Right> implements Parser<Left | Right> {
+  private readonly left: Parser<Left>;
+  private readonly right: Parser<Right>;
 
-  constructor(left: Validator<Left>, right: Validator<Right>) {
+  constructor(left: Parser<Left>, right: Parser<Right>) {
     this.left = left;
     this.right = right;
   }
 
-  parse(input: any): ParseResult<Left | Right> {
+  parse(input: unknown): ParseResult<Left | Right> {
     const leftResult = this.left.parse(input);
     if (leftResult.success) {
       return leftResult;
@@ -47,10 +47,5 @@ export class OrValidator<Left, Right> implements Validator<Left | Right> {
       success: false,
       errors,
     };
-  }
-
-  validate(input: any): input is Left | Right {
-    const { success } = this.parse(input);
-    return success;
   }
 }

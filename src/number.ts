@@ -1,15 +1,12 @@
 import { BasicValidator } from "./basic";
 import { resolveErrorDetails } from "./errors";
 import {
-  FluentValidator,
+  FluentParser,
   NormalizationFunction,
-  NormalizerArgs,
-  Parser,
   ParseResult,
   ParsingFunction,
   ValidationErrorDetails,
   ValidationFunction,
-  ValidatorArgs,
 } from "./types";
 import {
   composeNormalizers,
@@ -17,7 +14,8 @@ import {
   createDefaultParser,
 } from "./utils";
 
-export interface FluentNumberValidator extends FluentValidator<number> {
+export interface FluentNumberValidator
+  extends FluentParser<number, FluentNumberValidator> {
   defaultedTo(value: number): FluentNumberValidator;
 
   /**
@@ -76,23 +74,6 @@ export interface FluentNumberValidator extends FluentValidator<number> {
    */
   lessThanOrEqualTo(
     value: number | (() => number),
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentNumberValidator;
-
-  /**
-   * @returns A new FluentNumberValidator, derived from this one, that normalizes inputs using the given normalization functions.
-   */
-  normalizedWith(normalizer: NormalizerArgs<number>): FluentNumberValidator;
-
-  /**
-   * @param validators
-   * @param errorCode Error code assigned to any errors generated.
-   * @param errorMessage Error message returned with any errors generated.
-   * @returns A new FluentValidator that requires input to pass all of `validators`.
-   */
-  passes(
-    validators: ValidatorArgs<number>,
     errorCode?: string,
     errorMessage?: string
   ): FluentNumberValidator;

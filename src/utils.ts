@@ -1,13 +1,20 @@
 import {
   NormalizationFunction,
-  NormalizerArgs,
-  Parser,
   ParseResult,
   ParsingFunction,
   Path,
   ValidationFunction,
-  ValidatorArgs,
 } from "./types";
+
+type ValidatorArgs<Type> =
+  | ValidationFunction<Type>
+  | ValidationFunction<Type>[]
+  | undefined;
+
+type NormalizerArgs<Type> =
+  | NormalizationFunction<Type>
+  | NormalizationFunction<Type>[]
+  | undefined;
 
 export function applyErrorDetails<Type>(
   validator: ValidationFunction<Type>,
@@ -108,11 +115,7 @@ export function composeNormalizers<Type>(
       return normalizer.reduce(reducer, result);
     }
 
-    if (typeof normalizer === "function") {
-      return (input: Type) => normalizer(result(input));
-    }
-
-    return (input: Type) => normalizer.normalize(result(input));
+    return (input: Type) => normalizer(result(input));
   }
 
   return normalizers.reduce(reducer, (input: Type) => input);
@@ -143,12 +146,7 @@ export function composeValidators<Type>(
         return validationResult;
       }
 
-      if (typeof validator === "function") {
-        return validator(input);
-      }
-
-      const parsed = validator.parse(input);
-      return parsed.success || parsed.errors;
+      return validator(input);
     };
   }
 

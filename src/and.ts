@@ -1,11 +1,11 @@
 import { combineErrorLists } from "./errors";
-import { ParseResult, Validator } from "./types";
+import { Parser, ParseResult } from "./types";
 
-export class AndValidator<Left, Right> implements Validator<Left & Right> {
-  private readonly left: Validator<Left>;
-  private readonly right: Validator<Right>;
+export class AndValidator<Left, Right> implements Parser<Left & Right> {
+  private readonly left: Parser<Left>;
+  private readonly right: Parser<Right>;
 
-  constructor(left: Validator<Left>, right: Validator<Right>) {
+  constructor(left: Parser<Left>, right: Parser<Right>) {
     this.left = left;
     this.right = right;
   }
@@ -22,10 +22,5 @@ export class AndValidator<Left, Right> implements Validator<Left & Right> {
       success: false,
       errors: combineErrorLists(leftResult.errors, rightResult.errors),
     };
-  }
-
-  validate(input: any): input is Left & Right {
-    const { success } = this.parse(input);
-    return success;
   }
 }

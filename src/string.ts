@@ -4,14 +4,12 @@ import { DateValidator, FluentDateValidator } from "./date";
 import { resolveErrorDetails } from "./errors";
 import { FluentNumberValidator, NumberValidator } from "./number";
 import {
-  FluentValidator,
   NormalizationFunction,
-  Normalizer,
+  Parser,
   ParseResult,
   ParsingFunction,
   ValidationErrorDetails,
   ValidationFunction,
-  Validator,
 } from "./types";
 import { FluentUrlValidator, UrlValidator } from "./url";
 
@@ -28,7 +26,7 @@ const InvalidTypeParseResult: ParseResult<string> = {
 
 const EmptyErrorArray: ReadonlyArray<ValidationErrorDetails> = [];
 
-export interface FluentStringValidator extends FluentValidator<string> {
+export interface FluentStringValidator extends Parser<string> {
   /**
    * @param value
    * @returns A FluentStringValidator, derived from this one, that will fill in the given default value when input is null or undefined.
@@ -68,10 +66,7 @@ export interface FluentStringValidator extends FluentValidator<string> {
   ): FluentStringValidator;
 
   normalizedWith(
-    normalizer:
-      | NormalizationFunction<string>
-      | Normalizer<string>
-      | (NormalizationFunction<string> | Normalizer<string>)[]
+    normalizer: NormalizationFunction<string> | NormalizationFunction<string>[]
   ): FluentStringValidator;
 
   notEmpty(errorCode?: string, errorMessage?: string): FluentStringValidator;
@@ -133,10 +128,7 @@ export interface FluentStringValidator extends FluentValidator<string> {
    * @returns A new FluentStringValidator configured to perform the given additional checks
    */
   passes(
-    validators:
-      | ValidationFunction<string>
-      | Validator<string>
-      | (ValidationFunction<string> | Validator<string>)[],
+    validators: ValidationFunction<string> | ValidationFunction<string>[],
     errorCode?: string,
     errorMessage?: string
   ): FluentStringValidator;
@@ -335,7 +327,7 @@ export class StringValidator
     return this.normalizedWith((str) => str.toUpperCase());
   }
 
-  protected internalParsedAs<Type, ValidatorType extends FluentValidator<Type>>(
+  protected internalParsedAs<Type, ValidatorType extends Parser<Type>>(
     ctor: { new (parser: ParsingFunction<Type>): ValidatorType },
     defaultParser: (input: string) => Type | undefined,
     defaultErrorCode: string,

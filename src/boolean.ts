@@ -1,30 +1,17 @@
 import { BasicValidator } from "./basic";
 import {
-  FluentValidator,
+  FluentParser,
   NormalizationFunction,
-  Normalizer,
-  NormalizerArgs,
   ParseResult,
   ParsingFunction,
   ValidationFunction,
-  ValidatorArgs,
 } from "./types";
-import {
-  applyErrorDetails,
-  composeNormalizers,
-  composeValidators,
-} from "./utils";
 
-export interface FluentBooleanValidator extends FluentValidator<boolean> {
+export interface FluentBooleanValidator
+  extends FluentParser<boolean, FluentBooleanValidator> {
   defaultedTo(value: boolean): FluentBooleanValidator;
   isFalse(errorCode?: string, errorMessage?: string): FluentBooleanValidator;
   isTrue(errorCode?: string, errorMessage?: string): FluentBooleanValidator;
-  normalizedWith(
-    normalizers:
-      | NormalizationFunction<boolean>
-      | Normalizer<boolean>
-      | (NormalizationFunction<boolean> | Normalizer<boolean>)[]
-  ): FluentBooleanValidator;
 }
 
 export class BooleanValidator
@@ -56,32 +43,6 @@ export class BooleanValidator
       (value) => value,
       errorCode ?? "isTrue",
       errorMessage ?? "input must be true"
-    );
-  }
-
-  normalizedWith(normalizers: NormalizerArgs<boolean>): FluentBooleanValidator {
-    return new BooleanValidator(
-      this.parser,
-      composeNormalizers(this.normalizer, normalizers),
-      this.validator
-    );
-  }
-
-  passes(
-    validators: ValidatorArgs<boolean>,
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentBooleanValidator {
-    return new BooleanValidator(
-      this.parser,
-      this.normalizer,
-      applyErrorDetails(
-        composeValidators(this.validator, validators),
-        "invalid",
-        "input was invalid",
-        errorCode,
-        errorMessage
-      )
     );
   }
 }

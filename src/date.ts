@@ -1,15 +1,15 @@
 import { BasicValidator } from "./basic";
 import { resolveErrorDetails } from "./errors";
 import {
-  FluentValidator,
+  FluentParser,
   NormalizationFunction,
-  NormalizerArgs,
   ParseResult,
   ParsingFunction,
   ValidationFunction,
 } from "./types";
 
-export interface FluentDateValidator extends FluentValidator<Date> {
+export interface FluentDateValidator
+  extends FluentParser<Date, FluentDateValidator> {
   defaultedTo(value: Date): FluentDateValidator;
 
   equalTo(
@@ -38,14 +38,6 @@ export interface FluentDateValidator extends FluentValidator<Date> {
 
   lessThanOrEqualTo(
     value: Date | (() => Date),
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentDateValidator;
-
-  normalizedWith(normalizers: NormalizerArgs<Date>): FluentDateValidator;
-
-  passes(
-    validator: ValidationFunction<Date>,
     errorCode?: string,
     errorMessage?: string
   ): FluentDateValidator;

@@ -1,27 +1,20 @@
 import { BasicValidator } from "./basic";
 import { resolveErrorDetails } from "./errors";
 import {
-  FluentValidator,
+  FluentParser,
   NormalizationFunction,
-  NormalizerArgs,
   Parser,
   ParseResult,
   ParsingFunction,
   ValidationErrorDetails,
   ValidationFunction,
-  Validator,
-  ValidatorArgs,
 } from "./types";
-import {
-  applyErrorDetails,
-  buildParsingFunction,
-  composeValidators,
-} from "./utils";
+import { composeValidators } from "./utils";
 
 export interface FluentArrayValidator<ItemType>
-  extends FluentValidator<ItemType[]> {
+  extends FluentParser<ItemType[], FluentArrayValidator<ItemType>> {
   allItemsPass(
-    validator: ValidationFunction<ItemType> | Validator<ItemType>,
+    validators: ValidationFunction<ItemType> | ValidationFunction<ItemType>[],
     errorCode?: string,
     errorMessage?: string
   ): FluentArrayValidator<ItemType>;
@@ -40,28 +33,12 @@ export interface FluentArrayValidator<ItemType>
     errorMessage?: string
   ): FluentArrayValidator<ItemType>;
 
-  normalizedWith(
-    normalizer: NormalizerArgs<ItemType[]>
-  ): FluentArrayValidator<ItemType>;
-
   /**
    * @returns A new Array validator, derived from this one, that runs a further type check on its items.
    */
   of<NextItemType extends ItemType>(
-    validator: Validator<NextItemType>
+    validator: Parser<NextItemType>
   ): FluentArrayValidator<NextItemType>;
-
-  /**
-   * @param validators
-   * @param errorCode Error code assigned to any errors generated.
-   * @param errorMessage Error message returned with any errors generated.
-   * @returns A new FluentValidator that requires input to pass all of `validators`.
-   */
-  passes(
-    validators: ValidatorArgs<ItemType[]>,
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentArrayValidator<ItemType>;
 }
 
 export class ArrayValidator<ItemType>
@@ -92,10 +69,7 @@ export class ArrayValidator<ItemType>
   }
 
   allItemsPass(
-    validators:
-      | ValidationFunction<ItemType>
-      | Validator<ItemType>
-      | (ValidationFunction<ItemType> | Validator<ItemType>)[],
+    validators: ValidationFunction<ItemType> | ValidationFunction<ItemType>[],
     errorCode?: string,
     errorMessage?: string
   ): FluentArrayValidator<ItemType> {
@@ -177,7 +151,7 @@ export class ArrayValidator<ItemType>
   }
 
   of<NextItemType extends ItemType>(
-    validator: Validator<NextItemType>
+    validator: Parser<NextItemType>
   ): FluentArrayValidator<NextItemType> {
     const nextParser = (input: unknown): ParseResult<NextItemType[]> => {
       const parsed = this.parse(input);
@@ -218,24 +192,6 @@ export class ArrayValidator<ItemType>
     };
 
     return new ArrayValidator(nextParser);
-  }
-
-  passes(
-    validators: ValidatorArgs<ItemType[]>,
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentArrayValidator<ItemType> {
-    return new ArrayValidator<ItemType>(
-      this.parser,
-      this.normalizer,
-      applyErrorDetails(
-        composeValidators(this.validator, validators),
-        "invalid",
-        "input was invalid",
-        errorCode,
-        errorMessage
-      )
-    );
   }
 }
 

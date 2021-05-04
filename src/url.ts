@@ -1,8 +1,7 @@
-import { V } from ".";
 import { BasicValidator } from "./basic";
 import { resolveErrorDetails } from "./errors";
 import {
-  FluentValidator,
+  FluentParser,
   NormalizationFunction,
   ParsingFunction,
   ValidationFunction,
@@ -38,7 +37,8 @@ declare var URL: {
 
 export type KnownProtocol = "http:" | "https:" | "ftp:" | "mailto:";
 
-export interface FluentUrlValidator extends FluentValidator<URL> {
+export interface FluentUrlValidator
+  extends FluentParser<URL, FluentUrlValidator> {
   /**
    * Validates that the incoming URL is using the HTTP or HTTPS protocol.
    */
