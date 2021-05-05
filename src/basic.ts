@@ -1,4 +1,5 @@
 import {
+  FluentParser,
   NormalizationFunction,
   Parser,
   ParseResult,
@@ -11,7 +12,8 @@ import {
   composeValidators,
 } from "./utils";
 
-export abstract class BasicValidator<Type, ValidatorType extends Parser<Type>> {
+export abstract class BasicValidator<Type, ValidatorType extends Parser<Type>>
+  implements FluentParser<Type, ValidatorType> {
   protected readonly parser: ParsingFunction<Type>;
   protected readonly normalizer?: NormalizationFunction<Type>;
   protected readonly validator?: ValidationFunction<Type>;
@@ -53,10 +55,6 @@ export abstract class BasicValidator<Type, ValidatorType extends Parser<Type>> {
     return this.derive(nextParser, this.normalizer, this.validator);
   }
 
-  normalize(input: Type): Type {
-    return this.normalizer ? this.normalizer(input) : input;
-  }
-
   normalizedWith(
     ...normalizers: (
       | NormalizationFunction<Type>
@@ -77,7 +75,9 @@ export abstract class BasicValidator<Type, ValidatorType extends Parser<Type>> {
       return parsed;
     }
 
-    const normalizedInput = this.normalize(parsed.parsed);
+    const normalizedInput = this.normalizer
+      ? this.normalizer(parsed.parsed)
+      : parsed.parsed;
 
     if (this.validator) {
       const validationResult = this.validator(normalizedInput);

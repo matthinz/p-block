@@ -4,6 +4,7 @@ import { DateValidator, FluentDateValidator } from "./date";
 import { resolveErrorDetails } from "./errors";
 import { FluentNumberValidator, NumberValidator } from "./number";
 import {
+  FluentParser,
   NormalizationFunction,
   Parser,
   ParseResult,
@@ -26,7 +27,8 @@ const InvalidTypeParseResult: ParseResult<string> = {
 
 const EmptyErrorArray: ReadonlyArray<ValidationErrorDetails> = [];
 
-export interface FluentStringValidator extends Parser<string> {
+export interface FluentStringValidator
+  extends FluentParser<string, FluentStringValidator> {
   /**
    * @param value
    * @returns A FluentStringValidator, derived from this one, that will fill in the given default value when input is null or undefined.
@@ -63,10 +65,6 @@ export interface FluentStringValidator extends Parser<string> {
     min: number,
     errorCode?: string,
     errorMessage?: string
-  ): FluentStringValidator;
-
-  normalizedWith(
-    normalizer: NormalizationFunction<string> | NormalizationFunction<string>[]
   ): FluentStringValidator;
 
   notEmpty(errorCode?: string, errorMessage?: string): FluentStringValidator;
@@ -123,15 +121,6 @@ export interface FluentStringValidator extends Parser<string> {
     errorCode?: string,
     errorMessage?: string
   ): FluentUrlValidator;
-
-  /**
-   * @returns A new FluentStringValidator configured to perform the given additional checks
-   */
-  passes(
-    validators: ValidationFunction<string> | ValidationFunction<string>[],
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentStringValidator;
 
   /**
    * @returns A FluentStringValidator, derived from this one, that trims leading and trailing whitespace from input before validation.
