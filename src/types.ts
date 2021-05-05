@@ -79,7 +79,15 @@ export type ValidationFunction<Type> = (
   input: Type
 ) => boolean | ValidationErrorDetails | ValidationErrorDetails[];
 
-export type PathElement = string | number;
+export type PropertyValidationFunction<
+  PropertyType,
+  ObjectType extends Record<string, unknown>
+> = (
+  value: PropertyType,
+  object: ObjectType
+) => boolean | ValidationErrorDetails | ValidationErrorDetails[];
+
+export type PathElement = string | number | symbol;
 
 export type Path = ReadonlyArray<PathElement>;
 

@@ -44,7 +44,7 @@
 - ~~ArrayValidator.mapped()~~
 - .optional(),
 - V.isInteger(),
-- .propertyPasses()
+- ~~.propertyPasses()~~
 - .propertiesMatch()
 - Examples
   - Checkout

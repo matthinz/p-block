@@ -1,4 +1,5 @@
 import { BasicValidator } from "./basic";
+import { resolveErrorDetails } from "./errors";
 import {
   FluentParser,
   NormalizationFunction,
@@ -6,9 +7,11 @@ import {
   Parser,
   ParseResult,
   ParsingFunction,
+  PropertyValidationFunction,
   ValidationErrorDetails,
   ValidationFunction,
 } from "./types";
+import { composeValidators } from "./utils";
 
 type ParserDictionary = {
   [property: string]: Parser<unknown>;
@@ -18,6 +21,15 @@ export interface FluentObjectValidator<Type extends Record<string, unknown>>
   extends FluentParser<Type, FluentObjectValidator<Type>> {
   defaultedTo<Defaults extends { [property in keyof Type]?: Type[property] }>(
     values: Defaults
+  ): FluentObjectValidator<Type>;
+
+  propertyPasses<PropertyName extends keyof Type>(
+    propertyName: PropertyName,
+    validators:
+      | PropertyValidationFunction<Type[typeof propertyName], Type>
+      | PropertyValidationFunction<Type[typeof propertyName], Type>[],
+    errorCode?: string,
+    errorMessage?: string
   ): FluentObjectValidator<Type>;
 
   /**
@@ -77,6 +89,65 @@ export class ObjectValidator<
     };
 
     return this.derive(nextParser, this.normalizer, this.validator);
+  }
+
+  propertyPasses<PropertyName extends keyof Type>(
+    propertyName: PropertyName,
+    validators:
+      | PropertyValidationFunction<Type[typeof propertyName], Type>
+      | PropertyValidationFunction<Type[typeof propertyName], Type>[],
+    errorCode?: string,
+    errorMessage?: string
+  ): FluentObjectValidator<Type> {
+    return this.passes(
+      (obj): true | ValidationErrorDetails[] => {
+        validators = Array.isArray(validators) ? validators : [validators];
+        const value = obj[propertyName];
+
+        const errors = validators.reduce<ValidationErrorDetails[]>(
+          (result, validator) => {
+            const validationResult = validator(value, obj);
+            if (validationResult === false) {
+              [errorCode, errorMessage] = resolveErrorDetails(
+                "propertyPasses",
+                `input must include a valid value for the property '${propertyName}'`,
+                errorCode,
+                errorMessage
+              );
+
+              result.push({
+                code: errorCode,
+                message: errorMessage,
+                path: [propertyName],
+              });
+            } else if (Array.isArray(validationResult)) {
+              result.push(
+                ...validationResult.map((e) => ({
+                  ...e,
+                  path: [...e.path, propertyName],
+                }))
+              );
+            } else if (validationResult !== true) {
+              result.push({
+                ...validationResult,
+                path: [...validationResult.path, propertyName],
+              });
+            }
+
+            return result;
+          },
+          []
+        );
+
+        if (errors.length === 0) {
+          return true;
+        }
+
+        return errors;
+      },
+      errorCode,
+      errorMessage
+    );
   }
 
   withProperties<Properties extends ParserDictionary>(

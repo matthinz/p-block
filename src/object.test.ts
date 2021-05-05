@@ -116,6 +116,35 @@ describe("isObject()", () => {
     runParsingTests(validator, tests);
   });
 
+  describe("propertyPasses()", () => {
+    describe("no errorCode", () => {
+      const validator = V.isObject()
+        .withProperties({
+          email: V.isString(),
+          confirmEmail: V.isString(),
+        })
+        .propertyPasses(
+          "confirmEmail",
+          (confirmEmail, { email }) => confirmEmail === email
+        );
+
+      const tests: ParsingTest<{ email: string; confirmEmail: string }>[] = [
+        [undefined, false, "invalidType"],
+        [{ email: "foo@example.org" }, false, "required"],
+        [
+          { email: "foo@example.org", confirmEmail: "" },
+          false,
+          "propertyPasses",
+          "input must include a valid value for the property 'confirmEmail'",
+          ["confirmEmail"],
+        ],
+        [{ email: "foo@example.org", confirmEmail: "foo@example.org" }, true],
+      ];
+
+      runParsingTests(validator, tests);
+    });
+  });
+
   describe("defaultedTo()", () => {
     const validator = V.isObject()
       .withProperties({
