@@ -17,6 +17,22 @@ describe("isNumber()", () => {
     ];
     runParsingTests(validator, tests);
   });
+
+  describe("between()", () => {
+    const validator = V.isNumber().between(1, 10);
+    const tests: ParsingTest<number>[] = [
+      [undefined, false, "invalidType"],
+      [null, false, "invalidType"],
+      ["abc", false, "invalidType"],
+      ["42", false, "invalidType"],
+      [0, false, "between", "input must be between 1 and 10 (inclusive)"],
+      [11, false, "between", "input must be between 1 and 10 (inclusive)"],
+      [1, true],
+      [10, true],
+    ];
+    runParsingTests(validator, tests);
+  });
+
   describe("equalTo()", () => {
     const validator = V.isNumber().equalTo(42);
     const tests: ParsingTest<number>[] = [

@@ -16,6 +16,13 @@ import {
 
 export interface FluentNumberValidator
   extends FluentParser<number, FluentNumberValidator> {
+  between(
+    inclusiveMinimum: number,
+    inclusiveMaximum: number,
+    errorCode?: string,
+    errorMessage?: string
+  ): FluentNumberValidator;
+
   defaultedTo(value: number): FluentNumberValidator;
 
   /**
@@ -99,6 +106,23 @@ export class NumberValidator
     validator?: ValidationFunction<number>
   ) {
     super(NumberValidator, parser ?? finiteNumberParser, normalizer, validator);
+  }
+
+  between(
+    inclusiveMinimum: number,
+    inclusiveMaximum: number,
+    errorCode?: string,
+    errorMessage?: string
+  ): FluentNumberValidator {
+    [errorCode, errorMessage] = resolveErrorDetails(
+      "between",
+      `input must be between ${inclusiveMinimum} and ${inclusiveMaximum} (inclusive)`
+    );
+    return this.passes(
+      (input) => input >= inclusiveMinimum && input <= inclusiveMaximum,
+      errorCode,
+      errorMessage
+    );
   }
 
   equalTo(
