@@ -1,3 +1,4 @@
+import http from "http";
 import { V } from "../../src";
 
 const Item = V.isObject().withProperties({
@@ -22,8 +23,10 @@ const PaymentInfo = V.isObject().withProperties({
   name: V.isString(),
   expiry: V.isObject()
     .withProperties({
-      month: V.isInteger().between(1, 12),
-      year: V.isInteger().greaterThanOrEqualTo(new Date().getFullYear()),
+      month: V.isNumber().truncated().between(1, 12),
+      year: V.isNumber()
+        .truncated()
+        .greaterThanOrEqualTo(new Date().getFullYear()),
     })
     .passes(({ month, year }) => {
       const now = new Date();
