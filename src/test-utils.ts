@@ -41,15 +41,17 @@ export function runParsingTests<Type>(
         const parseResult = parser.parse(input);
 
         if (testParams[2]) {
-          const expected = testParams[3] ?? (input as Type);
+          const expected =
+            testParams.length > 3 ? testParams[3] : testParams[1];
           test("does not return errors", () =>
             expect(parseResult.errors).toHaveLength(0));
           test("succeeds", () =>
             expect(parseResult).toHaveProperty("success", true));
-          test(`parses to ${stringify(expected)}`, () =>
-            expect(parseResult.success && parseResult.parsed).toStrictEqual(
-              expected
-            ));
+          test(`parses to ${stringify(expected)}`, () => {
+            if (parseResult.success) {
+              expect(parseResult.parsed).toStrictEqual(expected);
+            }
+          });
           return;
         }
 
