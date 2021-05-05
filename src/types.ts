@@ -37,6 +37,12 @@ export interface FluentParser<Type, FluentParserInterface extends Parser<Type>>
   ): FluentParserInterface;
 
   /**
+   * @returns A new Parser that will accept `undefined` or `null` as valid input. (`null` will always be
+   * normalized to `undefined`).
+   */
+  optional(): Parser<Type | undefined>;
+
+  /**
    * @param validators
    * @param errorCode Error code assigned to any errors generated.
    * @param errorMessage Error message returned with any errors generated.

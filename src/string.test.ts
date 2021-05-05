@@ -98,6 +98,18 @@ describe("V.isString()", () => {
     runParsingTests(validator, tests);
   });
 
+  describe("optional()", () => {
+    const parser = V.isString().optional();
+    const tests: ParsingTest<string | undefined>[] = [
+      [undefined, true],
+      [null, true, undefined],
+      ["foo", true, "foo"],
+      [123, false, "invalidType"],
+    ];
+
+    runParsingTests(parser, tests);
+  });
+
   describe("parsedAsBoolean()", () => {
     describe("default parser", () => {
       const trues = "y|Y|yes|Yes|YES|true|True|TRUE|on|On|ON".split("|");

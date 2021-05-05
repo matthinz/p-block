@@ -68,6 +68,24 @@ export abstract class BasicValidator<Type, ValidatorType extends Parser<Type>>
     );
   }
 
+  optional(): Parser<Type | undefined> {
+    const nextParser = (input: unknown): ParseResult<Type | undefined> => {
+      if (input == null) {
+        return {
+          success: true,
+          errors: [],
+          parsed: undefined,
+        };
+      }
+
+      return this.parse(input);
+    };
+
+    return {
+      parse: nextParser,
+    };
+  }
+
   parse(input: unknown): ParseResult<Type> {
     const parsed = this.parser(input);
 
