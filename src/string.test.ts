@@ -29,6 +29,32 @@ describe("V.isString()", () => {
     runParsingTests(validator, tests);
   });
 
+  describe("length", () => {
+    test.todo("must be at least 0");
+
+    const tests: ParsingTest<string>[] = [
+      [undefined, false, "invalidType"],
+      [null, false, "invalidType"],
+      [
+        "blah",
+        false,
+        "length",
+        "input length must be equal to 10 character(s)",
+      ],
+      ["abcdefghij", true],
+      [
+        "abcdefghijk",
+        false,
+        "length",
+        "input length must be equal to 10 character(s)",
+      ],
+    ];
+
+    const validator = V.isString().length(10);
+
+    runParsingTests(validator, tests);
+  });
+
   describe("matches", () => {
     const tests: ParsingTest<string>[] = [
       ["foo", true],

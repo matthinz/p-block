@@ -44,6 +44,8 @@ export interface FluentStringValidator
     errorMessage?: string
   ): FluentStringValidator;
 
+  length(length: number): FluentStringValidator;
+
   /**
    * @returns A FluentStringValidator that converts input to lower case before validating.
    */
@@ -158,6 +160,14 @@ export class StringValidator
       (input) => values.includes(input),
       errorCode,
       errorMessage
+    );
+  }
+
+  length(length: number): FluentStringValidator {
+    return this.passes(
+      (str) => str.length === length,
+      "length",
+      `input length must be equal to ${length} character(s)`
     );
   }
 
