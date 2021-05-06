@@ -17,6 +17,8 @@ const FAILURE_RESULT: ParseResult<undefined> = {
   ],
 };
 
+export type FluentNullishParser = Parser<undefined>;
+
 export class NullishParser implements Parser<undefined> {
   parse(input: unknown): ParseResult<undefined> {
     return input == null ? SUCCESS_RESULT : FAILURE_RESULT;
