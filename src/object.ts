@@ -11,7 +11,6 @@ import {
   ValidationErrorDetails,
   ValidationFunction,
 } from "./types";
-import { composeValidators } from "./utils";
 
 type ParserDictionary = {
   [property: string]: Parser<unknown>;
@@ -21,6 +20,17 @@ export interface FluentObjectValidator<Type extends Record<string, unknown>>
   extends FluentParser<Type, FluentObjectValidator<Type>> {
   defaultedTo<Defaults extends { [property in keyof Type]?: Type[property] }>(
     values: Defaults
+  ): FluentObjectValidator<Type>;
+
+  propertiesMatch<
+    PropertyName extends keyof Type,
+    OtherPropertyName extends Exclude<keyof Type, PropertyName> &
+      Type[PropertyName]
+  >(
+    propertyName: PropertyName,
+    otherPropertyName: OtherPropertyName,
+    errorCode?: string,
+    errorMessage?: string
   ): FluentObjectValidator<Type>;
 
   propertyPasses<PropertyName extends keyof Type>(
@@ -89,6 +99,35 @@ export class ObjectValidator<
     };
 
     return this.derive(nextParser, this.normalizer, this.validator);
+  }
+
+  propertiesMatch<
+    PropertyName extends keyof Type,
+    OtherPropertyName extends Exclude<keyof Type, PropertyName> &
+      Type[PropertyName]
+  >(
+    propertyName: PropertyName,
+    otherPropertyName: OtherPropertyName,
+
+    errorCode?: string,
+    errorMessage?: string
+  ) {
+    [errorCode, errorMessage] = resolveErrorDetails(
+      "propertiesMatch",
+      `input must include a value for property '${propertyName}' that matches the value for property '${otherPropertyName}'`,
+      errorCode,
+      errorMessage
+    );
+
+    return this.propertyPasses(
+      propertyName,
+      (value, obj) => {
+        const otherValue = obj[otherPropertyName];
+        return value === otherValue;
+      },
+      errorCode,
+      errorMessage
+    );
   }
 
   propertyPasses<PropertyName extends keyof Type>(

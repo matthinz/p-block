@@ -1,4 +1,3 @@
-import http from "http";
 import { V } from "../../src";
 
 const Item = V.isObject().withProperties({
