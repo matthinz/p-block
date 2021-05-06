@@ -1,3 +1,5 @@
+import { NullishParser } from "./nullish";
+import { OrValidator } from "./or";
 import {
   FluentParser,
   NormalizationFunction,
@@ -69,21 +71,11 @@ export abstract class BasicValidator<Type, ValidatorType extends Parser<Type>>
   }
 
   optional(): Parser<Type | undefined> {
-    const nextParser = (input: unknown): ParseResult<Type | undefined> => {
-      if (input == null) {
-        return {
-          success: true,
-          errors: [],
-          parsed: undefined,
-        };
-      }
+    return this.or(new NullishParser());
+  }
 
-      return this.parse(input);
-    };
-
-    return {
-      parse: nextParser,
-    };
+  or<OtherType>(parser: Parser<OtherType>): Parser<Type | OtherType> {
+    return new OrValidator<Type, OtherType>(this, parser);
   }
 
   parse(input: unknown): ParseResult<Type> {

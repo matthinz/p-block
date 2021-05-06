@@ -17,6 +17,7 @@ import { FluentStringValidator, StringValidator } from "./string";
 import { AlwaysValidator } from "./always";
 import { FluentUrlValidator, UrlValidator } from "./url";
 import { Parser } from "./types";
+import { NullishParser } from "./nullish";
 
 export { FluentArrayValidator } from "./array";
 export { FluentBooleanValidator } from "./boolean";
@@ -33,6 +34,7 @@ const arrayValidator: FluentArrayValidator<unknown> = new ArrayValidator<unknown
 );
 const booleanValidator: FluentBooleanValidator = new BooleanValidator();
 const dateValidator: FluentDateValidator = new DateValidator();
+const nullishParser: Parser<undefined> = new NullishParser();
 const numberValidator: FluentNumberValidator = new NumberValidator();
 const objectValidator: FluentObjectValidator<
   Record<string, unknown>
@@ -72,6 +74,10 @@ class FluentValidationRoot {
 
   isDate(): FluentDateValidator {
     return dateValidator;
+  }
+
+  isNullish(): Parser<undefined> {
+    return nullishParser;
   }
 
   isNumber(): FluentNumberValidator {
