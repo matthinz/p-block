@@ -1,36 +1,48 @@
-import { BasicValidator } from "./basic";
+import { FluentParserImpl } from "./base";
 import {
-  FluentParser,
-  NormalizationFunction,
+  FluentBooleanParser,
+  FluentParsingRoot,
+  Parser,
   ParseResult,
-  ParsingFunction,
-  ValidationFunction,
 } from "./types";
 
-export interface FluentBooleanValidator
-  extends FluentParser<boolean, FluentBooleanValidator> {
-  defaultedTo(value: boolean): FluentBooleanValidator;
-  isFalse(errorCode?: string, errorMessage?: string): FluentBooleanValidator;
-  isTrue(errorCode?: string, errorMessage?: string): FluentBooleanValidator;
-}
+const INVALID_TYPE_PARSE_RESULT: ParseResult<boolean> = {
+  success: false,
+  errors: [
+    {
+      code: "invalidType",
+      message: "input must be of type 'boolean'",
+      path: [],
+    },
+  ],
+};
 
-export class BooleanValidator
-  extends BasicValidator<boolean, FluentBooleanValidator>
-  implements FluentBooleanValidator {
-  constructor(
-    parser?: ParsingFunction<boolean>,
-    normalizer?: NormalizationFunction<boolean>,
-    validator?: ValidationFunction<boolean>
-  ) {
-    super(
-      BooleanValidator,
-      parser ?? defaultBooleanParser,
-      normalizer,
-      validator
-    );
+export const defaultBooleanParser: Parser<boolean> = {
+  parse(input: unknown): ParseResult<boolean> {
+    if (typeof input === "boolean") {
+      return {
+        success: true,
+        errors: [],
+        parsed: input,
+      };
+    }
+
+    return INVALID_TYPE_PARSE_RESULT;
+  },
+};
+
+export class FluentBooleanParserImpl
+  extends FluentParserImpl<boolean, FluentBooleanParser>
+  implements FluentBooleanParser {
+  constructor(root: FluentParsingRoot, parser?: Parser<boolean>) {
+    super(root, parser ?? defaultBooleanParser, FluentBooleanParserImpl);
   }
 
-  isFalse(errorCode?: string, errorMessage?: string): FluentBooleanValidator {
+  defaultedTo(value: boolean): FluentBooleanParser {
+    return super.defaultedTo(value);
+  }
+
+  isFalse(errorCode?: string, errorMessage?: string): FluentBooleanParser {
     return this.passes(
       (value) => !value,
       errorCode ?? "isFalse",
@@ -38,32 +50,11 @@ export class BooleanValidator
     );
   }
 
-  isTrue(errorCode?: string, errorMessage?: string): FluentBooleanValidator {
+  isTrue(errorCode?: string, errorMessage?: string): FluentBooleanParser {
     return this.passes(
       (value) => value,
       errorCode ?? "isTrue",
       errorMessage ?? "input must be true"
     );
   }
-}
-
-function defaultBooleanParser(input: unknown): ParseResult<boolean> {
-  if (typeof input === "boolean") {
-    return {
-      success: true,
-      errors: [],
-      parsed: input,
-    };
-  }
-
-  return {
-    success: false,
-    errors: [
-      {
-        code: "invalidType",
-        message: "input must be of type 'boolean'",
-        path: [],
-      },
-    ],
-  };
 }

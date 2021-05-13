@@ -1,8 +1,8 @@
-import { Root } from "./root";
+import { FluentParsingRootImpl } from "./root";
 
 describe("Root", () => {
   test("can separate functions from object", () => {
-    const root = new Root();
+    const root = new FluentParsingRootImpl();
     const { isString } = root;
     const result = isString().trimmed().parse("  foo  ");
     expect(result).toHaveProperty("success", true);

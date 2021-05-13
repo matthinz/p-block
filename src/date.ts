@@ -1,197 +1,56 @@
-import { BasicValidator } from "./basic";
-import { resolveErrorDetails } from "./errors";
+import { FluentComparableParserImpl } from "./comparable";
 import {
-  FluentParser,
-  NormalizationFunction,
+  FluentDateParser,
+  FluentParsingRoot,
+  Parser,
   ParseResult,
-  ParsingFunction,
-  ValidationFunction,
 } from "./types";
 
-export interface FluentDateValidator
-  extends FluentParser<Date, FluentDateValidator> {
-  defaultedTo(value: Date): FluentDateValidator;
+const INVALID_TYPE_PARSE_RESULT: ParseResult<Date> = {
+  success: false,
+  errors: [
+    {
+      code: "invalidType",
+      message: "input must be a Date",
+      path: [],
+    },
+  ],
+};
 
-  equalTo(
-    value: Date | (() => Date),
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentDateValidator;
+const INVALID_DATE_PARSE_RESULT: ParseResult<Date> = {
+  success: false,
+  errors: [
+    {
+      code: "invalidDate",
+      message: "input must represent a valid Date",
+      path: [],
+    },
+  ],
+};
 
-  greaterThan(
-    value: Date | (() => Date),
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentDateValidator;
+export const defaultDateParser: Parser<Date> = {
+  parse(input: unknown): ParseResult<Date> {
+    if (input == null || !(input instanceof Date)) {
+      return INVALID_TYPE_PARSE_RESULT;
+    }
 
-  greaterThanOrEqualTo(
-    value: Date | (() => Date),
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentDateValidator;
+    // e.g. new Date("not a real date") yields a Date that is also NaN.
+    if (isNaN(input.getTime())) {
+      return INVALID_DATE_PARSE_RESULT;
+    }
 
-  lessThan(
-    value: Date | (() => Date),
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentDateValidator;
-
-  lessThanOrEqualTo(
-    value: Date | (() => Date),
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentDateValidator;
-}
-
-export class DateValidator
-  extends BasicValidator<Date, FluentDateValidator>
-  implements FluentDateValidator {
-  constructor(
-    parser?: ParsingFunction<Date>,
-    normalizer?: NormalizationFunction<Date>,
-    validator?: ValidationFunction<Date>
-  ) {
-    super(DateValidator, parser ?? defaultDateParser, normalizer, validator);
-  }
-
-  equalTo(
-    value: Date | (() => Date),
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentDateValidator {
-    return this.passesComparison(
-      value,
-      (lhs, rhs) => lhs.getTime() === rhs.getTime(),
-      "equalTo",
-      (lhs, rhs) => `input must be equal to ${rhs.toISOString()}`,
-      errorCode,
-      errorMessage
-    );
-  }
-
-  greaterThan(
-    value: Date | (() => Date),
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentDateValidator {
-    return this.passesComparison(
-      value,
-      (lhs, rhs) => lhs > rhs,
-      "greaterThan",
-      (lhs, rhs) => `input must be greater than ${rhs.toISOString()}`,
-      errorCode,
-      errorMessage
-    );
-  }
-
-  greaterThanOrEqualTo(
-    value: Date | (() => Date),
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentDateValidator {
-    return this.passesComparison(
-      value,
-      (lhs, rhs) => lhs >= rhs,
-      "greaterThanOrEqualTo",
-      (lhs, rhs) =>
-        `input must be greater than or equal to ${rhs.toISOString()}`,
-      errorCode,
-      errorMessage
-    );
-  }
-
-  lessThan(
-    value: Date | (() => Date),
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentDateValidator {
-    return this.passesComparison(
-      value,
-      (lhs, rhs) => lhs < rhs,
-      "lessThan",
-      (lhs, rhs) => `input must be less than ${rhs.toISOString()}`,
-      errorCode,
-      errorMessage
-    );
-  }
-
-  lessThanOrEqualTo(
-    value: Date | (() => Date),
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentDateValidator {
-    return this.passesComparison(
-      value,
-      (lhs, rhs) => lhs <= rhs,
-      "lessThanOrEqualTo",
-      (lhs, rhs) => `input must be less than or equal to ${rhs.toISOString()}`,
-      errorCode,
-      errorMessage
-    );
-  }
-
-  private passesComparison(
-    value: Date | (() => Date),
-    comparison: (lhs: Date, rhs: Date) => boolean,
-    defaultErrorCode: string,
-    defaultErrorMessage: (lhs: Date, rhs: Date) => string,
-    providedErrorCode?: string,
-    providedErrorMessage?: string
-  ): FluentDateValidator {
-    return this.passes((input) => {
-      const comparator = typeof value === "function" ? value() : value;
-
-      if (comparison(input, comparator)) {
-        return true;
-      }
-
-      const [errorCode, errorMessage] = resolveErrorDetails(
-        defaultErrorCode,
-        defaultErrorMessage(input, comparator),
-        providedErrorCode,
-        providedErrorMessage
-      );
-
-      return {
-        code: errorCode,
-        message: errorMessage,
-        path: [],
-      };
-    });
-  }
-}
-
-function defaultDateParser(input: unknown): ParseResult<Date> {
-  if (input == null || !(input instanceof Date)) {
     return {
-      success: false,
-      errors: [
-        {
-          code: "invalidType",
-          message: "input must be a Date",
-          path: [],
-        },
-      ],
+      success: true,
+      errors: [],
+      parsed: input,
     };
-  }
+  },
+};
 
-  // e.g. new Date("not a real date") yields a Date that is also NaN.
-  if (isNaN(input.getTime())) {
-    return {
-      success: false,
-      errors: [
-        {
-          code: "invalidDate",
-          message: "input must represent a valid Date",
-          path: [],
-        },
-      ],
-    };
+export class FluentDateParserImpl
+  extends FluentComparableParserImpl<Date, FluentDateParser>
+  implements FluentDateParser {
+  constructor(root: FluentParsingRoot, parser?: Parser<Date>) {
+    super(root, parser ?? defaultDateParser, FluentDateParserImpl);
   }
-
-  return {
-    success: true,
-    errors: [],
-    parsed: input,
-  };
 }

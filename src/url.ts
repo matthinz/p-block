@@ -1,12 +1,13 @@
-import { BasicValidator } from "./basic";
+import { FluentParserImpl } from "./base";
 import { resolveErrorDetails } from "./errors";
 import {
   FluentParser,
-  NormalizationFunction,
-  ParsingFunction,
-  ValidationFunction,
+  FluentParsingRoot,
+  FluentURLParser,
+  KnownProtocol,
+  Parser,
+  ParseResult,
 } from "./types";
-import { createDefaultParser } from "./utils";
 
 // XXX: URL is a global in Node.js as of 10.0.0. Rather than bring in
 //      the whole "dom" lib, here's the piece we actually use of it.
@@ -35,62 +36,45 @@ declare var URL: {
   revokeObjectURL(url: string): void;
 };
 
-export type KnownProtocol = "http:" | "https:" | "ftp:" | "mailto:";
+const INVALID_TYPE_PARSE_RESULT: ParseResult<URL> = {
+  success: false,
+  errors: [
+    { code: "invalidType", message: "input must be of type 'URL'", path: [] },
+  ],
+};
 
-export interface FluentUrlValidator
-  extends FluentParser<URL, FluentUrlValidator> {
-  /**
-   * Validates that the incoming URL is using the HTTP or HTTPS protocol.
-   */
-  httpOrHttpsOnly(
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentUrlValidator;
+export const defaultURLParser: Parser<URL> = {
+  parse(input: unknown): ParseResult<URL> {
+    if (input instanceof URL) {
+      return {
+        success: true,
+        errors: [],
+        parsed: input,
+      };
+    }
+    return INVALID_TYPE_PARSE_RESULT;
+  },
+};
 
-  /**
-   * Validates that the incoming URL is using the HTTPS protocol.
-   */
-  httpsOnly(errorCode?: string, errorMessage?: string): FluentUrlValidator;
-
-  /**
-   * Validates that the incoming URL uses the given protocol. If more than
-   * one is specified, validation will pass if the URL uses any of them.
-   */
-  protocolEqualTo(
-    protocol: KnownProtocol | string | (KnownProtocol | string)[],
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentUrlValidator;
-}
-
-export class UrlValidator
-  extends BasicValidator<URL, FluentUrlValidator>
-  implements FluentUrlValidator {
-  constructor(
-    parser?: ParsingFunction<URL>,
-    normalizer?: NormalizationFunction<URL>,
-    validator?: ValidationFunction<URL>
-  ) {
-    super(
-      UrlValidator,
-      parser ?? createDefaultParser(URL),
-      normalizer,
-      validator
-    );
+export class FluentURLParserImpl
+  extends FluentParserImpl<URL, FluentURLParser>
+  implements FluentURLParser {
+  constructor(root: FluentParsingRoot, parser?: Parser<URL>) {
+    super(root, parser ?? defaultURLParser, FluentURLParserImpl);
   }
 
-  basedOn(base: string | URL): FluentUrlValidator {
+  basedOn(base: string | URL): FluentParser<URL> {
     return this.normalizedWith((url) => new URL(url.toString(), base));
   }
 
   httpOrHttpsOnly(
     errorCode?: string,
     errorMessage?: string
-  ): FluentUrlValidator {
+  ): FluentParser<URL> {
     return this.protocolEqualTo(["http", "https"], errorCode, errorMessage);
   }
 
-  httpsOnly(errorCode?: string, errorMessage?: string): FluentUrlValidator {
+  httpsOnly(errorCode?: string, errorMessage?: string): FluentParser<URL> {
     return this.protocolEqualTo("https", errorCode, errorMessage);
   }
 
@@ -98,7 +82,7 @@ export class UrlValidator
     protocol: KnownProtocol | string | (KnownProtocol | string)[],
     errorCode?: string,
     errorMessage?: string
-  ): FluentUrlValidator {
+  ): FluentParser<URL> {
     const protocols = (Array.isArray(protocol) ? protocol : [protocol]).map(
       (p) => p.replace(/:(\/\/)?$/, "") + ":"
     );

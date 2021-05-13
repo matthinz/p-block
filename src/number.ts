@@ -1,283 +1,66 @@
-import { BasicValidator } from "./basic";
-import { resolveErrorDetails } from "./errors";
+import { FluentComparableParserImpl } from "./comparable";
 import {
-  FluentParser,
-  NormalizationFunction,
+  FluentNumberParser,
+  FluentParsingRoot,
+  Parser,
   ParseResult,
-  ParsingFunction,
-  ValidationErrorDetails,
-  ValidationFunction,
 } from "./types";
-import {
-  composeNormalizers,
-  composeValidators,
-  createDefaultParser,
-} from "./utils";
 
-export interface FluentNumberValidator
-  extends FluentParser<number, FluentNumberValidator> {
-  between(
-    inclusiveMinimum: number,
-    inclusiveMaximum: number,
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentNumberValidator;
+const INVALID_TYPE_PARSE_RESULT: ParseResult<number> = {
+  success: false,
+  errors: [
+    {
+      code: "invalidType",
+      message: "input must be of type 'number'",
+      path: [],
+    },
+  ],
+};
 
-  defaultedTo(value: number): FluentNumberValidator;
+const NOT_FINITE_PARSE_RESULT: ParseResult<number> = {
+  success: false,
+  errors: [
+    {
+      code: "invalidNumber",
+      message: "input must be a finite number",
+      path: [],
+    },
+  ],
+};
 
-  /**
-   * @param value
-   * @param errorCode
-   * @param errorMessage
-   * @returns A new FluentNumberValidator, derived from this one, that validates input is equal to a given value.
-   */
-  equalTo(
-    value: number | (() => number),
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentNumberValidator;
+export const finiteNumberParser: Parser<number> = {
+  parse(input: unknown): ParseResult<number> {
+    if (typeof input !== "number") {
+      return INVALID_TYPE_PARSE_RESULT;
+    }
 
-  /**
-   * @param value
-   * @param errorCode
-   * @param errorMessage
-   * @returns A new FluentNumberValidator, derived from this one, that validates input is greater than a given value.
-   */
-  greaterThan(
-    value: number | (() => number),
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentNumberValidator;
+    if (!isFinite(input)) {
+      return NOT_FINITE_PARSE_RESULT;
+    }
 
-  /**
-   * @param value
-   * @param errorCode
-   * @param errorMessage
-   * @returns A new FluentNumberValidator, derived from this one, that validates input is greater than or equal to a given value.
-   */
-  greaterThanOrEqualTo(
-    value: number | (() => number),
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentNumberValidator;
+    return {
+      success: true,
+      errors: [],
+      parsed: input,
+    };
+  },
+};
 
-  /**
-   * @param value
-   * @param errorCode
-   * @param errorMessage
-   * @returns A new FluentNumberValidator, derived from this one, that validates input is less than a given value.
-   */
-  lessThan(
-    value: number | (() => number),
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentNumberValidator;
-
-  /**
-   * @param value
-   * @param errorCode
-   * @param errorMessage
-   * @returns A new FluentNumberValidator, derived from this one, that validates input is less than or equal to a given value.
-   */
-  lessThanOrEqualTo(
-    value: number | (() => number),
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentNumberValidator;
-
-  /**
-   * @param decimalPlaces
-   * @returns A new FluentNumberValidator, derived from this one, that rounds its input to the given number of decimal places before validating.
-   */
-  roundedTo(decimalPlaces: number): FluentNumberValidator;
-
-  /**
-   * @returns A new FluentNumberValidator, derived from this one, that truncates the decimal portion of its input before validation.
-   */
-  truncated(): FluentNumberValidator;
-}
-
-export class NumberValidator
-  extends BasicValidator<number, FluentNumberValidator>
-  implements FluentNumberValidator {
-  constructor(
-    parser?: ParsingFunction<number>,
-    normalizer?: NormalizationFunction<number>,
-    validator?: ValidationFunction<number>
-  ) {
-    super(NumberValidator, parser ?? finiteNumberParser, normalizer, validator);
+export class FluentNumberParserImpl
+  extends FluentComparableParserImpl<number, FluentNumberParser>
+  implements FluentNumberParser {
+  constructor(root: FluentParsingRoot, parser?: Parser<number>) {
+    super(root, parser ?? finiteNumberParser, FluentNumberParserImpl);
   }
 
-  between(
-    inclusiveMinimum: number,
-    inclusiveMaximum: number,
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentNumberValidator {
-    [errorCode, errorMessage] = resolveErrorDetails(
-      "between",
-      `input must be between ${inclusiveMinimum} and ${inclusiveMaximum} (inclusive)`
-    );
-    return this.passes(
-      (input) => input >= inclusiveMinimum && input <= inclusiveMaximum,
-      errorCode,
-      errorMessage
-    );
-  }
-
-  equalTo(
-    value: number,
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentNumberValidator {
-    return this.passesComparison(
-      value,
-      (lhs, rhs) => lhs === rhs,
-      "equalTo",
-      (lhs, rhs) => `input must be equal to ${rhs}`,
-      errorCode,
-      errorMessage
-    );
-  }
-
-  greaterThan(
-    value: number,
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentNumberValidator {
-    return this.passesComparison(
-      value,
-      (lhs, rhs) => lhs > rhs,
-      "greaterThan",
-      (lhs, rhs) => `input must be greater than ${rhs}`,
-      errorCode,
-      errorMessage
-    );
-  }
-
-  greaterThanOrEqualTo(
-    value: number,
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentNumberValidator {
-    return this.passesComparison(
-      value,
-      (lhs, rhs) => lhs >= rhs,
-      "greaterThanOrEqualTo",
-      (lhs, rhs) => `input must be greater than or equal to ${rhs}`,
-      errorCode,
-      errorMessage
-    );
-  }
-
-  lessThan(
-    value: number,
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentNumberValidator {
-    return this.passesComparison(
-      value,
-      (lhs, rhs) => lhs < rhs,
-      "lessThan",
-      (lhs, rhs) => `input must be less than ${rhs}`,
-      errorCode,
-      errorMessage
-    );
-  }
-
-  lessThanOrEqualTo(
-    value: number,
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentNumberValidator {
-    return this.passesComparison(
-      value,
-      (lhs, rhs) => lhs <= rhs,
-      "lessThanOrEqualTo",
-      (lhs, rhs) => `input must be less than or equal to ${rhs}`,
-      errorCode,
-      errorMessage
-    );
-  }
-
-  roundedTo(decimalPlaces = 0): FluentNumberValidator {
-    const nextNormalizer = (input: number) => {
+  roundedTo(decimalPlaces = 0): FluentNumberParser {
+    return this.normalizedWith((input: number) => {
       const exp = Math.pow(10, decimalPlaces);
       return Math.round(input * exp) / exp;
-    };
-
-    return new NumberValidator(
-      this.parser,
-      composeNormalizers(this.normalizer, nextNormalizer),
-      this.validator
-    );
+    });
   }
 
-  truncated(): FluentNumberValidator {
-    const nextNormalizer = (input: number) => Math.floor(input);
-    return new NumberValidator(
-      this.parser,
-      composeNormalizers(this.normalizer, nextNormalizer),
-      this.validator
-    );
+  truncated(): FluentNumberParser {
+    return this.normalizedWith((input: number) => Math.floor(input));
   }
-
-  private passesComparison(
-    value: number | (() => number),
-    comparison: (lhs: number, rhs: number) => boolean,
-    defaultErrorCode: string,
-    defaultErrorMessage: (lhs: number, rhs: number) => string,
-    providedErrorCode?: string,
-    providedErrorMessage?: string
-  ): FluentNumberValidator {
-    function comparisonValidator(input: number): true | ValidationErrorDetails {
-      const valueToCompareAgainst =
-        typeof value === "function" ? value() : value;
-      if (comparison(input, valueToCompareAgainst)) {
-        return true;
-      }
-
-      const [errorCode, errorMessage] = resolveErrorDetails(
-        defaultErrorCode,
-        defaultErrorMessage(input, valueToCompareAgainst),
-        providedErrorCode,
-        providedErrorMessage
-      );
-
-      return {
-        code: errorCode,
-        message: errorMessage,
-        path: [],
-      };
-    }
-    return new NumberValidator(
-      this.parser,
-      this.normalizer,
-      composeValidators(this.validator, comparisonValidator)
-    );
-  }
-}
-
-const defaultNumberParser = createDefaultParser<number>("number");
-
-function finiteNumberParser(input: unknown): ParseResult<number> {
-  const result = defaultNumberParser(input);
-  if (!result.success) {
-    return result;
-  }
-
-  if (!isFinite(result.parsed)) {
-    return {
-      success: false,
-      errors: [
-        {
-          code: "invalidNumber",
-          message: "input must be a finite number",
-          path: [],
-        },
-      ],
-    };
-  }
-
-  return result;
 }

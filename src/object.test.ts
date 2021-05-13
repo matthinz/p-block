@@ -1,6 +1,8 @@
 import { V } from ".";
 import { ParsingTest, runParsingTests } from "./test-utils";
 
+class NotAPlainObject {}
+
 describe("isObject()", () => {
   describe("withProperties", () => {
     const validator = V.isObject().withProperties({
@@ -15,6 +17,12 @@ describe("isObject()", () => {
       [undefined, false, "invalidType", "input must be an object", []],
       [null, false, "invalidType", "input must be an object", []],
       [[], false, "invalidType", "input must be an object", []],
+      [
+        new NotAPlainObject(),
+        false,
+        "invalidType",
+        "input must be a plain object",
+      ],
       [
         {
           firstName: 123,

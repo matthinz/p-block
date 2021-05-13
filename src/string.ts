@@ -1,20 +1,22 @@
-import { BasicValidator } from "./basic";
-import { BooleanValidator, FluentBooleanValidator } from "./boolean";
-import { DateValidator, FluentDateValidator } from "./date";
+import { FluentParserImpl } from "./base";
+import { defaultBooleanParser, FluentBooleanParserImpl } from "./boolean";
+import { defaultDateParser, FluentDateParserImpl } from "./date";
 import { resolveErrorDetails } from "./errors";
-import { FluentNumberValidator, NumberValidator } from "./number";
+import { finiteNumberParser, FluentNumberParserImpl } from "./number";
 import {
+  FluentBooleanParser,
+  FluentDateParser,
+  FluentNumberParser,
   FluentParser,
-  NormalizationFunction,
+  FluentParsingRoot,
+  FluentStringParser,
+  FluentURLParser,
   Parser,
   ParseResult,
-  ParsingFunction,
-  ValidationErrorDetails,
-  ValidationFunction,
 } from "./types";
-import { FluentUrlValidator, UrlValidator } from "./url";
+import { defaultURLParser, FluentURLParserImpl } from "./url";
 
-const InvalidTypeParseResult: ParseResult<string> = {
+const INVALID_TYPE_PARSE_RESULT: ParseResult<string> = {
   success: false,
   errors: [
     {
@@ -25,137 +27,31 @@ const InvalidTypeParseResult: ParseResult<string> = {
   ],
 };
 
-const EmptyErrorArray: ReadonlyArray<ValidationErrorDetails> = [];
+const defaultStringParser: Parser<string> = {
+  parse(input: unknown): ParseResult<string> {
+    if (typeof input !== "string") {
+      return INVALID_TYPE_PARSE_RESULT;
+    }
+    return {
+      success: true,
+      errors: [],
+      parsed: input,
+    };
+  },
+};
 
-export interface FluentStringValidator
-  extends FluentParser<string, FluentStringValidator> {
-  /**
-   * @param value
-   * @returns A FluentStringValidator, derived from this one, that will fill in the given default value when input is null or undefined.
-   */
-  defaultedTo(value: string): FluentStringValidator;
-
-  /**
-   * @returns A FluentStringValidator, derived from this one, that validates its input is included in `values`. This check is strict--case matters.
-   */
-  isIn(
-    values: string[],
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentStringValidator;
-
-  length(length: number): FluentStringValidator;
-
-  /**
-   * @returns A FluentStringValidator that converts input to lower case before validating.
-   */
-  lowerCased(): FluentStringValidator;
-
-  matches(
-    regex: RegExp,
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentStringValidator;
-
-  maxLength(
-    max: number,
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentStringValidator;
-
-  minLength(
-    min: number,
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentStringValidator;
-
-  notEmpty(errorCode?: string, errorMessage?: string): FluentStringValidator;
-
-  parsedAsBoolean(
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentBooleanValidator;
-
-  parsedAsBoolean(
-    parser?: (input: string) => boolean | undefined,
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentBooleanValidator;
-
-  parsedAsDate(
-    parser?: (input: string) => Date | undefined,
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentDateValidator;
-
-  parsedAsFloat(
-    parser: (input: string) => number | undefined,
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentNumberValidator;
-
-  parsedAsFloat(
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentNumberValidator;
-
-  parsedAsInteger(
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentNumberValidator;
-
-  parsedAsInteger(
-    base: number,
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentNumberValidator;
-
-  parsedAsInteger(
-    parser: (input: string) => number | undefined,
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentNumberValidator;
-
-  parsedAsURL(errorCode?: string, errorMessage?: string): FluentUrlValidator;
-
-  parsedAsURL(
-    parser: (input: string) => URL | undefined,
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentUrlValidator;
-
-  /**
-   * @returns A FluentStringValidator, derived from this one, that trims leading and trailing whitespace from input before validation.
-   */
-  trimmed(): FluentStringValidator;
-
-  /**
-   * @returns A FluentStringValidator, derived from this one, that converts inputs to uppercase before validation.
-   */
-  upperCased(): FluentStringValidator;
-}
-
-export class StringValidator
-  extends BasicValidator<string, FluentStringValidator>
-  implements FluentStringValidator {
-  constructor(
-    parser?: ParsingFunction<string>,
-    normalizer?: NormalizationFunction<string>,
-    validator?: ValidationFunction<string>
-  ) {
-    super(
-      StringValidator,
-      parser ?? defaultStringParser,
-      normalizer,
-      validator
-    );
+export class FluentStringParserImpl
+  extends FluentParserImpl<string, FluentStringParser>
+  implements FluentStringParser {
+  constructor(root: FluentParsingRoot, parser?: Parser<string>) {
+    super(root, parser ?? defaultStringParser, FluentStringParserImpl);
   }
 
   isIn(
     values: string[],
     errorCode?: string,
     errorMessage?: string
-  ): FluentStringValidator {
+  ): FluentStringParser {
     return this.passes(
       (input) => values.includes(input),
       errorCode,
@@ -163,7 +59,7 @@ export class StringValidator
     );
   }
 
-  length(length: number): FluentStringValidator {
+  length(length: number): FluentStringParser {
     return this.passes(
       (str) => str.length === length,
       "length",
@@ -171,7 +67,7 @@ export class StringValidator
     );
   }
 
-  lowerCased(): FluentStringValidator {
+  lowerCased(): FluentStringParser {
     return this.normalizedWith((value: any) =>
       typeof value === "string" ? value.toLowerCase() : value
     );
@@ -181,7 +77,7 @@ export class StringValidator
     regex: RegExp,
     errorCode?: string,
     errorMessage?: string
-  ): FluentStringValidator {
+  ): FluentStringParser {
     return this.passes(
       (input) => regex.test(input),
       errorCode ?? "matches",
@@ -193,7 +89,7 @@ export class StringValidator
     max: number,
     errorCode?: string,
     errorMessage?: string
-  ): FluentStringValidator {
+  ): FluentStringParser {
     return this.passes(
       (input) => input.length <= max,
       errorCode ?? "maxLength",
@@ -206,7 +102,7 @@ export class StringValidator
     min: number,
     errorCode?: string,
     errorMessage?: string
-  ): FluentStringValidator {
+  ): FluentStringParser {
     [errorCode, errorMessage] = resolveErrorDetails(
       "minLength",
       `input length must be greater than or equal to ${min} character(s)`,
@@ -217,7 +113,7 @@ export class StringValidator
     return this.passes((input) => input.length >= min, errorCode, errorMessage);
   }
 
-  notEmpty(errorCode?: string, errorMessage?: string): FluentStringValidator {
+  notEmpty(errorCode?: string, errorMessage?: string): FluentStringParser {
     return this.minLength(
       1,
       errorCode ?? "notEmpty",
@@ -229,9 +125,10 @@ export class StringValidator
     parserOrErrorCode?: ((input: string) => boolean | undefined) | string,
     errorCodeOrErrorMessage?: string,
     errorMessage?: string
-  ): FluentBooleanValidator {
+  ): FluentBooleanParser {
     return this.internalParsedAs(
-      BooleanValidator,
+      FluentBooleanParserImpl,
+      defaultStringToBooleanParser,
       defaultBooleanParser,
       "parsedAsBoolean",
       "input could not be parsed as a boolean",
@@ -245,9 +142,10 @@ export class StringValidator
     parserOrErrorCode?: string | ((input: string) => Date | undefined),
     errorCodeOrErrorMessage?: string,
     errorMessage?: string
-  ): FluentDateValidator {
+  ): FluentDateParser {
     return this.internalParsedAs(
-      DateValidator,
+      FluentDateParserImpl,
+      defaultStringToDateParser,
       defaultDateParser,
       "parsedAsDate",
       "input could not be parsed as a Date",
@@ -261,10 +159,11 @@ export class StringValidator
     parserOrErrorCode?: string | ((input: string) => number | undefined),
     errorCodeOrErrorMessage?: string,
     errorMessage?: string
-  ): FluentNumberValidator {
+  ): FluentNumberParser {
     return this.internalParsedAs(
-      NumberValidator,
-      defaultFloatParser,
+      FluentNumberParserImpl,
+      defaultStringToFloatParser,
+      finiteNumberParser,
       "parsedAsFloat",
       "input could not be parsed as a float",
       parserOrErrorCode,
@@ -280,20 +179,21 @@ export class StringValidator
       | string,
     errorCodeOrErrorMessage?: string,
     errorMessage?: string
-  ): FluentNumberValidator {
+  ): FluentNumberParser {
     if (typeof radixOrParserOrErrorCode === "number") {
       if (radixOrParserOrErrorCode < 2 || radixOrParserOrErrorCode > 36) {
         throw new Error("radix must be between 2 and 36, inclusive");
       }
-      radixOrParserOrErrorCode = defaultIntegerParser.bind(
+      radixOrParserOrErrorCode = defaultStringToIntegerParser.bind(
         undefined,
         radixOrParserOrErrorCode
       );
     }
 
     return this.internalParsedAs(
-      NumberValidator,
-      defaultIntegerParser.bind(undefined, 10),
+      FluentNumberParserImpl,
+      defaultStringToIntegerParser.bind(undefined, 10),
+      finiteNumberParser,
       "parsedAsInteger",
       "input could not be parsed as an integer",
       radixOrParserOrErrorCode,
@@ -306,9 +206,10 @@ export class StringValidator
     parserOrErrorCode?: string | ((input: string) => URL | undefined),
     errorCodeOrErrorMessage?: string,
     errorMessage?: string
-  ): FluentUrlValidator {
-    return this.internalParsedAs(
-      UrlValidator,
+  ): FluentURLParser {
+    return this.internalParsedAs<URL, FluentURLParser>(
+      FluentURLParserImpl,
+      defaultStringToURLParser,
       defaultURLParser,
       "parsedAsURL",
       "input cannot be parsed as a URL",
@@ -318,78 +219,86 @@ export class StringValidator
     );
   }
 
-  trimmed(): FluentStringValidator {
+  trimmed(): FluentStringParser {
     return this.normalizedWith((str) => str.trim());
   }
 
-  upperCased(): FluentStringValidator {
+  upperCased(): FluentStringParser {
     return this.normalizedWith((str) => str.toUpperCase());
   }
 
-  protected internalParsedAs<Type, ValidatorType extends Parser<Type>>(
-    ctor: { new (parser: ParsingFunction<Type>): ValidatorType },
+  protected internalParsedAs<Type, FluentParserType extends FluentParser<Type>>(
+    ctor: {
+      new (root: FluentParsingRoot, parser: Parser<Type>): FluentParserType;
+    },
     defaultParser: (input: string) => Type | undefined,
+    typedParser: Parser<Type>,
     defaultErrorCode: string,
     defaultErrorMessage: string,
     parserOrErrorCode?: ((input: string) => Type | undefined) | string,
     errorCodeOrErrorMessage?: string,
     errorMessage?: string
-  ): ValidatorType {
-    const nextParser = (input: unknown): ParseResult<Type> => {
-      const stringParseResult = this.parse(input);
-      if (!stringParseResult.success) {
-        return stringParseResult;
-      }
+  ): FluentParserType {
+    const nextParser: Parser<Type> = {
+      ...typedParser,
+      parse: (input: unknown): ParseResult<Type> => {
+        // First, ensure the input is even a string...
+        const stringParseResult = this.parse(input);
+        if (!stringParseResult.success) {
+          return stringParseResult;
+        }
 
-      const typedParser =
-        typeof parserOrErrorCode === "function"
-          ? parserOrErrorCode
-          : defaultParser;
+        // ...then process it from string -> Type
+        const stringParser =
+          typeof parserOrErrorCode === "function"
+            ? parserOrErrorCode
+            : defaultParser;
 
-      const value = typedParser(stringParseResult.parsed);
+        const value = stringParser(stringParseResult.parsed);
 
-      if (value !== undefined) {
+        if (value !== undefined) {
+          return {
+            success: true,
+            errors: [],
+            parsed: value,
+          };
+        }
+
+        let code =
+          typeof parserOrErrorCode === "function"
+            ? errorCodeOrErrorMessage
+            : parserOrErrorCode;
+
+        let message =
+          typeof parserOrErrorCode === "function"
+            ? errorMessage
+            : errorCodeOrErrorMessage;
+
+        if (code == null) {
+          code = defaultErrorCode;
+          message = defaultErrorMessage;
+        } else {
+          message = message ?? code;
+        }
+
         return {
-          success: true,
-          errors: [],
-          parsed: value,
+          success: false,
+          errors: [
+            {
+              code,
+              message,
+              path: [],
+            },
+          ],
         };
-      }
-
-      let code =
-        typeof parserOrErrorCode === "function"
-          ? errorCodeOrErrorMessage
-          : parserOrErrorCode;
-
-      let message =
-        typeof parserOrErrorCode === "function"
-          ? errorMessage
-          : errorCodeOrErrorMessage;
-
-      if (code == null) {
-        code = defaultErrorCode;
-        message = defaultErrorMessage;
-      } else {
-        message = message ?? code;
-      }
-
-      return {
-        success: false,
-        errors: [
-          {
-            code,
-            message,
-            path: [],
-          },
-        ],
-      };
+      },
     };
 
-    return new ctor(nextParser);
+    return new ctor(this.root, nextParser);
   }
 }
 
-function defaultBooleanParser(input: string): boolean | undefined {
+function defaultStringToBooleanParser(input: string): boolean | undefined {
   const TRUE_REGEX = /^(y|Y|yes|Yes|YES|true|True|TRUE|on|On|ON)$/;
   const FALSE_REGEX = /^(n|N|no|No|NO|false|False|FALSE|off|Off|OFF)$/;
 
@@ -402,7 +311,7 @@ function defaultBooleanParser(input: string): boolean | undefined {
   }
 }
 
-function defaultDateParser(input: string): Date | undefined {
+function defaultStringToDateParser(input: string): Date | undefined {
   const JUST_DATE = /^(\d{4})-(\d{1,2})-(\d{1,2})$/;
 
   try {
@@ -435,7 +344,7 @@ function defaultDateParser(input: string): Date | undefined {
   }
 }
 
-function defaultIntegerParser(
+function defaultStringToIntegerParser(
   radix: number,
   input: string
 ): number | undefined {
@@ -459,7 +368,7 @@ function defaultIntegerParser(
   return inputWasWellFormed ? parsed : undefined;
 }
 
-function defaultFloatParser(input: string): number | undefined {
+function defaultStringToFloatParser(input: string): number | undefined {
   // Allow integers ending in e.g. ".0000" to parse successfully
   input = input.trim().replace(/\.0+$/, "");
 
@@ -479,17 +388,7 @@ function defaultFloatParser(input: string): number | undefined {
   return inputWasWellFormed ? parsed : undefined;
 }
 
-function defaultStringParser(input: unknown): ParseResult<string> {
-  return typeof input === "string"
-    ? {
-        success: true,
-        errors: EmptyErrorArray as [],
-        parsed: input,
-      }
-    : InvalidTypeParseResult;
-}
-
-function defaultURLParser(input: string): URL | undefined {
+function defaultStringToURLParser(input: string): URL | undefined {
   try {
     return new URL(input);
   } catch (err) {

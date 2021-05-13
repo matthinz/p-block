@@ -1,4 +1,5 @@
 import { ValidationErrorDetails } from "./types";
+import { pathsEqual } from "./utils";
 
 export class ValidationError extends Error {
   readonly errors: ValidationErrorDetails[];
@@ -12,49 +13,39 @@ export class ValidationError extends Error {
     this.errors = errors;
   }
 }
-
 export function combineErrorLists(
-  ...errorLists: ValidationErrorDetails[][]
+  errorLists: ValidationErrorDetails[][],
+  merger: (
+    x: ValidationErrorDetails,
+    y: ValidationErrorDetails
+  ) => ValidationErrorDetails | ValidationErrorDetails[]
 ): ValidationErrorDetails[] {
-  const errorsByCode: { [code: string]: ValidationErrorDetails[] } = {};
+  return errorLists.reduce(reducer, []);
 
-  return errorLists.reduce((result, list) => {
-    list.forEach((err) => {
-      const isDuplicate =
-        errorsByCode[err.code] &&
-        errorsByCode[err.code].find((e) => errorsEqual(err, e));
-
-      if (isDuplicate) {
-        return;
+  function reducer(
+    result: ValidationErrorDetails[],
+    errors: ValidationErrorDetails[]
+  ): ValidationErrorDetails[] {
+    errors.forEach((err) => {
+      const index = result.findIndex(
+        (e) => e.code === err.code && pathsEqual(e.path, err.path)
+      );
+      if (index < 0) {
+        result.push(err);
+        return result;
       }
 
-      errorsByCode[err.code] = errorsByCode[err.code] ?? [];
-      errorsByCode[err.code].push(err);
-      result.push(err);
-    });
-    return result;
-  }, []);
-}
+      const merged = merger(result[index], err);
 
-function errorsEqual(
-  x: ValidationErrorDetails,
-  y: ValidationErrorDetails
-): boolean {
-  if (x.code !== y.code) {
-    return false;
+      if (Array.isArray(merged)) {
+        result.splice(index, 1, ...merged);
+      } else {
+        result[index] = merged;
+      }
+    });
+
+    return result;
   }
-  if (x.message !== y.message) {
-    return false;
-  }
-  if (x.path.length !== y.path.length) {
-    return false;
-  }
-  for (let i = 0; i < x.path.length; i++) {
-    if (x.path[i] !== y.path[i]) {
-      return false;
-    }
-  }
-  return true;
 }
 
 export function resolveErrorDetails(

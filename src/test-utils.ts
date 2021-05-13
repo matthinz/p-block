@@ -75,24 +75,36 @@ export function runParsingTests<Type>(
           : [];
 
         if (expectedErrorCodes.length > 0) {
-          test("returns correct error code(s)", () =>
-            expect(
-              !parseResult.success && parseResult.errors.map((e) => e.code)
-            ).toStrictEqual(expectedErrorCodes));
+          test("returns correct error code(s)", () => {
+            if (parseResult.success) {
+              return;
+            }
+            expect(parseResult.errors.map((e) => e.code)).toStrictEqual(
+              expectedErrorCodes
+            );
+          });
         }
 
         if (expectedErrorMessages.length > 0) {
-          test("returns correct error message(s)", () =>
-            expect(
-              !parseResult.success && parseResult.errors.map((e) => e.message)
-            ).toStrictEqual(expectedErrorMessages));
+          test("returns correct error message(s)", () => {
+            if (parseResult.success) {
+              return;
+            }
+            expect(parseResult.errors.map((e) => e.message)).toStrictEqual(
+              expectedErrorMessages
+            );
+          });
         }
 
         if (expectedErrorPaths.length > 0) {
-          test("returns correct error path(s)", () =>
-            expect(
-              !parseResult.success && parseResult.errors.map((e) => e.path)
-            ).toStrictEqual(expectedErrorPaths));
+          test("returns correct error path(s)", () => {
+            if (parseResult.success) {
+              return;
+            }
+            expect(parseResult.errors.map((e) => e.path)).toStrictEqual(
+              expectedErrorPaths
+            );
+          });
         }
       });
     });

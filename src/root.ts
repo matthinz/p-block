@@ -1,85 +1,87 @@
-import { AlwaysValidator } from "./always";
-import { AndValidator } from "./and";
+import { AndParser } from "./and";
+import { defaultArrayParser, FluentArrayParserImpl } from "./array";
+import { FluentParserImpl } from "./base";
+import { FluentBooleanParserImpl } from "./boolean";
+import { FluentDateParserImpl } from "./date";
+import { nullishParser } from "./nullish";
+import { FluentNumberParserImpl } from "./number";
+import { defaultObjectParser, FluentObjectParserImpl } from "./object";
+import { OrParser } from "./or";
+import { FluentStringParserImpl } from "./string";
 import {
-  ArrayValidator,
-  defaultArrayParser,
-  FluentArrayValidator,
-} from "./array";
-import { BooleanValidator, FluentBooleanValidator } from "./boolean";
-import { DateValidator, FluentDateValidator } from "./date";
-import { FluentNullishParser, NullishParser } from "./nullish";
-import { FluentNumberValidator, NumberValidator } from "./number";
-import {
-  defaultObjectParser,
-  FluentObjectValidator,
-  ObjectValidator,
-} from "./object";
-import { OrValidator } from "./or";
-import { FluentStringValidator, StringValidator } from "./string";
-import { Parser } from "./types";
-import { FluentUrlValidator, UrlValidator } from "./url";
+  FluentArrayParser,
+  FluentBooleanParser,
+  FluentDateParser,
+  FluentNumberParser,
+  FluentObjectParser,
+  FluentParser,
+  FluentParsingRoot,
+  FluentStringParser,
+  FluentURLParser,
+  ParsedType,
+  Parser,
+  UnionToIntersection,
+} from "./types";
+import { unknownParser } from "./unknown";
+import { FluentURLParserImpl } from "./url";
 
-export interface FluentParsingRoot {
-  allOf<Type>(...parsers: (Parser<Type> | Parser<Type>[])[]): Parser<Type>;
-  anyOf<Type>(...parsers: (Parser<Type> | Parser<Type>[])[]): Parser<Type>;
-  isArray(): FluentArrayValidator<unknown>;
-  isBoolean(): FluentBooleanValidator;
-  isDate(): FluentDateValidator;
-  isNullish(): FluentNullishParser;
-  isNumber(): FluentNumberValidator;
-  isObject(): FluentObjectValidator<Record<string, unknown>>;
-  isString(): FluentStringValidator;
-  isURL(): FluentUrlValidator;
-}
-
-export class Root implements FluentParsingRoot {
-  private readonly arrayParser: FluentArrayValidator<unknown> = new ArrayValidator<unknown>(
+export class FluentParsingRootImpl implements FluentParsingRoot {
+  private arrayParser: FluentArrayParser<unknown> = new FluentArrayParserImpl(
+    this,
     defaultArrayParser
   );
-  private readonly booleanParser: FluentBooleanValidator = new BooleanValidator();
-  private readonly dateParser: FluentDateValidator = new DateValidator();
-  private readonly nullishParser: FluentNullishParser = new NullishParser();
-  private readonly numberParser: FluentNumberValidator = new NumberValidator();
-  private readonly objectParser: FluentObjectValidator<
+  private booleanParser: FluentBooleanParser = new FluentBooleanParserImpl(
+    this
+  );
+  private dateParser: FluentDateParser = new FluentDateParserImpl(this);
+  private nullishParser: FluentParser<undefined> = new FluentParserImpl<
+    undefined,
+    FluentParser<undefined>
+  >(this, nullishParser);
+  private numberParser: FluentNumberParser = new FluentNumberParserImpl(this);
+  private objectParser: FluentObjectParser<
     Record<string, unknown>
-  > = new ObjectValidator(defaultObjectParser);
-  private readonly stringParser: FluentStringValidator = new StringValidator();
-  private readonly urlParser: FluentUrlValidator = new UrlValidator();
+  > = new FluentObjectParserImpl(this, defaultObjectParser);
+  private stringParser: FluentStringParser = new FluentStringParserImpl(this);
+  private unknownParser: FluentParser<unknown> = new FluentParserImpl<
+    unknown,
+    FluentParser<unknown>
+  >(this, unknownParser);
+  private urlParser: FluentURLParser = new FluentURLParserImpl(this);
 
-  allOf<Type>(...parsers: (Parser<Type> | Parser<Type>[])[]): Parser<Type> {
-    const reducer = (
-      result: Parser<Type> | undefined,
-      parser: Parser<Type> | Parser<Type>[]
-    ): Parser<Type> | undefined => {
-      if (Array.isArray(parser)) {
-        if (parser.length === 0) {
-          return result;
-        } else if (parser.length === 1) {
-          return result ? new AndValidator(result, parser[0]) : parser[0];
-        }
-        parser = this.allOf(...parser);
-      }
-      return result === undefined ? parser : new AndValidator(result, parser);
-    };
-    return parsers.reduce(reducer, undefined) ?? new AlwaysValidator();
+  allOf<Parsers extends Parser<unknown>[]>(
+    ...parsers: Parsers
+  ): FluentParser<UnionToIntersection<ParsedType<Parsers[number]>>> {
+    if (parsers.length < 1) {
+      throw new Error();
+    }
+
+    const parser = parsers.reduce<Parser<unknown>>((result, parser) => {
+      return new AndParser(this, result, parser);
+    }, this.isUnknown());
+
+    return new FluentParserImpl(this, parser) as FluentParser<
+      UnionToIntersection<ParsedType<Parsers[number]>>
+    >;
   }
 
-  anyOf<Type>(...parsers: (Parser<Type> | Parser<Type>[])[]): Parser<Type> {
-    const reducer = (
-      result: Parser<Type> | undefined,
-      parser: Parser<Type> | Parser<Type>[]
-    ): Parser<Type> | undefined => {
-      if (Array.isArray(parser)) {
-        if (parser.length === 0) {
-          return result;
-        } else if (parser.length === 1) {
-          return result ? new OrValidator(result, parser[0]) : parser[0];
-        }
-        parser = this.allOf(...parser);
-      }
-      return result === undefined ? parser : new OrValidator(result, parser);
-    };
-    return parsers.reduce(reducer, undefined) ?? new AlwaysValidator();
+  anyOf<Parsers extends Parser<unknown>[]>(
+    ...parsers: Parsers
+  ): FluentParser<ParsedType<Parsers[number]>> {
+    const parser = parsers.reduce<Parser<unknown> | undefined>(
+      (result, parser) => {
+        return result ? new OrParser(result, parser) : parser;
+      },
+      undefined
+    );
+
+    if (!parser) {
+      throw new Error("anyOf() requires at least one argument");
+    }
+
+    return new FluentParserImpl(this, parser) as FluentParser<
+      ParsedType<Parsers[number]>
+    >;
   }
 
   isArray = () => this.arrayParser;
@@ -89,5 +91,6 @@ export class Root implements FluentParsingRoot {
   isNumber = () => this.numberParser;
   isObject = () => this.objectParser;
   isString = () => this.stringParser;
+  isUnknown = () => this.unknownParser;
   isURL = () => this.urlParser;
 }

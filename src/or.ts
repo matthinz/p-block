@@ -1,15 +1,11 @@
 import { combineErrorLists } from "./errors";
-import { Parser, ParseResult, ValidationErrorDetails } from "./types";
-import { pathsEqual } from "./utils";
+import { Parser, ParseResult } from "./types";
 
-export class OrValidator<Left, Right> implements Parser<Left | Right> {
-  private readonly left: Parser<Left>;
-  private readonly right: Parser<Right>;
-
-  constructor(left: Parser<Left>, right: Parser<Right>) {
-    this.left = left;
-    this.right = right;
-  }
+export class OrParser<Left, Right> implements Parser<Left | Right> {
+  constructor(
+    private readonly left: Parser<Left>,
+    private readonly right: Parser<Right>
+  ) {}
 
   parse(input: unknown): ParseResult<Left | Right> {
     const leftResult = this.left.parse(input);
@@ -22,26 +18,19 @@ export class OrValidator<Left, Right> implements Parser<Left | Right> {
       return rightResult;
     }
 
-    // For intersections on code + path, combine into a single error.
     const errors = combineErrorLists(
-      leftResult.errors,
-      rightResult.errors
-    ).reduce<ValidationErrorDetails[]>((result, err) => {
-      const existingIndex = result.findIndex(
-        (e) => e.code === err.code && pathsEqual(e.path, err.path)
-      );
+      [leftResult.errors, rightResult.errors],
+      (x, y) => {
+        if (x.message === y.message) {
+          return x;
+        }
 
-      if (existingIndex >= 0) {
-        result[existingIndex] = {
-          ...result[existingIndex],
-          message: `${result[existingIndex].message} OR ${err.message}`,
+        return {
+          ...x,
+          message: `${x.message} OR ${y.message}`,
         };
-      } else {
-        result.push(err);
       }
-
-      return result;
-    }, []);
+    );
 
     return {
       success: false,

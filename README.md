@@ -57,3 +57,4 @@
 - Support for type verification (no parsing / normalization done?)
 - And validator success case
 - Continuation from `.optional()` -- can you then do `.passes()`? Is it called if no value is provided?
+- `.defaultedTo()` should accept a function (in general we should accept functions in place of values)

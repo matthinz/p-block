@@ -1,104 +1,80 @@
-import { BasicValidator } from "./basic";
+import { FluentParserImpl } from "./base";
 import { resolveErrorDetails } from "./errors";
 import {
-  FluentParser,
-  NormalizationFunction,
-  ParsedType,
+  ExtendObjectType,
+  FluentObjectParser,
+  FluentParsingRoot,
   Parser,
   ParseResult,
-  ParsingFunction,
+  ParserMap,
   PropertyValidationFunction,
   ValidationErrorDetails,
-  ValidationFunction,
 } from "./types";
 
-type ParserDictionary = {
-  [property: string]: Parser<unknown>;
+const INVALID_TYPE_PARSE_RESULT: ParseResult<Record<string, unknown>> = {
+  success: false,
+  errors: [
+    {
+      code: "invalidType",
+      message: "input must be an object",
+      path: [],
+    },
+  ],
 };
 
-export interface FluentObjectValidator<Type extends Record<string, unknown>>
-  extends FluentParser<Type, FluentObjectValidator<Type>> {
-  defaultedTo<Defaults extends { [property in keyof Type]?: Type[property] }>(
-    values: Defaults
-  ): FluentObjectValidator<Type>;
+const PLAIN_OBJECT_PARSE_RESULT: ParseResult<Record<string, unknown>> = {
+  success: false,
+  errors: [
+    {
+      code: "invalidType",
+      message: "input must be a plain object",
+      path: [],
+    },
+  ],
+};
 
-  propertiesMatch<
-    PropertyName extends keyof Type,
-    OtherPropertyName extends Exclude<keyof Type, PropertyName> &
-      Type[PropertyName]
-  >(
-    propertyName: PropertyName,
-    otherPropertyName: OtherPropertyName,
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentObjectValidator<Type>;
-
-  propertyPasses<PropertyName extends keyof Type>(
-    propertyName: PropertyName,
-    validators:
-      | PropertyValidationFunction<Type[typeof propertyName], Type>
-      | PropertyValidationFunction<Type[typeof propertyName], Type>[],
-    errorCode?: string,
-    errorMessage?: string
-  ): FluentObjectValidator<Type>;
-
-  /**
-   * @param properties
-   * @returns A new validator, derived from this one, that verifies that all properties
-   *          listed in `properties` are present and pass validation rules supplied.
-   */
-  withProperties<
-    PropertyParsers extends {
-      [property: string]: Parser<any>;
+export const defaultObjectParser = {
+  parse: (input: unknown): ParseResult<Record<string, unknown>> => {
+    if (typeof input !== "object" || input == null || Array.isArray(input)) {
+      return INVALID_TYPE_PARSE_RESULT;
     }
-  >(
-    properties: PropertyParsers
-  ): FluentObjectValidator<
-    Type &
-      {
-        [property in keyof PropertyParsers]: ParsedType<
-          typeof properties[property]
-        >;
-      }
-  >;
-}
 
-export class ObjectValidator<
-    ParentType extends Record<string, unknown>,
-    Type extends ParentType
-  >
-  extends BasicValidator<Type, FluentObjectValidator<Type>>
-  implements FluentObjectValidator<Type> {
-  constructor(
-    parser: ParsingFunction<Type>,
-    normalizer?: NormalizationFunction<Type>,
-    validator?: ValidationFunction<Type>
-  ) {
-    super(ObjectValidator, parser, normalizer, validator);
+    if (input.constructor !== Object) {
+      return PLAIN_OBJECT_PARSE_RESULT;
+    }
+
+    return {
+      success: true,
+      errors: [],
+      parsed: input as Record<string, unknown>,
+    };
+  },
+};
+
+export class FluentObjectParserImpl<Type extends Record<string, unknown>>
+  extends FluentParserImpl<Type, FluentObjectParser<Type>>
+  implements FluentObjectParser<Type> {
+  constructor(root: FluentParsingRoot, parser: Parser<Type>) {
+    super(root, parser, FluentObjectParserImpl);
   }
 
-  defaultedTo<Defaults extends { [property in keyof Type]?: Type[property] }>(
-    defaults: Defaults
-  ): FluentObjectValidator<Type> {
-    const nextParser = (input: unknown): ParseResult<Type> => {
-      if (input == null) {
-        input = { ...defaults };
-      } else {
-        const parsed = defaultObjectParser(input);
-        if (parsed.success) {
-          input = [
-            ...Object.keys(defaults),
-            ...Object.keys(parsed.parsed),
-          ].reduce((obj, key) => {
-            return { ...obj, [key]: parsed.parsed[key] ?? defaults[key] };
-          }, {});
+  defaultedTo(defaults: Partial<Type>): FluentObjectParser<Type> {
+    const nextParser: Parser<Type> = {
+      parse: (input: unknown) => {
+        input = input == null ? defaults : input;
+
+        const objectParseResult = defaultObjectParser.parse(input);
+        if (!objectParseResult.success) {
+          return objectParseResult;
         }
-      }
 
-      return this.parse(input);
+        return this.parse({
+          ...defaults,
+          ...objectParseResult.parsed,
+        });
+      },
     };
-
-    return this.derive(nextParser, this.normalizer, this.validator);
+    return new FluentObjectParserImpl(this.root, nextParser);
   }
 
   propertiesMatch<
@@ -111,7 +87,7 @@ export class ObjectValidator<
 
     errorCode?: string,
     errorMessage?: string
-  ) {
+  ): FluentObjectParser<Type> {
     [errorCode, errorMessage] = resolveErrorDetails(
       "propertiesMatch",
       `input must include a value for property '${propertyName}' that matches the value for property '${otherPropertyName}'`,
@@ -137,7 +113,7 @@ export class ObjectValidator<
       | PropertyValidationFunction<Type[typeof propertyName], Type>[],
     errorCode?: string,
     errorMessage?: string
-  ): FluentObjectValidator<Type> {
+  ): FluentObjectParser<Type> {
     return this.passes(
       (obj): true | ValidationErrorDetails[] => {
         validators = Array.isArray(validators) ? validators : [validators];
@@ -189,33 +165,47 @@ export class ObjectValidator<
     );
   }
 
-  withProperties<Properties extends ParserDictionary>(
+  withProperties<Properties extends ParserMap>(
     properties: Properties
-  ): FluentObjectValidator<
-    Type &
-      {
-        [property in keyof Properties]: ParsedType<typeof properties[property]>;
-      }
-  > {
-    type NextType = Type &
-      {
-        [property in keyof Properties]: ParsedType<typeof properties[property]>;
-      };
+  ): FluentObjectParser<ExtendObjectType<Type, Properties>> {
+    type NextType = ExtendObjectType<Type, Properties>;
 
-    const nextParser = (input: unknown): ParseResult<NextType> => {
-      const prevParseResult = this.parse(input);
-      if (!prevParseResult.success) {
-        return prevParseResult;
-      }
+    const nextParser: Parser<NextType> = {
+      parse: (input: unknown) => {
+        const prevParseResult = this.parse(input);
+        if (!prevParseResult.success) {
+          return prevParseResult;
+        }
 
-      const errors = Object.keys(properties).reduce<ValidationErrorDetails[]>(
-        (errors, propertyName) => {
+        const errors = Object.keys(properties).reduce(reducer, []);
+
+        if (errors.length === 0) {
+          return {
+            success: true,
+            errors: [],
+            parsed: prevParseResult.parsed as NextType,
+          };
+        }
+
+        return {
+          success: false,
+          errors,
+        };
+
+        function reducer(
+          result: ValidationErrorDetails[],
+          propertyName: string
+        ): ValidationErrorDetails[] {
+          if (!prevParseResult.success) {
+            return result;
+          }
+
           const propertyValue = prevParseResult.parsed[propertyName];
           const propertyValidator = properties[propertyName];
           const propertyResult = propertyValidator.parse(propertyValue);
 
           if (propertyResult.success) {
-            return errors;
+            return result;
           }
 
           if (propertyResult.errors.length === 0) {
@@ -227,13 +217,13 @@ export class ObjectValidator<
             propertyResult.errors.length === 1 &&
             propertyResult.errors[0].code === "invalidType"
           ) {
-            errors.push({
+            result.push({
               code: "required",
               message: `input must include property '${propertyName}'`,
               path: [...propertyResult.errors[0].path, propertyName],
             });
           } else {
-            errors.push(
+            result.push(
               ...propertyResult.errors.map((e) => ({
                 ...e,
                 path: [propertyName, ...e.path],
@@ -241,48 +231,11 @@ export class ObjectValidator<
             );
           }
 
-          return errors;
-        },
-        []
-      );
-
-      if (errors.length === 0) {
-        return {
-          success: true,
-          errors: [],
-          parsed: prevParseResult.parsed as NextType,
-        };
-      }
-
-      return {
-        success: false,
-        errors,
-      };
+          return result;
+        }
+      },
     };
 
-    return new ObjectValidator<Type, NextType>(nextParser);
+    return new FluentObjectParserImpl(this.root, nextParser);
   }
-}
-
-export function defaultObjectParser(
-  input: unknown
-): ParseResult<Record<string, unknown>> {
-  if (typeof input !== "object" || input == null || Array.isArray(input)) {
-    return {
-      success: false,
-      errors: [
-        {
-          code: "invalidType",
-          message: "input must be an object",
-          path: [],
-        },
-      ],
-    };
-  }
-
-  return {
-    success: true,
-    errors: [],
-    parsed: input as Record<string, unknown>,
-  };
 }
