@@ -1,6 +1,27 @@
 import { V } from ".";
 import { ParsingTest, runParsingTests } from "./test-utils";
 
+describe("isInteger()", () => {
+  describe("stock", () => {
+    const parser = V.isInteger();
+    const tests: ParsingTest<number>[] = [
+      [undefined, false, "invalidType", "input must be of type 'number'"],
+      [null, false, "invalidType", "input must be of type 'number'"],
+      ["1234", false, "invalidType", "input must be of type 'number'"],
+      [{}, false, "invalidType", "input must be of type 'number'"],
+      [[], false, "invalidType", "input must be of type 'number'"],
+      [1234, true],
+      [1234.01, true, 1234],
+      [1234.0, true, 1234],
+      [1234.99999999999, true, 1234],
+      [Infinity, false, "invalidNumber", "input must be a finite number"],
+      [-Infinity, false, "invalidNumber", "input must be a finite number"],
+      [NaN, false, "invalidNumber", "input must be a finite number"],
+    ];
+    runParsingTests(parser, tests);
+  });
+});
+
 describe("isNumber()", () => {
   describe("stock", () => {
     const validator = V.isNumber();

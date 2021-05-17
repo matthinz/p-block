@@ -85,6 +85,10 @@ export interface FluentParsingRoot {
   isArray(): FluentArrayParser<unknown>;
   isBoolean(): FluentBooleanParser;
   isDate(): FluentDateParser;
+  /**
+   * @returns A FluentNumberParser that truncates any decimal portion of the input.
+   */
+  isInteger(): FluentNumberParser;
   isNullish(): FluentParser<undefined>;
   isNumber(): FluentNumberParser;
   isObject(): FluentObjectParser<Record<string, unknown>>;

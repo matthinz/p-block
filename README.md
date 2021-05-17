@@ -35,7 +35,7 @@
 - Finalize Validator API -- separate validation (a type assertion) and parsing (normalization + type assertion)
 - `V.isString().parsedAsInteger().validate(Infinity)` should fail
 - `V.isString().parsedAsDate().validate(new Date("not a date"))` should fail
-~~- `V.isUrl()` and `V.isString().parsedAsURL()`
+- ~~`V.isUrl()` and `V.isString().parsedAsURL()`~~
 - `V.isString().parsedAsUUID()`
 - Track more metadata for validators
   - Input example(s)
@@ -45,7 +45,7 @@
 - ~~.optional(),~~
 - V.isInteger(),
 - ~~.propertyPasses()~~
-- .propertiesMatch()
+- ~~.propertiesMatch()~~
 - Examples
   - Checkout
   - Registration

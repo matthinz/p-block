@@ -34,6 +34,9 @@ export class FluentParsingRootImpl implements FluentParsingRoot {
     this
   );
   private dateParser: FluentDateParser = new FluentDateParserImpl(this);
+  private integerParser: FluentNumberParser = new FluentNumberParserImpl(
+    this
+  ).truncated();
   private nullishParser: FluentParser<undefined> = new FluentParserImpl<
     undefined,
     FluentParser<undefined>
@@ -87,6 +90,7 @@ export class FluentParsingRootImpl implements FluentParsingRoot {
   isArray = () => this.arrayParser;
   isBoolean = () => this.booleanParser;
   isDate = () => this.dateParser;
+  isInteger = () => this.integerParser;
   isNullish = () => this.nullishParser;
   isNumber = () => this.numberParser;
   isObject = () => this.objectParser;
