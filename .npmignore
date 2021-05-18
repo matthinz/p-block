@@ -1,0 +1,15 @@
+.cspell.json
+.dockerignore
+.editorconfig
+.eslintrc.json
+.github
+.gitignore
+.vscode
+*.log
+coverage
+Dockerfile
+examples
+jest.config.ts
+README.md
+src
+tsconfig.json
