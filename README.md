@@ -13,7 +13,7 @@
 - Cover JSON types (string, number, array, object, null)
 - `StringValidator.parsedAs<T>(input: Type => T)`
 - ~~`StringValidator.parsedAsDate(parser?: (input: string) => Date | undefined)`~~
-- `StringValidator.parsedAsBignum`
+- `StringValidator.parsedAsBigint`
 - ~~`ObjectValidator.defaultedTo({})`~~
 - ~~`isBoolean()`~~
 - `is<T>(input: any => input is T): FluentValidator<T>`
@@ -43,7 +43,7 @@
 - ~~ArrayValidator.filtered()~~
 - ~~ArrayValidator.mapped()~~
 - ~~.optional(),~~
-- V.isInteger(),
+- ~~V.isInteger()~~,
 - ~~.propertyPasses()~~
 - ~~.propertiesMatch()~~
 - Examples
@@ -55,6 +55,6 @@
   - JSON schema
 - Clarify parsing vs validation
 - Support for type verification (no parsing / normalization done?)
-- And validator success case
-- Continuation from `.optional()` -- can you then do `.passes()`? Is it called if no value is provided?
+- ~~And validator success case~~
+- ~~Continuation from `.optional()` -- can you then do `.passes()`? Is it called if no value is provided?~~
 - `.defaultedTo()` should accept a function (in general we should accept functions in place of values)

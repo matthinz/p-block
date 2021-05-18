@@ -86,7 +86,7 @@ export class FluentParserImpl<Type, FluentParserType extends FluentParser<Type>>
   }
 
   optional(): FluentParser<Type | undefined> {
-    return this.or(this.root.isNullish());
+    return this.or(this.root.nullish());
   }
 
   or<OtherType>(parser: Parser<OtherType>): FluentParser<Type | OtherType> {

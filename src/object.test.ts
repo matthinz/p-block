@@ -3,11 +3,11 @@ import { ParsingTest, runParsingTests } from "./test-utils";
 
 class NotAPlainObject {}
 
-describe("isObject()", () => {
+describe("object()", () => {
   describe("withProperties", () => {
-    const validator = V.isObject().withProperties({
-      firstName: V.isString(),
-      lastName: V.isString(),
+    const parser = V.object().withProperties({
+      firstName: V.string(),
+      lastName: V.string(),
     });
 
     const tests: ParsingTest<{
@@ -64,17 +64,17 @@ describe("isObject()", () => {
       ],
     ];
 
-    runParsingTests(validator, tests);
+    runParsingTests(parser, tests);
   });
 
   describe("withProperties (2 levels deep)", () => {
-    const validator = V.isObject().withProperties({
-      name: V.isString(),
-      address: V.isObject().withProperties({
-        street: V.isString(),
-        city: V.isString(),
-        state: V.isString().maxLength(2),
-        zip: V.isString().maxLength(5).matches(/\d{5}/),
+    const parser = V.object().withProperties({
+      name: V.string(),
+      address: V.object().withProperties({
+        street: V.string(),
+        city: V.string(),
+        state: V.string().maxLength(2),
+        zip: V.string().maxLength(5).matches(/\d{5}/),
       }),
     });
 
@@ -121,15 +121,15 @@ describe("isObject()", () => {
       ],
     ];
 
-    runParsingTests(validator, tests);
+    runParsingTests(parser, tests);
   });
 
   describe("propertiesMatch()", () => {
     describe("no errorCode", () => {
-      const validator = V.isObject()
+      const parser = V.object()
         .withProperties({
-          email: V.isString(),
-          confirmEmail: V.isString(),
+          email: V.string(),
+          confirmEmail: V.string(),
         })
         .propertiesMatch("confirmEmail", "email");
 
@@ -146,16 +146,16 @@ describe("isObject()", () => {
         [{ email: "foo@example.org", confirmEmail: "foo@example.org" }, true],
       ];
 
-      runParsingTests(validator, tests);
+      runParsingTests(parser, tests);
     });
   });
 
   describe("propertyPasses()", () => {
     describe("no errorCode", () => {
-      const validator = V.isObject()
+      const parser = V.object()
         .withProperties({
-          email: V.isString(),
-          confirmEmail: V.isString(),
+          email: V.string(),
+          confirmEmail: V.string(),
         })
         .propertyPasses(
           "confirmEmail",
@@ -175,15 +175,15 @@ describe("isObject()", () => {
         [{ email: "foo@example.org", confirmEmail: "foo@example.org" }, true],
       ];
 
-      runParsingTests(validator, tests);
+      runParsingTests(parser, tests);
     });
   });
 
   describe("defaultedTo()", () => {
-    const validator = V.isObject()
+    const parser = V.object()
       .withProperties({
-        name: V.isString(),
-        age: V.isNumber(),
+        name: V.string(),
+        age: V.number(),
       })
       .defaultedTo({
         name: "Chris Exampleton",
@@ -203,6 +203,6 @@ describe("isObject()", () => {
       [{ age: 99 }, true, { name: "Chris Exampleton", age: 99 }],
     ];
 
-    runParsingTests(validator, tests);
+    runParsingTests(parser, tests);
   });
 });

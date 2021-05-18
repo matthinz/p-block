@@ -2,7 +2,7 @@ import { V } from ".";
 import { ParsingTest, runParsingTests } from "./test-utils";
 
 describe("anyOf()", () => {
-  const parser = V.anyOf(V.isString(), V.isNumber(), V.isBoolean());
+  const parser = V.anyOf(V.string(), V.number(), V.boolean());
 
   const tests: ParsingTest<string | number | boolean>[] = [
     [

@@ -5,7 +5,7 @@ const TEST_DATE = new Date(2021, 1, 2, 3, 4, 5, 6);
 const EARLIER_DATE = new Date(2021, 1, 2, 3, 4, 5, 5);
 const LATER_DATE = new Date(2021, 1, 2, 3, 4, 5, 7);
 
-describe("isDate()", () => {
+describe("date()", () => {
   describe("stock", () => {
     const tests: ParsingTest<Date>[] = [
       [undefined, false, "invalidType", "input must be a Date"],
@@ -37,21 +37,21 @@ describe("isDate()", () => {
       [new Date(2021, 3, 21), true],
     ];
 
-    const validator = V.isDate();
+    const parser = V.date();
 
-    runParsingTests(validator, tests);
+    runParsingTests(parser, tests);
   });
 
   describe("defaultedTo()", () => {
     const date = new Date();
-    const validator = V.isDate().defaultedTo(date);
+    const parser = V.date().defaultedTo(date);
     const tests: ParsingTest<Date>[] = [
       [undefined, true, date],
       [null, true, date],
       [false, false, "invalidType"],
       [new Date(2021, 3, 4), true, new Date(2021, 3, 4)],
     ];
-    runParsingTests(validator, tests);
+    runParsingTests(parser, tests);
   });
 
   describe("equalTo()", () => {
@@ -68,12 +68,12 @@ describe("isDate()", () => {
       ],
     ];
     describe("literal Date", () => {
-      const validator = V.isDate().equalTo(new Date(2021, 1, 2, 3, 4, 5, 6));
-      runParsingTests(validator, tests);
+      const parser = V.date().equalTo(new Date(2021, 1, 2, 3, 4, 5, 6));
+      runParsingTests(parser, tests);
     });
     describe("function", () => {
-      const validator = V.isDate().equalTo(() => TEST_DATE);
-      runParsingTests(validator, tests);
+      const parser = V.date().equalTo(() => TEST_DATE);
+      runParsingTests(parser, tests);
     });
   });
 
@@ -92,13 +92,13 @@ describe("isDate()", () => {
     ];
 
     describe("literal Date", () => {
-      const validator = V.isDate().greaterThan(TEST_DATE);
-      runParsingTests(validator, tests);
+      const parser = V.date().greaterThan(TEST_DATE);
+      runParsingTests(parser, tests);
     });
 
     describe("function", () => {
-      const validator = V.isDate().greaterThan(() => TEST_DATE);
-      runParsingTests(validator, tests);
+      const parser = V.date().greaterThan(() => TEST_DATE);
+      runParsingTests(parser, tests);
     });
   });
 
@@ -118,14 +118,14 @@ describe("isDate()", () => {
     ];
 
     describe("literal Date", () => {
-      const validator = V.isDate().greaterThanOrEqualTo(TEST_DATE);
-      runParsingTests(validator, tests);
+      const parser = V.date().greaterThanOrEqualTo(TEST_DATE);
+      runParsingTests(parser, tests);
     });
 
     describe("function", () => {
-      const validator = V.isDate().greaterThanOrEqualTo(() => TEST_DATE);
+      const parser = V.date().greaterThanOrEqualTo(() => TEST_DATE);
 
-      runParsingTests(validator, tests);
+      runParsingTests(parser, tests);
     });
   });
 
@@ -150,14 +150,14 @@ describe("isDate()", () => {
     ];
 
     describe("literal Date", () => {
-      const validator = V.isDate().lessThan(TEST_DATE);
-      runParsingTests(validator, tests);
+      const parser = V.date().lessThan(TEST_DATE);
+      runParsingTests(parser, tests);
     });
 
     describe("function", () => {
-      const validator = V.isDate().lessThan(() => TEST_DATE);
+      const parser = V.date().lessThan(() => TEST_DATE);
 
-      runParsingTests(validator, tests);
+      runParsingTests(parser, tests);
     });
   });
 
@@ -177,14 +177,14 @@ describe("isDate()", () => {
     ];
 
     describe("literal Date", () => {
-      const validator = V.isDate().lessThanOrEqualTo(TEST_DATE);
-      runParsingTests(validator, tests);
+      const parser = V.date().lessThanOrEqualTo(TEST_DATE);
+      runParsingTests(parser, tests);
     });
 
     describe("function", () => {
-      const validator = V.isDate().lessThanOrEqualTo(() => TEST_DATE);
+      const parser = V.date().lessThanOrEqualTo(() => TEST_DATE);
 
-      runParsingTests(validator, tests);
+      runParsingTests(parser, tests);
     });
   });
 
@@ -193,7 +193,7 @@ describe("isDate()", () => {
       return new Date(date.getFullYear(), date.getMonth(), date.getDate());
     }
 
-    const validator = V.isDate().normalizedWith(removeTime);
+    const parser = V.date().normalizedWith(removeTime);
 
     const tests: ParsingTest<Date>[] = [
       [undefined, false, "invalidType"],
@@ -202,6 +202,6 @@ describe("isDate()", () => {
       [new Date(2021, 1, 2, 3, 4, 5, 6), true, new Date(2021, 1, 2)],
     ];
 
-    runParsingTests(validator, tests);
+    runParsingTests(parser, tests);
   });
 });

@@ -82,19 +82,19 @@ export interface FluentParsingRoot {
   anyOf<Parsers extends Parser<unknown>[]>(
     ...parsers: Parsers
   ): FluentParser<ParsedType<Parsers[number]>>;
-  isArray(): FluentArrayParser<unknown>;
-  isBoolean(): FluentBooleanParser;
-  isDate(): FluentDateParser;
+  array(): FluentArrayParser<unknown>;
+  boolean(): FluentBooleanParser;
+  date(): FluentDateParser;
   /**
    * @returns A FluentNumberParser that truncates any decimal portion of the input.
    */
-  isInteger(): FluentNumberParser;
-  isNullish(): FluentParser<undefined>;
-  isNumber(): FluentNumberParser;
-  isObject(): FluentObjectParser<Record<string, unknown>>;
-  isString(): FluentStringParser;
-  isUnknown(): FluentParser<unknown>;
-  isURL(): FluentURLParser;
+  integer(): FluentNumberParser;
+  nullish(): FluentParser<undefined>;
+  number(): FluentNumberParser;
+  object(): FluentObjectParser<Record<string, unknown>>;
+  string(): FluentStringParser;
+  unknown(): FluentParser<unknown>;
+  url(): FluentURLParser;
 }
 
 export interface FluentArrayParser<ItemType> extends FluentParser<ItemType[]> {

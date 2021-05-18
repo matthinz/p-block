@@ -1,8 +1,8 @@
 import { V } from "../src";
 import { ParsingTest, runParsingTests } from "./test-utils";
 
-describe("isNullish()", () => {
-  const parser = V.isNullish();
+describe("nullish()", () => {
+  const parser = V.nullish();
   const tests: ParsingTest<undefined>[] = [
     [undefined, true, undefined],
     [null, true, undefined],

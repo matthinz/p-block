@@ -1,7 +1,7 @@
 import { V } from ".";
 import { ParsingTest, runParsingTests } from "./test-utils";
 
-describe("isArray()", () => {
+describe("array()", () => {
   const tests: ParsingTest<unknown[]>[] = [
     [undefined, false, "invalidType", "input must be an array"],
     [null, false, "invalidType", "input must be an array"],
@@ -11,12 +11,12 @@ describe("isArray()", () => {
     [["foo", true, 1234, null, undefined], true],
   ];
 
-  runParsingTests(V.isArray(), tests);
+  runParsingTests(V.array(), tests);
 
   describe("allItemsPass", () => {
     describe("errorCode specified", () => {
-      const validator = V.isArray()
-        .of(V.isNumber())
+      const parser = V.array()
+        .of(V.number())
         .allItemsPass(
           (value) => value > 0,
           "must_be_positive",
@@ -30,11 +30,11 @@ describe("isArray()", () => {
         [[1, 2, 3], true],
       ];
 
-      runParsingTests(validator, tests);
+      runParsingTests(parser, tests);
     });
     describe("errorCode not specified", () => {
-      const validator = V.isArray()
-        .of(V.isNumber())
+      const parser = V.array()
+        .of(V.number())
         .allItemsPass((value) => value > 0);
 
       const tests: ParsingTest<number[]>[] = [
@@ -50,37 +50,37 @@ describe("isArray()", () => {
         [[1, 2, 3], true],
       ];
 
-      runParsingTests(validator, tests);
+      runParsingTests(parser, tests);
     });
   });
 
   describe("defaultedTo()", () => {
-    const validator = V.isArray().defaultedTo(["foo"]);
+    const parser = V.array().defaultedTo(["foo"]);
     const tests: ParsingTest<string[]>[] = [
       [undefined, true, ["foo"]],
       [null, true, ["foo"]],
       [false, false, "invalidType"],
       [[], true],
     ];
-    runParsingTests(validator, tests);
+    runParsingTests(parser, tests);
 
     describe("combined with item normalization", () => {
-      const validator = V.isArray()
+      const parser = V.array()
         .defaultedTo(["foo", undefined, null, "bar"])
-        .of(V.isString().defaultedTo(""));
+        .of(V.string().defaultedTo(""));
       const tests: ParsingTest<string[]>[] = [
         [undefined, true, ["foo", "", "", "bar"]],
         [null, true, ["foo", "", "", "bar"]],
         [[undefined, null], true, ["", ""]],
         [["foo", undefined, null, "bar"], true, ["foo", "", "", "bar"]],
       ];
-      runParsingTests(validator, tests);
+      runParsingTests(parser, tests);
     });
   });
 
   describe("filtered", () => {
-    const validator = V.isArray()
-      .of(V.isString())
+    const parser = V.array()
+      .of(V.string())
       .filtered((s) => s.length > 3);
 
     const tests: ParsingTest<string[]>[] = [
@@ -89,12 +89,12 @@ describe("isArray()", () => {
       [["foo", "bar", "bazz"], true, ["bazz"]],
     ];
 
-    runParsingTests(validator, tests);
+    runParsingTests(parser, tests);
   });
 
   describe("mapped", () => {
-    const validator = V.isArray()
-      .of(V.isString())
+    const parser = V.array()
+      .of(V.string())
       .mapped((s) => s.toUpperCase());
 
     const tests: ParsingTest<string[]>[] = [
@@ -103,11 +103,11 @@ describe("isArray()", () => {
       [["foo", "bar"], true, ["FOO", "BAR"]],
     ];
 
-    runParsingTests(validator, tests);
+    runParsingTests(parser, tests);
   });
 
   describe("maxLength", () => {
-    const validator = V.isArray().maxLength(2);
+    const parser = V.array().maxLength(2);
     const tests: ParsingTest<unknown[]>[] = [
       [undefined, false, "invalidType", "input must be an array"],
       [[], true],
@@ -120,11 +120,11 @@ describe("isArray()", () => {
         "input must be an array of no more than 2 item(s)",
       ],
     ];
-    runParsingTests(validator, tests);
+    runParsingTests(parser, tests);
   });
 
   describe("minLength", () => {
-    const validator = V.isArray().minLength(2);
+    const parser = V.array().minLength(2);
 
     const tests: ParsingTest<unknown[]>[] = [
       [undefined, false, "invalidType", "input must be an array"],
@@ -139,12 +139,12 @@ describe("isArray()", () => {
       [["foo", "bar", "baz"], true],
     ];
 
-    runParsingTests(validator, tests);
+    runParsingTests(parser, tests);
   });
 
   describe("normalizedWith", () => {
-    const validator = V.isArray()
-      .of(V.isString())
+    const parser = V.array()
+      .of(V.string())
       .normalizedWith((values: string[]) =>
         values.map((value) => value.toUpperCase())
       );
@@ -155,11 +155,11 @@ describe("isArray()", () => {
       [["FOO", "BAR"], true, ["FOO", "BAR"]],
     ];
 
-    runParsingTests(validator, tests);
+    runParsingTests(parser, tests);
   });
 
   describe("of()", () => {
-    const validator = V.isArray().of(V.isString());
+    const parser = V.array().of(V.string());
     const tests: ParsingTest<string[]>[] = [
       [[], true],
       [[123], false, "invalidType", "input must be of type 'string'", [0]],
@@ -201,7 +201,7 @@ describe("isArray()", () => {
       [["foo", "bar"], true],
     ];
 
-    runParsingTests(validator, tests);
+    runParsingTests(parser, tests);
   });
 
   describe("passes", () => {
@@ -209,8 +209,8 @@ describe("isArray()", () => {
       return input.every((item) => item > 0);
     }
 
-    const validator = V.isArray()
-      .of(V.isNumber())
+    const parser = V.array()
+      .of(V.number())
       .passes(allPositive, "not_positive", "should be positive");
 
     const tests: ParsingTest<number[]>[] = [
@@ -222,6 +222,6 @@ describe("isArray()", () => {
       [[1, 2, 3], true],
     ];
 
-    runParsingTests(validator, tests);
+    runParsingTests(parser, tests);
   });
 });

@@ -99,8 +99,8 @@ function combineObjects<Left, Right>(
     };
   }
 
-  const leftParse = root.isObject().parse(left);
-  const rightParse = root.isObject().parse(right);
+  const leftParse = root.object().parse(left);
+  const rightParse = root.object().parse(right);
   if (leftParse.success && rightParse.success) {
     return {
       success: true,

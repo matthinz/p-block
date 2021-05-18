@@ -3,7 +3,7 @@ import { ParsingTest, runParsingTests } from "./test-utils";
 
 // cspell:ignore abcdefghi abcdefghij abcdefghijk falses
 
-describe("V.isString()", () => {
+describe("V.string()", () => {
   describe("stock", () => {
     const tests: ParsingTest<string>[] = [
       [undefined, false, "invalidType", "input must be of type 'string'"],
@@ -13,11 +13,11 @@ describe("V.isString()", () => {
       ["foo", true],
     ];
 
-    runParsingTests(V.isString(), tests);
+    runParsingTests(V.string(), tests);
   });
 
   describe("defaultedTo()", () => {
-    const validator = V.isString().defaultedTo("");
+    const parser = V.string().defaultedTo("");
 
     const tests: ParsingTest<string>[] = [
       [undefined, true, ""],
@@ -26,7 +26,7 @@ describe("V.isString()", () => {
       [1234, false, "invalidType"],
     ];
 
-    runParsingTests(validator, tests);
+    runParsingTests(parser, tests);
   });
 
   describe("length", () => {
@@ -50,9 +50,9 @@ describe("V.isString()", () => {
       ],
     ];
 
-    const validator = V.isString().length(10);
+    const parser = V.string().length(10);
 
-    runParsingTests(validator, tests);
+    runParsingTests(parser, tests);
   });
 
   describe("matches", () => {
@@ -61,7 +61,7 @@ describe("V.isString()", () => {
       ["bar", false, "matches", "input must match regular expression /foo/"],
     ];
 
-    runParsingTests(V.isString().matches(/foo/), tests);
+    runParsingTests(V.string().matches(/foo/), tests);
   });
 
   describe("maxLength", () => {
@@ -80,9 +80,9 @@ describe("V.isString()", () => {
       ],
     ];
 
-    const validator = V.isString().maxLength(10);
+    const parser = V.string().maxLength(10);
 
-    runParsingTests(validator, tests);
+    runParsingTests(parser, tests);
   });
 
   describe("minLength", () => {
@@ -107,9 +107,9 @@ describe("V.isString()", () => {
       ["abcdefghijk", true],
     ];
 
-    const validator = V.isString().minLength(10);
+    const parser = V.string().minLength(10);
 
-    runParsingTests(validator, tests);
+    runParsingTests(parser, tests);
   });
 
   describe("notEmpty()", () => {
@@ -119,13 +119,13 @@ describe("V.isString()", () => {
       [" ", true],
     ];
 
-    const validator = V.isString().notEmpty();
+    const parser = V.string().notEmpty();
 
-    runParsingTests(validator, tests);
+    runParsingTests(parser, tests);
   });
 
   describe("optional()", () => {
-    const parser = V.isString().optional();
+    const parser = V.string().optional();
     const tests: ParsingTest<string | undefined>[] = [
       [undefined, true],
       [null, true, undefined],
@@ -142,19 +142,19 @@ describe("V.isString()", () => {
       const falses = "n|N|no|No|NO|false|False|FALSE|off|Off|OFF".split("|");
 
       runParsingTests(
-        V.isString().parsedAsBoolean().isTrue(),
+        V.string().parsedAsBoolean().isTrue(),
         trues
           .map((input) => [input, true, true] as ParsingTest<boolean>)
           .concat(falses.map((input) => [input, false] as ParsingTest<boolean>))
       );
 
-      runParsingTests(V.isString().parsedAsBoolean(), [
+      runParsingTests(V.string().parsedAsBoolean(), [
         ...trues.map((input) => [input, true, true] as ParsingTest<boolean>),
         ...falses.map((input) => [input, true, false] as ParsingTest<boolean>),
       ]);
 
       runParsingTests(
-        V.isString().parsedAsBoolean().isFalse(),
+        V.string().parsedAsBoolean().isFalse(),
         falses
           .map((input) => [input, true, false] as ParsingTest<boolean>)
           .concat(
@@ -164,7 +164,7 @@ describe("V.isString()", () => {
           )
       );
 
-      runParsingTests(V.isString().parsedAsBoolean(), [
+      runParsingTests(V.string().parsedAsBoolean(), [
         [undefined, false, "invalidType"],
         [null, false, "invalidType"],
         [
@@ -185,7 +185,7 @@ describe("V.isString()", () => {
         }
       }
 
-      const validator = V.isString().parsedAsBoolean(
+      const parser = V.string().parsedAsBoolean(
         parse,
         "bad_bool",
         "was a bad bool"
@@ -199,13 +199,13 @@ describe("V.isString()", () => {
         ["something else", false, "bad_bool", "was a bad bool"],
       ];
 
-      runParsingTests(validator, tests);
+      runParsingTests(parser, tests);
     });
   });
 
   describe("parsedAsDate()", () => {
     describe("default parser", () => {
-      const validator = V.isString().parsedAsDate();
+      const parser = V.string().parsedAsDate();
 
       const tests: ParsingTest<Date>[] = [
         [undefined, false, "invalidType"],
@@ -226,7 +226,7 @@ describe("V.isString()", () => {
         ["20210421T154747Z", false],
       ];
 
-      runParsingTests(validator, tests);
+      runParsingTests(parser, tests);
     });
 
     describe("custom parser", () => {
@@ -244,13 +244,13 @@ describe("V.isString()", () => {
         ["some other date", false, "parsedAsDate"],
       ];
 
-      runParsingTests(V.isString().parsedAsDate(parseDate), tests);
+      runParsingTests(V.string().parsedAsDate(parseDate), tests);
     });
   });
 
   describe("parsedAsFloat()", () => {
     describe("default parser", () => {
-      const validator = V.isString().parsedAsFloat().greaterThan(10);
+      const parser = V.string().parsedAsFloat().greaterThan(10);
       const tests: ParsingTest<number>[] = [
         [undefined, false, "invalidType"],
         [{}, false, "invalidType"],
@@ -278,10 +278,10 @@ describe("V.isString()", () => {
         ["11.00000", true, 11],
       ];
 
-      runParsingTests(validator, tests);
+      runParsingTests(parser, tests);
     });
     describe("custom parser", () => {
-      const validator = V.isString().parsedAsFloat((input) =>
+      const parser = V.string().parsedAsFloat((input) =>
         input === "answer" ? 42.0 : undefined
       );
       const tests: ParsingTest<number>[] = [
@@ -290,13 +290,13 @@ describe("V.isString()", () => {
         ["answer", true, 42],
         ["42", false, "parsedAsFloat"],
       ];
-      runParsingTests(validator, tests);
+      runParsingTests(parser, tests);
     });
   });
 
   describe("parsedAsInteger()", () => {
     describe("built-in parser, base 10", () => {
-      const validator = V.isString().parsedAsInteger().greaterThan(10);
+      const parser = V.string().parsedAsInteger().greaterThan(10);
       const tests: ParsingTest<number>[] = [
         [undefined, false, "invalidType"],
         [{}, false, "invalidType"],
@@ -333,11 +333,11 @@ describe("V.isString()", () => {
         ["11.0", true, 11],
         ["11.00000", true, 11],
       ];
-      runParsingTests(validator, tests);
+      runParsingTests(parser, tests);
     });
 
     describe("custom radix", () => {
-      const validator = V.isString().parsedAsInteger(16).greaterThan(10);
+      const parser = V.string().parsedAsInteger(16).greaterThan(10);
       const tests: ParsingTest<number>[] = [
         [undefined, false, "invalidType"],
         [{}, false, "invalidType"],
@@ -352,23 +352,23 @@ describe("V.isString()", () => {
         ["A", false, "greaterThan"],
         ["B", true, 11],
       ];
-      runParsingTests(validator, tests);
+      runParsingTests(parser, tests);
 
       test("throws for radix < 2", () => {
         expect(() => {
-          V.isString().parsedAsInteger(1);
+          V.string().parsedAsInteger(1);
         }).toThrow();
       });
 
       test("throws for radix < 36", () => {
         expect(() => {
-          V.isString().parsedAsInteger(37);
+          V.string().parsedAsInteger(37);
         }).toThrow();
       });
     });
 
     describe("custom parser", () => {
-      const validator = V.isString()
+      const parser = V.string()
         .parsedAsInteger((input) => (input ?? "").toString().length)
         .greaterThan(10);
       const tests: ParsingTest<number>[] = [
@@ -378,12 +378,12 @@ describe("V.isString()", () => {
         ["1", false, "greaterThan"],
         ["a long string of more than 10 chars", true, 35],
       ];
-      runParsingTests(validator, tests);
+      runParsingTests(parser, tests);
     });
   });
 
   describe("parsedAsURL()", () => {
-    const validator = V.isString().parsedAsURL().httpsOnly();
+    const parser = V.string().parsedAsURL().httpsOnly();
     const tests: ParsingTest<URL>[] = [
       [undefined, false, "invalidType"],
       [null, false, "invalidType"],
@@ -397,7 +397,7 @@ describe("V.isString()", () => {
       ],
       ["https://www.example.org", true, new URL("https://www.example.org")],
     ];
-    runParsingTests(validator, tests);
+    runParsingTests(parser, tests);
   });
 
   describe("passes()", () => {
@@ -411,13 +411,13 @@ describe("V.isString()", () => {
       ],
     ];
 
-    const validator = V.isString().passes(
+    const parser = V.string().passes(
       (s) => s === "valid input",
       "not_valid_input",
       "input must be 'valid input'"
     );
 
-    runParsingTests(validator, tests);
+    runParsingTests(parser, tests);
   });
 
   describe("trimmed()", () => {
@@ -426,7 +426,7 @@ describe("V.isString()", () => {
       ["  foo ", true, "foo"],
       ["foo", true, "foo"],
     ];
-    const normalizer = V.isString().trimmed();
+    const normalizer = V.string().trimmed();
 
     runParsingTests(normalizer, tests);
   });
@@ -436,9 +436,9 @@ describe("V.isString()", () => {
       [undefined, false, "invalidType"],
       ["FOO", true, "foo"],
     ];
-    const validator = V.isString().lowerCased();
+    const parser = V.string().lowerCased();
 
-    runParsingTests(validator, tests);
+    runParsingTests(parser, tests);
   });
 
   describe("upperCased()", () => {
@@ -446,7 +446,7 @@ describe("V.isString()", () => {
       [undefined, false, "invalidType"],
       ["foo", true, "FOO"],
     ];
-    const validator = V.isString().upperCased();
-    runParsingTests(validator, tests);
+    const parser = V.string().upperCased();
+    runParsingTests(parser, tests);
   });
 });

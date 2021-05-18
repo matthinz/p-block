@@ -61,7 +61,7 @@ export class FluentParsingRootImpl implements FluentParsingRoot {
 
     const parser = parsers.reduce<Parser<unknown>>((result, parser) => {
       return new AndParser(this, result, parser);
-    }, this.isUnknown());
+    }, this.unknown());
 
     return new FluentParserImpl(this, parser) as FluentParser<
       UnionToIntersection<ParsedType<Parsers[number]>>
@@ -87,14 +87,14 @@ export class FluentParsingRootImpl implements FluentParsingRoot {
     >;
   }
 
-  isArray = () => this.arrayParser;
-  isBoolean = () => this.booleanParser;
-  isDate = () => this.dateParser;
-  isInteger = () => this.integerParser;
-  isNullish = () => this.nullishParser;
-  isNumber = () => this.numberParser;
-  isObject = () => this.objectParser;
-  isString = () => this.stringParser;
-  isUnknown = () => this.unknownParser;
-  isURL = () => this.urlParser;
+  array = () => this.arrayParser;
+  boolean = () => this.booleanParser;
+  date = () => this.dateParser;
+  integer = () => this.integerParser;
+  nullish = () => this.nullishParser;
+  number = () => this.numberParser;
+  object = () => this.objectParser;
+  string = () => this.stringParser;
+  unknown = () => this.unknownParser;
+  url = () => this.urlParser;
 }

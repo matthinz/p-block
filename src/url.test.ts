@@ -1,9 +1,9 @@
 import { V } from ".";
 import { ParsingTest, runParsingTests } from "./test-utils";
 
-describe("isURL()", () => {
+describe("url()", () => {
   describe("stock", () => {
-    const validator = V.isURL();
+    const parser = V.url();
     const tests: ParsingTest<URL>[] = [
       [undefined, false, "invalidType"],
       [null, false, "invalidType"],
@@ -11,11 +11,11 @@ describe("isURL()", () => {
       [new URL("http://www.example.org"), true],
     ];
 
-    runParsingTests(validator, tests);
+    runParsingTests(parser, tests);
   });
 
   describe("httpOrHttpsOnly()", () => {
-    const validator = V.isURL().httpOrHttpsOnly();
+    const parser = V.url().httpOrHttpsOnly();
     const tests: ParsingTest<URL>[] = [
       [undefined, false, "invalidType"],
       [null, false, "invalidType"],
@@ -30,11 +30,11 @@ describe("isURL()", () => {
       [new URL("https://www.example.org"), true],
     ];
 
-    runParsingTests(validator, tests);
+    runParsingTests(parser, tests);
   });
 
   describe("httpsOnly()", () => {
-    const validator = V.isURL().httpsOnly();
+    const parser = V.url().httpsOnly();
     const tests: ParsingTest<URL>[] = [
       [undefined, false, "invalidType"],
       [null, false, "invalidType"],
@@ -49,12 +49,12 @@ describe("isURL()", () => {
       [new URL("https://www.example.org"), true],
     ];
 
-    runParsingTests(validator, tests);
+    runParsingTests(parser, tests);
   });
 
   describe("protocolEqualTo", () => {
     describe("single value", () => {
-      const validator = V.isURL().protocolEqualTo("https:");
+      const parser = V.url().protocolEqualTo("https:");
       const tests: ParsingTest<URL>[] = [
         [undefined, false, "invalidType"],
         [null, false, "invalidType"],
@@ -68,11 +68,11 @@ describe("isURL()", () => {
         [new URL("https://www.example.org"), true],
       ];
 
-      runParsingTests(validator, tests);
+      runParsingTests(parser, tests);
     });
 
     describe("multiple values", () => {
-      const validator = V.isURL().protocolEqualTo(["https:", "http://"]);
+      const parser = V.url().protocolEqualTo(["https:", "http://"]);
       const tests: ParsingTest<URL>[] = [
         [undefined, false, "invalidType"],
         [null, false, "invalidType"],
@@ -87,7 +87,7 @@ describe("isURL()", () => {
         [new URL("https://www.example.org"), true],
       ];
 
-      runParsingTests(validator, tests);
+      runParsingTests(parser, tests);
     });
   });
 });

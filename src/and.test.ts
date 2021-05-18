@@ -4,9 +4,9 @@ import { ParsedType } from "./types";
 
 describe("allOf()", () => {
   describe("string", () => {
-    const validator = V.allOf(
-      V.isString().minLength(4),
-      V.isString().passes(
+    const parser = V.allOf(
+      V.string().minLength(4),
+      V.string().passes(
         (str) => str.toUpperCase() === str,
         "all_uppercase",
         "input must be all uppercase"
@@ -26,11 +26,11 @@ describe("allOf()", () => {
       ],
     ];
 
-    runParsingTests(validator, tests);
+    runParsingTests(parser, tests);
   });
 
   describe("string + number", () => {
-    const parser = V.allOf(V.isString(), V.isNumber());
+    const parser = V.allOf(V.string(), V.number());
     const tests: ParsingTest<string & number>[] = [
       [undefined, false, "invalidType"],
       [123, false, "invalidType"],
@@ -41,11 +41,11 @@ describe("allOf()", () => {
 
   describe("mixed objects", () => {
     const parser = V.allOf(
-      V.isObject().withProperties({
-        name: V.isString(),
+      V.object().withProperties({
+        name: V.string(),
       }),
-      V.isObject().withProperties({
-        age: V.isNumber(),
+      V.object().withProperties({
+        age: V.number(),
       })
     );
 
@@ -63,8 +63,8 @@ describe("allOf()", () => {
 
   describe("weird behaviors", () => {
     test("strings w/ different normalizations throws", () => {
-      const lowercase = V.isString().lowerCased();
-      const uppercase = V.isString().upperCased();
+      const lowercase = V.string().lowerCased();
+      const uppercase = V.string().upperCased();
 
       const parser = V.allOf(lowercase, uppercase);
 
