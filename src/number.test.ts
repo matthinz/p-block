@@ -1,9 +1,9 @@
-import { V } from ".";
+import { P } from ".";
 import { ParsingTest, runParsingTests } from "./test-utils";
 
 describe("integer()", () => {
   describe("stock", () => {
-    const parser = V.integer();
+    const parser = P.integer();
     const tests: ParsingTest<number>[] = [
       [undefined, false, "invalidType", "input must be of type 'number'"],
       [null, false, "invalidType", "input must be of type 'number'"],
@@ -24,7 +24,7 @@ describe("integer()", () => {
 
 describe("number()", () => {
   describe("stock", () => {
-    const parser = V.number();
+    const parser = P.number();
     const tests: ParsingTest<number>[] = [
       [undefined, false, "invalidType", "input must be of type 'number'"],
       [null, false, "invalidType", "input must be of type 'number'"],
@@ -40,7 +40,7 @@ describe("number()", () => {
   });
 
   describe("between()", () => {
-    const parser = V.number().between(1, 10);
+    const parser = P.number().between(1, 10);
     const tests: ParsingTest<number>[] = [
       [undefined, false, "invalidType"],
       [null, false, "invalidType"],
@@ -55,7 +55,7 @@ describe("number()", () => {
   });
 
   describe("equalTo()", () => {
-    const parser = V.number().equalTo(42);
+    const parser = P.number().equalTo(42);
     const tests: ParsingTest<number>[] = [
       [undefined, false, "invalidType"],
       [null, false, "invalidType"],
@@ -70,7 +70,7 @@ describe("number()", () => {
   });
 
   describe("greaterThan()", () => {
-    const parser = V.number().greaterThan(42);
+    const parser = P.number().greaterThan(42);
     const tests: ParsingTest<number>[] = [
       [undefined, false, "invalidType"],
       [null, false, "invalidType"],
@@ -85,7 +85,7 @@ describe("number()", () => {
   });
 
   describe("greaterThanOrEqualTo()", () => {
-    const parser = V.number().greaterThanOrEqualTo(42);
+    const parser = P.number().greaterThanOrEqualTo(42);
     const tests: ParsingTest<number>[] = [
       [undefined, false, "invalidType"],
       [null, false, "invalidType"],
@@ -105,7 +105,7 @@ describe("number()", () => {
   });
 
   describe("lessThan()", () => {
-    const parser = V.number().lessThan(42);
+    const parser = P.number().lessThan(42);
     const tests: ParsingTest<number>[] = [
       [undefined, false, "invalidType"],
       [null, false, "invalidType"],
@@ -119,7 +119,7 @@ describe("number()", () => {
   });
 
   describe("lessThanOrEqualTo()", () => {
-    const parser = V.number().lessThanOrEqualTo(42);
+    const parser = P.number().lessThanOrEqualTo(42);
     const tests: ParsingTest<number>[] = [
       [undefined, false, "invalidType"],
       [null, false, "invalidType"],
@@ -139,7 +139,7 @@ describe("number()", () => {
   });
 
   describe("roundedTo()", () => {
-    const parser = V.number().roundedTo(2);
+    const parser = P.number().roundedTo(2);
     const tests: ParsingTest<number>[] = [
       [undefined, false, "invalidType"],
       ["", false, "invalidType"],
@@ -152,7 +152,7 @@ describe("number()", () => {
   });
 
   describe("truncated()", () => {
-    const parser = V.number().truncated();
+    const parser = P.number().truncated();
     const tests: ParsingTest<number>[] = [
       [undefined, false, "invalidType"],
       ["", false, "invalidType"],

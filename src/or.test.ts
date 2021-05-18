@@ -1,8 +1,8 @@
-import { V } from ".";
+import { P } from ".";
 import { ParsingTest, runParsingTests } from "./test-utils";
 
 describe("anyOf()", () => {
-  const parser = V.anyOf(V.string(), V.number(), V.boolean());
+  const parser = P.anyOf(P.string(), P.number(), P.boolean());
 
   const tests: ParsingTest<string | number | boolean>[] = [
     [

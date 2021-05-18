@@ -1,4 +1,4 @@
-import { V } from ".";
+import { P } from ".";
 import { ParsingTest, runParsingTests } from "./test-utils";
 
 describe("array()", () => {
@@ -11,12 +11,12 @@ describe("array()", () => {
     [["foo", true, 1234, null, undefined], true],
   ];
 
-  runParsingTests(V.array(), tests);
+  runParsingTests(P.array(), tests);
 
   describe("allItemsPass", () => {
     describe("errorCode specified", () => {
-      const parser = V.array()
-        .of(V.number())
+      const parser = P.array()
+        .of(P.number())
         .allItemsPass(
           (value) => value > 0,
           "must_be_positive",
@@ -33,8 +33,8 @@ describe("array()", () => {
       runParsingTests(parser, tests);
     });
     describe("errorCode not specified", () => {
-      const parser = V.array()
-        .of(V.number())
+      const parser = P.array()
+        .of(P.number())
         .allItemsPass((value) => value > 0);
 
       const tests: ParsingTest<number[]>[] = [
@@ -55,7 +55,7 @@ describe("array()", () => {
   });
 
   describe("defaultedTo()", () => {
-    const parser = V.array().defaultedTo(["foo"]);
+    const parser = P.array().defaultedTo(["foo"]);
     const tests: ParsingTest<string[]>[] = [
       [undefined, true, ["foo"]],
       [null, true, ["foo"]],
@@ -65,9 +65,9 @@ describe("array()", () => {
     runParsingTests(parser, tests);
 
     describe("combined with item normalization", () => {
-      const parser = V.array()
+      const parser = P.array()
         .defaultedTo(["foo", undefined, null, "bar"])
-        .of(V.string().defaultedTo(""));
+        .of(P.string().defaultedTo(""));
       const tests: ParsingTest<string[]>[] = [
         [undefined, true, ["foo", "", "", "bar"]],
         [null, true, ["foo", "", "", "bar"]],
@@ -79,8 +79,8 @@ describe("array()", () => {
   });
 
   describe("filtered", () => {
-    const parser = V.array()
-      .of(V.string())
+    const parser = P.array()
+      .of(P.string())
       .filtered((s) => s.length > 3);
 
     const tests: ParsingTest<string[]>[] = [
@@ -93,8 +93,8 @@ describe("array()", () => {
   });
 
   describe("mapped", () => {
-    const parser = V.array()
-      .of(V.string())
+    const parser = P.array()
+      .of(P.string())
       .mapped((s) => s.toUpperCase());
 
     const tests: ParsingTest<string[]>[] = [
@@ -107,7 +107,7 @@ describe("array()", () => {
   });
 
   describe("maxLength", () => {
-    const parser = V.array().maxLength(2);
+    const parser = P.array().maxLength(2);
     const tests: ParsingTest<unknown[]>[] = [
       [undefined, false, "invalidType", "input must be an array"],
       [[], true],
@@ -124,7 +124,7 @@ describe("array()", () => {
   });
 
   describe("minLength", () => {
-    const parser = V.array().minLength(2);
+    const parser = P.array().minLength(2);
 
     const tests: ParsingTest<unknown[]>[] = [
       [undefined, false, "invalidType", "input must be an array"],
@@ -143,8 +143,8 @@ describe("array()", () => {
   });
 
   describe("normalizedWith", () => {
-    const parser = V.array()
-      .of(V.string())
+    const parser = P.array()
+      .of(P.string())
       .normalizedWith((values: string[]) =>
         values.map((value) => value.toUpperCase())
       );
@@ -159,7 +159,7 @@ describe("array()", () => {
   });
 
   describe("of()", () => {
-    const parser = V.array().of(V.string());
+    const parser = P.array().of(P.string());
     const tests: ParsingTest<string[]>[] = [
       [[], true],
       [[123], false, "invalidType", "input must be of type 'string'", [0]],
@@ -209,8 +209,8 @@ describe("array()", () => {
       return input.every((item) => item > 0);
     }
 
-    const parser = V.array()
-      .of(V.number())
+    const parser = P.array()
+      .of(P.number())
       .passes(allPositive, "not_positive", "should be positive");
 
     const tests: ParsingTest<number[]>[] = [

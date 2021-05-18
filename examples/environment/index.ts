@@ -1,11 +1,11 @@
-import { V } from "../../src";
+import { P } from "../../src";
 
-const EnvironmentVariables = V.isObject().withProperties({
-  NODE_ENV: V.isString()
+const EnvironmentVariables = P.object().withProperties({
+  NODE_ENV: P.string()
     .isIn(["development", "production"])
     .defaultedTo("production"),
-  PORT: V.isNumber().greaterThan(0).defaultedTo(3000),
-  LOG_LEVEL: V.isString()
+  PORT: P.integer().greaterThan(0).defaultedTo(3000),
+  LOG_LEVEL: P.string()
     .isIn(["debug", "info", "warn", "error"])
     .defaultedTo("info"),
 });

@@ -1,10 +1,10 @@
 import path from "path";
-import { ParsedType, V } from "../../src";
+import { ParsedType, P } from "../../src";
 
-const ArgumentSchema = V.isObject().withProperties({
-  verbose: V.isBoolean().defaultedTo(false),
-  files: V.isArray()
-    .of(V.isString().trimmed())
+const ArgumentSchema = P.object().withProperties({
+  verbose: P.boolean().defaultedTo(false),
+  files: P.array()
+    .of(P.string().trimmed())
     .filtered((s) => s.length > 0)
     .mapped((file) => path.resolve(file))
     .minLength(1),

@@ -1,4 +1,4 @@
-import { V } from ".";
+import { P } from ".";
 import { ParsingTest, runParsingTests } from "./test-utils";
 
 const TEST_DATE = new Date(2021, 1, 2, 3, 4, 5, 6);
@@ -37,14 +37,14 @@ describe("date()", () => {
       [new Date(2021, 3, 21), true],
     ];
 
-    const parser = V.date();
+    const parser = P.date();
 
     runParsingTests(parser, tests);
   });
 
   describe("defaultedTo()", () => {
     const date = new Date();
-    const parser = V.date().defaultedTo(date);
+    const parser = P.date().defaultedTo(date);
     const tests: ParsingTest<Date>[] = [
       [undefined, true, date],
       [null, true, date],
@@ -68,11 +68,11 @@ describe("date()", () => {
       ],
     ];
     describe("literal Date", () => {
-      const parser = V.date().equalTo(new Date(2021, 1, 2, 3, 4, 5, 6));
+      const parser = P.date().equalTo(new Date(2021, 1, 2, 3, 4, 5, 6));
       runParsingTests(parser, tests);
     });
     describe("function", () => {
-      const parser = V.date().equalTo(() => TEST_DATE);
+      const parser = P.date().equalTo(() => TEST_DATE);
       runParsingTests(parser, tests);
     });
   });
@@ -92,12 +92,12 @@ describe("date()", () => {
     ];
 
     describe("literal Date", () => {
-      const parser = V.date().greaterThan(TEST_DATE);
+      const parser = P.date().greaterThan(TEST_DATE);
       runParsingTests(parser, tests);
     });
 
     describe("function", () => {
-      const parser = V.date().greaterThan(() => TEST_DATE);
+      const parser = P.date().greaterThan(() => TEST_DATE);
       runParsingTests(parser, tests);
     });
   });
@@ -118,12 +118,12 @@ describe("date()", () => {
     ];
 
     describe("literal Date", () => {
-      const parser = V.date().greaterThanOrEqualTo(TEST_DATE);
+      const parser = P.date().greaterThanOrEqualTo(TEST_DATE);
       runParsingTests(parser, tests);
     });
 
     describe("function", () => {
-      const parser = V.date().greaterThanOrEqualTo(() => TEST_DATE);
+      const parser = P.date().greaterThanOrEqualTo(() => TEST_DATE);
 
       runParsingTests(parser, tests);
     });
@@ -150,12 +150,12 @@ describe("date()", () => {
     ];
 
     describe("literal Date", () => {
-      const parser = V.date().lessThan(TEST_DATE);
+      const parser = P.date().lessThan(TEST_DATE);
       runParsingTests(parser, tests);
     });
 
     describe("function", () => {
-      const parser = V.date().lessThan(() => TEST_DATE);
+      const parser = P.date().lessThan(() => TEST_DATE);
 
       runParsingTests(parser, tests);
     });
@@ -177,12 +177,12 @@ describe("date()", () => {
     ];
 
     describe("literal Date", () => {
-      const parser = V.date().lessThanOrEqualTo(TEST_DATE);
+      const parser = P.date().lessThanOrEqualTo(TEST_DATE);
       runParsingTests(parser, tests);
     });
 
     describe("function", () => {
-      const parser = V.date().lessThanOrEqualTo(() => TEST_DATE);
+      const parser = P.date().lessThanOrEqualTo(() => TEST_DATE);
 
       runParsingTests(parser, tests);
     });
@@ -193,7 +193,7 @@ describe("date()", () => {
       return new Date(date.getFullYear(), date.getMonth(), date.getDate());
     }
 
-    const parser = V.date().normalizedWith(removeTime);
+    const parser = P.date().normalizedWith(removeTime);
 
     const tests: ParsingTest<Date>[] = [
       [undefined, false, "invalidType"],

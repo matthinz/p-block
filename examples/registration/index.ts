@@ -1,11 +1,11 @@
-import { ParsedType, V } from "../../src";
+import { ParsedType, P } from "../../src";
 
-const Registration = V.isObject()
+const Registration = P.object()
   .withProperties({
-    email: V.isString().matches(/@/),
-    confirmEmail: V.isString(),
-    password: V.isString().minLength(10).maxLength(255),
-    confirmPassword: V.isString(),
+    email: P.string().matches(/@/),
+    confirmEmail: P.string(),
+    password: P.string().minLength(10).maxLength(255),
+    confirmPassword: P.string(),
   })
   .propertiesMatch("confirmEmail", "email", "emailMustMatch")
   .propertiesMatch("confirmPassword", "password", "passwordMustMatch");

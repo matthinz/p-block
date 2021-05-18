@@ -1,9 +1,9 @@
-import { V } from ".";
+import { P } from ".";
 import { ParsingTest, runParsingTests } from "./test-utils";
 
 describe("url()", () => {
   describe("stock", () => {
-    const parser = V.url();
+    const parser = P.url();
     const tests: ParsingTest<URL>[] = [
       [undefined, false, "invalidType"],
       [null, false, "invalidType"],
@@ -15,7 +15,7 @@ describe("url()", () => {
   });
 
   describe("httpOrHttpsOnly()", () => {
-    const parser = V.url().httpOrHttpsOnly();
+    const parser = P.url().httpOrHttpsOnly();
     const tests: ParsingTest<URL>[] = [
       [undefined, false, "invalidType"],
       [null, false, "invalidType"],
@@ -34,7 +34,7 @@ describe("url()", () => {
   });
 
   describe("httpsOnly()", () => {
-    const parser = V.url().httpsOnly();
+    const parser = P.url().httpsOnly();
     const tests: ParsingTest<URL>[] = [
       [undefined, false, "invalidType"],
       [null, false, "invalidType"],
@@ -54,7 +54,7 @@ describe("url()", () => {
 
   describe("protocolEqualTo", () => {
     describe("single value", () => {
-      const parser = V.url().protocolEqualTo("https:");
+      const parser = P.url().protocolEqualTo("https:");
       const tests: ParsingTest<URL>[] = [
         [undefined, false, "invalidType"],
         [null, false, "invalidType"],
@@ -72,7 +72,7 @@ describe("url()", () => {
     });
 
     describe("multiple values", () => {
-      const parser = V.url().protocolEqualTo(["https:", "http://"]);
+      const parser = P.url().protocolEqualTo(["https:", "http://"]);
       const tests: ParsingTest<URL>[] = [
         [undefined, false, "invalidType"],
         [null, false, "invalidType"],

@@ -1,31 +1,29 @@
-import { V } from "../../src";
+import { P } from "../../src";
 
-const Item = V.isObject().withProperties({
-  id: V.isString()
+const Item = P.object().withProperties({
+  id: P.string()
     .minLength(10)
     .maxLength(10)
     .matches(/^[a-z0-9]/),
 });
 
-const Address = V.isObject().withProperties({
-  line1: V.isString(),
-  line2: V.isString().optional(),
-  line3: V.isString().optional(),
-  city: V.isString().maxLength(255),
-  region: V.isString().maxLength(255),
-  postalCode: V.isString().maxLength(20),
-  country: V.isString().length(2),
+const Address = P.object().withProperties({
+  line1: P.string(),
+  line2: P.string().optional(),
+  line3: P.string().optional(),
+  city: P.string().maxLength(255),
+  region: P.string().maxLength(255),
+  postalCode: P.string().maxLength(20),
+  country: P.string().length(2),
 });
 
-const PaymentInfo = V.isObject().withProperties({
-  cardNumber: V.isString().length(12),
-  name: V.isString(),
-  expiry: V.isObject()
+const PaymentInfo = P.object().withProperties({
+  cardNumber: P.string().length(12),
+  name: P.string(),
+  expiry: P.object()
     .withProperties({
-      month: V.isNumber().truncated().between(1, 12),
-      year: V.isNumber()
-        .truncated()
-        .greaterThanOrEqualTo(new Date().getFullYear()),
+      month: P.integer().between(1, 12),
+      year: P.integer().greaterThanOrEqualTo(new Date().getFullYear()),
     })
     .passes(({ month, year }) => {
       const now = new Date();
@@ -36,10 +34,10 @@ const PaymentInfo = V.isObject().withProperties({
     }),
 });
 
-const Order = V.isObject().withProperties({
-  items: V.isArray().of(Item),
+const Order = P.object().withProperties({
+  items: P.array().of(Item),
   payment: PaymentInfo,
   billingAddress: Address,
   shippingAddress: Address,
-  couponCode: V.isString(),
+  couponCode: P.string(),
 });

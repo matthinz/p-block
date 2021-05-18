@@ -1,13 +1,13 @@
-import { V } from ".";
+import { P } from ".";
 import { ParsingTest, runParsingTests } from "./test-utils";
 
 class NotAPlainObject {}
 
 describe("object()", () => {
   describe("withProperties", () => {
-    const parser = V.object().withProperties({
-      firstName: V.string(),
-      lastName: V.string(),
+    const parser = P.object().withProperties({
+      firstName: P.string(),
+      lastName: P.string(),
     });
 
     const tests: ParsingTest<{
@@ -68,13 +68,13 @@ describe("object()", () => {
   });
 
   describe("withProperties (2 levels deep)", () => {
-    const parser = V.object().withProperties({
-      name: V.string(),
-      address: V.object().withProperties({
-        street: V.string(),
-        city: V.string(),
-        state: V.string().maxLength(2),
-        zip: V.string().maxLength(5).matches(/\d{5}/),
+    const parser = P.object().withProperties({
+      name: P.string(),
+      address: P.object().withProperties({
+        street: P.string(),
+        city: P.string(),
+        state: P.string().maxLength(2),
+        zip: P.string().maxLength(5).matches(/\d{5}/),
       }),
     });
 
@@ -126,10 +126,10 @@ describe("object()", () => {
 
   describe("propertiesMatch()", () => {
     describe("no errorCode", () => {
-      const parser = V.object()
+      const parser = P.object()
         .withProperties({
-          email: V.string(),
-          confirmEmail: V.string(),
+          email: P.string(),
+          confirmEmail: P.string(),
         })
         .propertiesMatch("confirmEmail", "email");
 
@@ -152,10 +152,10 @@ describe("object()", () => {
 
   describe("propertyPasses()", () => {
     describe("no errorCode", () => {
-      const parser = V.object()
+      const parser = P.object()
         .withProperties({
-          email: V.string(),
-          confirmEmail: V.string(),
+          email: P.string(),
+          confirmEmail: P.string(),
         })
         .propertyPasses(
           "confirmEmail",
@@ -180,10 +180,10 @@ describe("object()", () => {
   });
 
   describe("defaultedTo()", () => {
-    const parser = V.object()
+    const parser = P.object()
       .withProperties({
-        name: V.string(),
-        age: V.number(),
+        name: P.string(),
+        age: P.number(),
       })
       .defaultedTo({
         name: "Chris Exampleton",

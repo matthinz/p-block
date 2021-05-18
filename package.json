@@ -1,7 +1,12 @@
 {
-  "name": "unnamed-ts-validator",
+  "name": "p-block",
   "version": "0.0.1",
   "license": "MIT",
+  "author": {
+    "name": "Matt Hinz",
+    "email": "matthinz@gmail.com",
+    "url": "https://matthinz.com"
+  },
   "scripts": {
     "build": "tsc",
     "lint": "eslint src",

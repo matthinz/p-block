@@ -1,9 +1,9 @@
-import { V } from ".";
+import { P } from ".";
 import { ParsingTest, runParsingTests } from "./test-utils";
 
 // cspell:ignore abcdefghi abcdefghij abcdefghijk falses
 
-describe("V.string()", () => {
+describe("P.string()", () => {
   describe("stock", () => {
     const tests: ParsingTest<string>[] = [
       [undefined, false, "invalidType", "input must be of type 'string'"],
@@ -13,11 +13,11 @@ describe("V.string()", () => {
       ["foo", true],
     ];
 
-    runParsingTests(V.string(), tests);
+    runParsingTests(P.string(), tests);
   });
 
   describe("defaultedTo()", () => {
-    const parser = V.string().defaultedTo("");
+    const parser = P.string().defaultedTo("");
 
     const tests: ParsingTest<string>[] = [
       [undefined, true, ""],
@@ -50,7 +50,7 @@ describe("V.string()", () => {
       ],
     ];
 
-    const parser = V.string().length(10);
+    const parser = P.string().length(10);
 
     runParsingTests(parser, tests);
   });
@@ -61,7 +61,7 @@ describe("V.string()", () => {
       ["bar", false, "matches", "input must match regular expression /foo/"],
     ];
 
-    runParsingTests(V.string().matches(/foo/), tests);
+    runParsingTests(P.string().matches(/foo/), tests);
   });
 
   describe("maxLength", () => {
@@ -80,7 +80,7 @@ describe("V.string()", () => {
       ],
     ];
 
-    const parser = V.string().maxLength(10);
+    const parser = P.string().maxLength(10);
 
     runParsingTests(parser, tests);
   });
@@ -107,7 +107,7 @@ describe("V.string()", () => {
       ["abcdefghijk", true],
     ];
 
-    const parser = V.string().minLength(10);
+    const parser = P.string().minLength(10);
 
     runParsingTests(parser, tests);
   });
@@ -119,13 +119,13 @@ describe("V.string()", () => {
       [" ", true],
     ];
 
-    const parser = V.string().notEmpty();
+    const parser = P.string().notEmpty();
 
     runParsingTests(parser, tests);
   });
 
   describe("optional()", () => {
-    const parser = V.string().optional();
+    const parser = P.string().optional();
     const tests: ParsingTest<string | undefined>[] = [
       [undefined, true],
       [null, true, undefined],
@@ -142,19 +142,19 @@ describe("V.string()", () => {
       const falses = "n|N|no|No|NO|false|False|FALSE|off|Off|OFF".split("|");
 
       runParsingTests(
-        V.string().parsedAsBoolean().isTrue(),
+        P.string().parsedAsBoolean().isTrue(),
         trues
           .map((input) => [input, true, true] as ParsingTest<boolean>)
           .concat(falses.map((input) => [input, false] as ParsingTest<boolean>))
       );
 
-      runParsingTests(V.string().parsedAsBoolean(), [
+      runParsingTests(P.string().parsedAsBoolean(), [
         ...trues.map((input) => [input, true, true] as ParsingTest<boolean>),
         ...falses.map((input) => [input, true, false] as ParsingTest<boolean>),
       ]);
 
       runParsingTests(
-        V.string().parsedAsBoolean().isFalse(),
+        P.string().parsedAsBoolean().isFalse(),
         falses
           .map((input) => [input, true, false] as ParsingTest<boolean>)
           .concat(
@@ -164,7 +164,7 @@ describe("V.string()", () => {
           )
       );
 
-      runParsingTests(V.string().parsedAsBoolean(), [
+      runParsingTests(P.string().parsedAsBoolean(), [
         [undefined, false, "invalidType"],
         [null, false, "invalidType"],
         [
@@ -185,7 +185,7 @@ describe("V.string()", () => {
         }
       }
 
-      const parser = V.string().parsedAsBoolean(
+      const parser = P.string().parsedAsBoolean(
         parse,
         "bad_bool",
         "was a bad bool"
@@ -205,7 +205,7 @@ describe("V.string()", () => {
 
   describe("parsedAsDate()", () => {
     describe("default parser", () => {
-      const parser = V.string().parsedAsDate();
+      const parser = P.string().parsedAsDate();
 
       const tests: ParsingTest<Date>[] = [
         [undefined, false, "invalidType"],
@@ -244,13 +244,13 @@ describe("V.string()", () => {
         ["some other date", false, "parsedAsDate"],
       ];
 
-      runParsingTests(V.string().parsedAsDate(parseDate), tests);
+      runParsingTests(P.string().parsedAsDate(parseDate), tests);
     });
   });
 
   describe("parsedAsFloat()", () => {
     describe("default parser", () => {
-      const parser = V.string().parsedAsFloat().greaterThan(10);
+      const parser = P.string().parsedAsFloat().greaterThan(10);
       const tests: ParsingTest<number>[] = [
         [undefined, false, "invalidType"],
         [{}, false, "invalidType"],
@@ -281,7 +281,7 @@ describe("V.string()", () => {
       runParsingTests(parser, tests);
     });
     describe("custom parser", () => {
-      const parser = V.string().parsedAsFloat((input) =>
+      const parser = P.string().parsedAsFloat((input) =>
         input === "answer" ? 42.0 : undefined
       );
       const tests: ParsingTest<number>[] = [
@@ -296,7 +296,7 @@ describe("V.string()", () => {
 
   describe("parsedAsInteger()", () => {
     describe("built-in parser, base 10", () => {
-      const parser = V.string().parsedAsInteger().greaterThan(10);
+      const parser = P.string().parsedAsInteger().greaterThan(10);
       const tests: ParsingTest<number>[] = [
         [undefined, false, "invalidType"],
         [{}, false, "invalidType"],
@@ -337,7 +337,7 @@ describe("V.string()", () => {
     });
 
     describe("custom radix", () => {
-      const parser = V.string().parsedAsInteger(16).greaterThan(10);
+      const parser = P.string().parsedAsInteger(16).greaterThan(10);
       const tests: ParsingTest<number>[] = [
         [undefined, false, "invalidType"],
         [{}, false, "invalidType"],
@@ -356,19 +356,19 @@ describe("V.string()", () => {
 
       test("throws for radix < 2", () => {
         expect(() => {
-          V.string().parsedAsInteger(1);
+          P.string().parsedAsInteger(1);
         }).toThrow();
       });
 
       test("throws for radix < 36", () => {
         expect(() => {
-          V.string().parsedAsInteger(37);
+          P.string().parsedAsInteger(37);
         }).toThrow();
       });
     });
 
     describe("custom parser", () => {
-      const parser = V.string()
+      const parser = P.string()
         .parsedAsInteger((input) => (input ?? "").toString().length)
         .greaterThan(10);
       const tests: ParsingTest<number>[] = [
@@ -383,7 +383,7 @@ describe("V.string()", () => {
   });
 
   describe("parsedAsURL()", () => {
-    const parser = V.string().parsedAsURL().httpsOnly();
+    const parser = P.string().parsedAsURL().httpsOnly();
     const tests: ParsingTest<URL>[] = [
       [undefined, false, "invalidType"],
       [null, false, "invalidType"],
@@ -411,7 +411,7 @@ describe("V.string()", () => {
       ],
     ];
 
-    const parser = V.string().passes(
+    const parser = P.string().passes(
       (s) => s === "valid input",
       "not_valid_input",
       "input must be 'valid input'"
@@ -426,7 +426,7 @@ describe("V.string()", () => {
       ["  foo ", true, "foo"],
       ["foo", true, "foo"],
     ];
-    const normalizer = V.string().trimmed();
+    const normalizer = P.string().trimmed();
 
     runParsingTests(normalizer, tests);
   });
@@ -436,7 +436,7 @@ describe("V.string()", () => {
       [undefined, false, "invalidType"],
       ["FOO", true, "foo"],
     ];
-    const parser = V.string().lowerCased();
+    const parser = P.string().lowerCased();
 
     runParsingTests(parser, tests);
   });
@@ -446,7 +446,7 @@ describe("V.string()", () => {
       [undefined, false, "invalidType"],
       ["foo", true, "FOO"],
     ];
-    const parser = V.string().upperCased();
+    const parser = P.string().upperCased();
     runParsingTests(parser, tests);
   });
 });
