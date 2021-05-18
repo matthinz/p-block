@@ -1,4 +1,4 @@
-import { P } from "../../src";
+import { P } from "p-block";
 
 const Item = P.object().withProperties({
   id: P.string()
