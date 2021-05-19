@@ -49,7 +49,7 @@ export function runParsingTests<Type>(
             expect(parseResult).toHaveProperty("success", true));
           test(`parses to ${stringify(expected)}`, () => {
             if (parseResult.success) {
-              expect(parseResult.parsed).toStrictEqual(expected);
+              expect(parseResult.value).toStrictEqual(expected);
             }
           });
           return;

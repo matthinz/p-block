@@ -62,14 +62,14 @@ export function buildParsingFunction<Type>(
     }
 
     const value = normalizer
-      ? normalizer(initialParseResult.parsed)
-      : initialParseResult.parsed;
+      ? normalizer(initialParseResult.value)
+      : initialParseResult.value;
 
     if (!validator) {
       return {
         success: true,
         errors: [],
-        parsed: value,
+        value,
       };
     }
 
@@ -79,7 +79,7 @@ export function buildParsingFunction<Type>(
       return {
         success: true,
         errors: [],
-        parsed: value,
+        value,
       };
     } else if (validationResult === false) {
       throw new Error(
@@ -203,7 +203,7 @@ export function createDefaultParser<Type>(
     return {
       success: true,
       errors: [],
-      parsed: input as Type,
+      value: input as Type,
     };
   };
 }

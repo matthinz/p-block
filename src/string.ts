@@ -35,7 +35,7 @@ const defaultStringParser: Parser<string> = {
     return {
       success: true,
       errors: [],
-      parsed: input,
+      value: input,
     };
   },
 };
@@ -254,13 +254,13 @@ export class FluentStringParserImpl
             ? parserOrErrorCode
             : defaultParser;
 
-        const value = stringParser(stringParseResult.parsed);
+        const value = stringParser(stringParseResult.value);
 
         if (value !== undefined) {
           return {
             success: true,
             errors: [],
-            parsed: value,
+            value,
           };
         }
 

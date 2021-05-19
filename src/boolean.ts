@@ -23,7 +23,7 @@ export const defaultBooleanParser: Parser<boolean> = {
       return {
         success: true,
         errors: [],
-        parsed: input,
+        value: input,
       };
     }
 

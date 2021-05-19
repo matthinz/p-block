@@ -42,7 +42,7 @@ export const defaultDateParser: Parser<Date> = {
     return {
       success: true,
       errors: [],
-      parsed: input,
+      value: input,
     };
   },
 };

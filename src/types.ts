@@ -9,7 +9,7 @@ export type ParseResult<Type> =
   | {
       success: true;
       errors: [];
-      parsed: Type;
+      value: Type;
     }
   | { success: false; errors: ValidationErrorDetails[] };
 

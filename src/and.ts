@@ -35,8 +35,8 @@ export class AndParser<Left, Right> implements Parser<Left & Right> {
       return rightResult;
     }
 
-    const leftValue = leftResult.parsed;
-    const rightValue = rightResult.parsed;
+    const leftValue = leftResult.value;
+    const rightValue = rightResult.value;
 
     switch (typeof leftValue) {
       case "bigint":
@@ -77,7 +77,7 @@ function combineUsingEquality<Left, Right, Type>(
     return {
       success: true,
       errors: [],
-      parsed: (leftValue as unknown) as Left & Right,
+      value: (leftValue as unknown) as Left & Right,
     };
   }
 
@@ -95,7 +95,7 @@ function combineObjects<Left, Right>(
     return {
       success: true,
       errors: [],
-      parsed: (undefined as unknown) as Left & Right,
+      value: (undefined as unknown) as Left & Right,
     };
   }
 
@@ -105,9 +105,9 @@ function combineObjects<Left, Right>(
     return {
       success: true,
       errors: [],
-      parsed: ({
-        ...leftParse.parsed,
-        ...rightParse.parsed,
+      value: ({
+        ...leftParse.value,
+        ...rightParse.value,
       } as unknown) as Left & Right,
     };
   }

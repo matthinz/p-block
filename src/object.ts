@@ -46,7 +46,7 @@ export const defaultObjectParser = {
     return {
       success: true,
       errors: [],
-      parsed: input as Record<string, unknown>,
+      value: input as Record<string, unknown>,
     };
   },
 };
@@ -70,7 +70,7 @@ export class FluentObjectParserImpl<Type extends Record<string, unknown>>
 
         return this.parse({
           ...defaults,
-          ...objectParseResult.parsed,
+          ...objectParseResult.value,
         });
       },
     };
@@ -171,7 +171,7 @@ export class FluentObjectParserImpl<Type extends Record<string, unknown>>
     type NextType = ExtendObjectType<Type, Properties>;
 
     const nextParser: Parser<NextType> = {
-      parse: (input: unknown) => {
+      parse: (input: unknown): ParseResult<NextType> => {
         const prevParseResult = this.parse(input);
         if (!prevParseResult.success) {
           return prevParseResult;
@@ -183,7 +183,7 @@ export class FluentObjectParserImpl<Type extends Record<string, unknown>>
           return {
             success: true,
             errors: [],
-            parsed: prevParseResult.parsed as NextType,
+            value: prevParseResult.value as NextType,
           };
         }
 
@@ -200,7 +200,7 @@ export class FluentObjectParserImpl<Type extends Record<string, unknown>>
             return result;
           }
 
-          const propertyValue = prevParseResult.parsed[propertyName];
+          const propertyValue = prevParseResult.value[propertyName];
           const propertyValidator = properties[propertyName];
           const propertyResult = propertyValidator.parse(propertyValue);
 

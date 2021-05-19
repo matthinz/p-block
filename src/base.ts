@@ -50,7 +50,7 @@ export class FluentParserImpl<Type, FluentParserType extends FluentParser<Type>>
           return {
             success: true,
             errors: [],
-            parsed: value,
+            value,
           };
         }
 
@@ -78,7 +78,7 @@ export class FluentParserImpl<Type, FluentParserType extends FluentParser<Type>>
         const normalizer = composeNormalizers(...normalizers);
         return {
           ...parsed,
-          parsed: normalizer(parsed.parsed),
+          value: normalizer(parsed.value),
         };
       },
     };
@@ -118,7 +118,7 @@ export class FluentParserImpl<Type, FluentParserType extends FluentParser<Type>>
           return parsed;
         }
 
-        const validationResult = validator(parsed.parsed);
+        const validationResult = validator(parsed.value);
         if (validationResult === false) {
           throw new Error(
             "No error code could be determined to report validation failure"

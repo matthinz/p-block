@@ -3,7 +3,7 @@ import { Parser, ParseResult } from "./types";
 const SUCCESS_RESULT: ParseResult<undefined> = {
   success: true,
   errors: [],
-  parsed: undefined,
+  value: undefined,
 };
 
 const FAILURE_RESULT: ParseResult<undefined> = {

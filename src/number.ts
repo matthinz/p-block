@@ -41,7 +41,7 @@ export const finiteNumberParser: Parser<number> = {
     return {
       success: true,
       errors: [],
-      parsed: input,
+      value: input,
     };
   },
 };

@@ -7,6 +7,6 @@ export const unknownParser: Parser<unknown> = {
   parse: (input: unknown): ParseResult<unknown> => ({
     success: true,
     errors: [],
-    parsed: input,
+    value: input,
   }),
 };

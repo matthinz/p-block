@@ -49,7 +49,7 @@ export const defaultURLParser: Parser<URL> = {
       return {
         success: true,
         errors: [],
-        parsed: input,
+        value: input,
       };
     }
     return INVALID_TYPE_PARSE_RESULT;

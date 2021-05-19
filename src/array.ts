@@ -22,7 +22,7 @@ export const defaultArrayParser = {
   parse(input: unknown): ParseResult<unknown[]> {
     if (!Array.isArray(input)) return INVALID_TYPE_PARSE_RESULT;
 
-    return { success: true, errors: [], parsed: input };
+    return { success: true, errors: [], value: input };
   },
 };
 
@@ -100,7 +100,7 @@ export class FluentArrayParserImpl<ItemType>
         return {
           success: true,
           errors: [],
-          parsed: parsed.parsed.map(callback),
+          value: parsed.value.map(callback),
         };
       },
     };
@@ -143,7 +143,7 @@ export class FluentArrayParserImpl<ItemType>
 
         // TODO: Optimize this reduce()
 
-        return parsed.parsed.reduce<ParseResult<NextItemType[]>>(
+        return parsed.value.reduce<ParseResult<NextItemType[]>>(
           (result, item, index) => {
             const itemParse = validator.parse(item);
             if (itemParse.success) {
@@ -151,7 +151,7 @@ export class FluentArrayParserImpl<ItemType>
                 return {
                   success: true,
                   errors: [],
-                  parsed: [...result.parsed, itemParse.parsed],
+                  value: [...result.value, itemParse.value],
                 };
               } else {
                 return result;
@@ -169,7 +169,7 @@ export class FluentArrayParserImpl<ItemType>
               ],
             };
           },
-          { success: true, errors: [], parsed: [] }
+          { success: true, errors: [], value: [] }
         );
       },
     };
