@@ -106,6 +106,12 @@ export function runParsingTests<Type>(
             );
           });
         }
+
+        test("supports detached parse()", () => {
+          const { parse } = parser;
+          const detachedResult = parse.call(undefined, input);
+          expect(detachedResult).toStrictEqual(parseResult);
+        });
       });
     });
   });

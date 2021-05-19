@@ -93,9 +93,9 @@ export class FluentParserImpl<Type, FluentParserType extends FluentParser<Type>>
     return this.root.anyOf(this.parser, parser);
   }
 
-  parse(input: unknown): ParseResult<Type> {
+  parse = (input: unknown): ParseResult<Type> => {
     return this.parser.parse(input);
-  }
+  };
 
   passes(
     validators: ValidationFunction<Type> | ValidationFunction<Type>[],
