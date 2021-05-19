@@ -15,3 +15,5 @@ jest.config.ts
 README.md
 src
 tsconfig.json
+package
+*.tgz
