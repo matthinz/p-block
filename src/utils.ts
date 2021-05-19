@@ -1,10 +1,4 @@
-import {
-  NormalizationFunction,
-  ParseResult,
-  ParsingFunction,
-  Path,
-  ValidationFunction,
-} from "./types";
+import { NormalizationFunction, Path, ValidationFunction } from "./types";
 
 type ValidatorArgs<Type> =
   | ValidationFunction<Type>
@@ -43,56 +37,6 @@ export function applyErrorDetails<Type>(
     }
 
     return validationResult;
-  };
-}
-
-export function buildParsingFunction<Type>(
-  parser: ParsingFunction<Type>,
-  normalizer?: NormalizationFunction<Type>,
-  validator?: ValidationFunction<Type>
-): ParsingFunction<Type> {
-  if (!(normalizer || validator)) {
-    return parser;
-  }
-
-  return (input: unknown): ParseResult<Type> => {
-    const initialParseResult = parser(input);
-    if (!initialParseResult.success) {
-      return initialParseResult;
-    }
-
-    const value = normalizer
-      ? normalizer(initialParseResult.value)
-      : initialParseResult.value;
-
-    if (!validator) {
-      return {
-        success: true,
-        errors: [],
-        value,
-      };
-    }
-
-    const validationResult = validator(value);
-
-    if (validationResult === true) {
-      return {
-        success: true,
-        errors: [],
-        value,
-      };
-    } else if (validationResult === false) {
-      throw new Error(
-        "Validation failed but no error code could be determined"
-      );
-    }
-
-    return {
-      success: false,
-      errors: Array.isArray(validationResult)
-        ? validationResult
-        : [validationResult],
-    };
   };
 }
 
@@ -168,42 +112,4 @@ export function pathsEqual(x: Path, y: Path): boolean {
   }
 
   return true;
-}
-
-export function createDefaultParser<Type>(
-  type: string | Function // eslint-disable-line
-): ParsingFunction<Type> {
-  return (input: unknown): ParseResult<Type> => {
-    if (typeof type === "string") {
-      if (typeof input !== type) {
-        return {
-          success: false,
-          errors: [
-            {
-              code: "invalidType",
-              message: `input must be of type '${type}'`,
-              path: [],
-            },
-          ],
-        };
-      }
-    } else if (!(input instanceof type)) {
-      return {
-        success: false,
-        errors: [
-          {
-            code: "invalidType",
-            message: `input must be an instance of ${type.name}`,
-            path: [],
-          },
-        ],
-      };
-    }
-
-    return {
-      success: true,
-      errors: [],
-      value: input as Type,
-    };
-  };
 }
