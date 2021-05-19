@@ -1,7 +1,6 @@
 import { FluentParserImpl } from "./base";
 import { defaultBooleanParser, FluentBooleanParserImpl } from "./boolean";
 import { defaultDateParser, FluentDateParserImpl } from "./date";
-import { resolveErrorDetails } from "./errors";
 import { finiteNumberParser, FluentNumberParserImpl } from "./number";
 import {
   FluentBooleanParser,
@@ -15,6 +14,7 @@ import {
   ParseResult,
 } from "./types";
 import { defaultURLParser, FluentURLParserImpl } from "./url";
+import { resolveErrorDetails } from "./utils";
 
 const INVALID_TYPE_PARSE_RESULT: ParseResult<string> = {
   success: false,

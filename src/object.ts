@@ -1,5 +1,4 @@
 import { FluentParserImpl } from "./base";
-import { resolveErrorDetails } from "./errors";
 import {
   ExtendObjectType,
   FluentObjectParser,
@@ -10,6 +9,7 @@ import {
   PropertyValidationFunction,
   ValidationErrorDetails,
 } from "./types";
+import { resolveErrorDetails } from "./utils";
 
 const INVALID_TYPE_PARSE_RESULT: ParseResult<Record<string, unknown>> = {
   success: false,

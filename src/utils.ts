@@ -1,4 +1,9 @@
-import { NormalizationFunction, Path, ValidationFunction } from "./types";
+import {
+  NormalizationFunction,
+  Path,
+  ValidationErrorDetails,
+  ValidationFunction,
+} from "./types";
 
 type ValidatorArgs<Type> =
   | ValidationFunction<Type>
@@ -38,6 +43,41 @@ export function applyErrorDetails<Type>(
 
     return validationResult;
   };
+}
+
+export function combineErrorLists(
+  errorLists: ValidationErrorDetails[][],
+  merger: (
+    x: ValidationErrorDetails,
+    y: ValidationErrorDetails
+  ) => ValidationErrorDetails | ValidationErrorDetails[]
+): ValidationErrorDetails[] {
+  return errorLists.reduce(reducer, []);
+
+  function reducer(
+    result: ValidationErrorDetails[],
+    errors: ValidationErrorDetails[]
+  ): ValidationErrorDetails[] {
+    errors.forEach((err) => {
+      const index = result.findIndex(
+        (e) => e.code === err.code && pathsEqual(e.path, err.path)
+      );
+      if (index < 0) {
+        result.push(err);
+        return result;
+      }
+
+      const merged = merger(result[index], err);
+
+      if (Array.isArray(merged)) {
+        result.splice(index, 1, ...merged);
+      } else {
+        result[index] = merged;
+      }
+    });
+
+    return result;
+  }
 }
 
 /**
@@ -112,4 +152,16 @@ export function pathsEqual(x: Path, y: Path): boolean {
   }
 
   return true;
+}
+
+export function resolveErrorDetails(
+  defaultErrorCode: string,
+  defaultErrorMessage: string,
+  providedErrorCode?: string,
+  providedErrorMessage?: string
+): [string, string] {
+  if (providedErrorCode === undefined) {
+    return [defaultErrorCode, defaultErrorMessage];
+  }
+  return [providedErrorCode, providedErrorMessage ?? providedErrorCode];
 }

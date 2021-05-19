@@ -1,6 +1,6 @@
 import { FluentParserImpl } from "./base";
-import { resolveErrorDetails } from "./errors";
 import { FluentParser, FluentParsingRoot, Parser } from "./types";
+import { resolveErrorDetails } from "./utils";
 
 type FluentParserConstructor<
   Type,

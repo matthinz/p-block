@@ -1,5 +1,5 @@
-import { combineErrorLists } from "./errors";
 import { FluentParsingRoot, Parser, ParseResult } from "./types";
+import { combineErrorLists } from "./utils";
 
 export class AndParser<Left, Right> implements Parser<Left & Right> {
   constructor(

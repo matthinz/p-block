@@ -1,5 +1,4 @@
 import { FluentParserImpl } from "./base";
-import { resolveErrorDetails } from "./errors";
 import {
   FluentParser,
   FluentParsingRoot,
@@ -8,6 +7,7 @@ import {
   Parser,
   ParseResult,
 } from "./types";
+import { resolveErrorDetails } from "./utils";
 
 // XXX: URL is a global in Node.js as of 10.0.0. Rather than bring in
 //      the whole "dom" lib, here's the piece we actually use of it.

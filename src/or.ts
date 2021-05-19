@@ -1,5 +1,5 @@
-import { combineErrorLists } from "./errors";
 import { Parser, ParseResult } from "./types";
+import { combineErrorLists } from "./utils";
 
 export class OrParser<Left, Right> implements Parser<Left | Right> {
   constructor(

@@ -1,5 +1,4 @@
 import { FluentParserImpl } from "./base";
-import { resolveErrorDetails } from "./errors";
 import {
   FluentArrayParser,
   FluentParsingRoot,
@@ -8,7 +7,7 @@ import {
   ValidationErrorDetails,
   ValidationFunction,
 } from "./types";
-import { composeValidators } from "./utils";
+import { composeValidators, resolveErrorDetails } from "./utils";
 
 const INVALID_TYPE_PARSE_RESULT: ParseResult<unknown[]> = {
   success: false,
