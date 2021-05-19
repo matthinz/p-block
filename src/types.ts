@@ -117,7 +117,7 @@ export interface FluentArrayParser<ItemType> extends FluentParser<ItemType[]> {
 
   mapped<NextItemType>(
     callback: (item: ItemType, index: number, array: ItemType[]) => NextItemType
-  ): FluentParser<NextItemType[]>;
+  ): FluentArrayParser<NextItemType>;
 
   maxLength(
     value: number,
