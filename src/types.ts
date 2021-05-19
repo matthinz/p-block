@@ -83,6 +83,9 @@ export interface FluentParsingRoot {
     ...parsers: Parsers
   ): FluentParser<ParsedType<Parsers[number]>>;
   array(): FluentArrayParser<unknown>;
+
+  array<ItemType>(itemParser: Parser<ItemType>): FluentArrayParser<ItemType>;
+
   boolean(): FluentBooleanParser;
   date(): FluentDateParser;
   /**

@@ -204,6 +204,16 @@ describe("array()", () => {
     runParsingTests(parser, tests);
   });
 
+  describe("of() [implicit]", () => {
+    const parser = P.array(P.string());
+    const tests: ParsingTest<string[]>[] = [
+      [undefined, false, "invalidType"],
+      [[], true],
+      [[1234], false, "invalidType", "input must be of type 'string'", [0]],
+    ];
+    runParsingTests(parser, tests);
+  });
+
   describe("passes", () => {
     function allPositive(input: number[]): boolean {
       return input.every((item) => item > 0);

@@ -87,7 +87,13 @@ export class FluentParsingRootImpl implements FluentParsingRoot {
     >;
   }
 
-  array = () => this.arrayParser;
+  array<ItemType>(itemParser?: Parser<ItemType>): FluentArrayParser<ItemType> {
+    if (itemParser === undefined) {
+      return this.arrayParser as FluentArrayParser<ItemType>;
+    }
+    return this.arrayParser.of(itemParser);
+  }
+
   boolean = () => this.booleanParser;
   date = () => this.dateParser;
   integer = () => this.integerParser;
