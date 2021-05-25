@@ -82,6 +82,7 @@ const passwordParser = P.string().passes(
 
 Incoming data can be normalized before validation. `p-block` includes several common normalizations, including:
 
+- `.defaultedTo()` (all) -- Specify a default value to be returned if the input is `null` or `undefined`
 - `.trimmed()` (strings) -- Remove leading and trailing whitespace
 - `.rounded()` (numbers) -- Rounds input to a specific number of decimal places
 - `.truncated()` (numbers) -- Removes the decimal component of an input (similar to `parseInt`)
