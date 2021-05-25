@@ -1,5 +1,17 @@
 import { FluentParsingRootImpl } from "./root";
+import { FluentParsingRoot } from "./types";
 
-export { ParsedType } from "./types";
+export {
+  FluentArrayParser,
+  FluentBooleanParser,
+  FluentDateParser,
+  FluentNumberParser,
+  FluentObjectParser,
+  FluentParser,
+  FluentParsingRoot,
+  FluentStringParser,
+  FluentURLParser,
+  ParsedType,
+} from "./types";
 
-export const P = new FluentParsingRootImpl();
+export const P: FluentParsingRoot = new FluentParsingRootImpl();

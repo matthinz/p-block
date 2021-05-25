@@ -7,3 +7,5 @@ RUN yarn
 
 COPY src src
 RUN yarn lint && yarn build && yarn test
+
+COPY README.md ./

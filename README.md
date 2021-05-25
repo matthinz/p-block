@@ -113,7 +113,7 @@ If parsing fails, the `errors` array on the parse result will include a set of o
 | -- | -- | -- |
 | `code` | `string` | An invariant error code identifying the kind of error encountered. By default, `code` will be the name of the validation method that caused the error (for example `maxLength` or `matches`). |
 | `message` | `string` | A short description (in English) describing the error encountered. `p-block` keeps these intentionally robotic-sounding--you probably don't want to display them to your users. Instead, consider mapping `code` to some friendlier error messages. |
-| `path` | `Array<string|number>` | The path to the field in the input that caused the error. |
+| `path` | `Array<string\|number>` | The path to the field in the input that caused the error. |
 
 ## Parsing JSON
 

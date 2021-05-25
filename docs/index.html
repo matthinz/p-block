@@ -1,0 +1,286 @@
+<!doctype html>
+<html class="default no-js">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>p-block</title>
+	<meta name="description" content="Documentation for p-block">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="assets/css/main.css">
+	<script async src="assets/js/search.js" id="search-script"></script>
+</head>
+<body>
+<header>
+	<div class="tsd-page-toolbar">
+		<div class="container">
+			<div class="table-wrap">
+				<div class="table-cell" id="tsd-search" data-index="assets/js/search.json" data-base=".">
+					<div class="field">
+						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
+						<input id="tsd-search-field" type="text" />
+					</div>
+					<ul class="results">
+						<li class="state loading">Preparing search index...</li>
+						<li class="state failure">The search index is not available</li>
+					</ul>
+					<a href="index.html" class="title">p-block</a>
+				</div>
+				<div class="table-cell" id="tsd-widgets">
+					<div id="tsd-filter">
+						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
+						<div class="tsd-filter-group">
+							<div class="tsd-select" id="tsd-filter-visibility">
+								<span class="tsd-select-label">All</span>
+								<ul class="tsd-select-list">
+									<li data-value="public">Public</li>
+									<li data-value="protected">Public/Protected</li>
+									<li data-value="private" class="selected">All</li>
+								</ul>
+							</div>
+							<input type="checkbox" id="tsd-filter-inherited" checked />
+							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
+							<input type="checkbox" id="tsd-filter-externals" checked />
+							<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
+						</div>
+					</div>
+					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="tsd-page-title">
+		<div class="container">
+			<h1>p-block</h1>
+		</div>
+	</div>
+</header>
+<div class="container container-main">
+	<div class="row">
+		<div class="col-8 col-content">
+			<div class="tsd-panel tsd-typography">
+				<a href="#p-block" id="p-block" style="color: inherit; text-decoration: none;">
+					<h1>p-block</h1>
+				</a>
+				<blockquote>
+					<p>Turns the bricks into coins and the coins into bricks.</p>
+				</blockquote>
+				<p><code>p-block</code> is a small Typescript library that turns unknown input into structured, strongly-typed data. It is meant to provide a bridge between a source of <code>unknown</code> or <code>any</code>-typed data (API request bodies, JSON or YAML files, etc.) and your app&#39;s domain objects. It makes it easier to write code that adheres to the <a href="https://datatracker.ietf.org/doc/html/rfc761#section-2.10"><strong>robustness principle</strong></a>: &quot;be conservative in what you do, be liberal in what you accept from others.&quot;</p>
+				<p>In bullet points, <code>p-block</code> provides a fluent interface for building parsers that:</p>
+				<ul>
+					<li>Translate unknown user input into strongly-typed Typescript structures</li>
+					<li>Normalize user input, for example stripping leading / trailing whitespace, truncating decimal portions from integers, or applying custom normalizations</li>
+					<li>Provide detailed error information when parsing fails</li>
+				</ul>
+				<a href="#how-it-works" id="how-it-works" style="color: inherit; text-decoration: none;">
+					<h2>How It Works</h2>
+				</a>
+				<pre><code class="language-typescript"><span style="color: #AF00DB">import</span><span style="color: #000000"> { </span><span style="color: #001080">P</span><span style="color: #000000"> } </span><span style="color: #AF00DB">from</span><span style="color: #000000"> </span><span style="color: #A31515">&quot;p-block&quot;</span><span style="color: #000000">;</span>
+
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">userParser</span><span style="color: #000000"> = </span><span style="color: #0070C1">P</span><span style="color: #000000">.</span><span style="color: #795E26">object</span><span style="color: #000000">({</span>
+<span style="color: #000000">  </span><span style="color: #001080">name:</span><span style="color: #000000"> </span><span style="color: #0070C1">P</span><span style="color: #000000">.</span><span style="color: #795E26">string</span><span style="color: #000000">(),</span>
+<span style="color: #000000">  </span><span style="color: #001080">email:</span><span style="color: #000000"> </span><span style="color: #0070C1">P</span><span style="color: #000000">.</span><span style="color: #795E26">string</span><span style="color: #000000">(),</span>
+<span style="color: #000000">  </span><span style="color: #001080">birthDate:</span><span style="color: #000000"> </span><span style="color: #0070C1">P</span><span style="color: #000000">.</span><span style="color: #795E26">date</span><span style="color: #000000">(),</span>
+<span style="color: #000000">});</span>
+
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">parsed</span><span style="color: #000000"> = </span><span style="color: #001080">userParser</span><span style="color: #000000">.</span><span style="color: #795E26">parse</span><span style="color: #000000">(</span><span style="color: #795E26">someSourceOfInput</span><span style="color: #000000">());</span>
+
+<span style="color: #AF00DB">if</span><span style="color: #000000"> (</span><span style="color: #001080">parsed</span><span style="color: #000000">.</span><span style="color: #001080">success</span><span style="color: #000000">) {</span>
+<span style="color: #000000">  </span><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">user</span><span style="color: #000000"> = </span><span style="color: #001080">parsed</span><span style="color: #000000">.</span><span style="color: #001080">value</span><span style="color: #000000">;</span>
+<span style="color: #000000">  </span><span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">log</span><span style="color: #000000">(</span><span style="color: #001080">user</span><span style="color: #000000">.</span><span style="color: #001080">name</span><span style="color: #000000">, </span><span style="color: #001080">user</span><span style="color: #000000">.</span><span style="color: #001080">email</span><span style="color: #000000">, </span><span style="color: #001080">user</span><span style="color: #000000">.</span><span style="color: #001080">birthDate</span><span style="color: #000000">);</span>
+<span style="color: #000000">} </span><span style="color: #AF00DB">else</span><span style="color: #000000"> {</span>
+<span style="color: #000000">  </span><span style="color: #001080">parsed</span><span style="color: #000000">.</span><span style="color: #001080">errors</span><span style="color: #000000">.</span><span style="color: #795E26">forEach</span><span style="color: #000000">(</span><span style="color: #001080">err</span><span style="color: #000000"> </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> </span><span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">error</span><span style="color: #000000">(</span><span style="color: #001080">err</span><span style="color: #000000">.</span><span style="color: #001080">code</span><span style="color: #000000">, </span><span style="color: #001080">err</span><span style="color: #000000">.</span><span style="color: #001080">message</span><span style="color: #000000">, </span><span style="color: #001080">err</span><span style="color: #000000">.</span><span style="color: #001080">path</span><span style="color: #000000">));</span>
+<span style="color: #000000">}</span>
+</code></pre>
+				<p><code>p-block</code>&#39;s entry point is <code>P</code>. Each of the methods on <code>P</code> returns a <code>FluentParser</code>, which can be refined by calling methods to return new parser instances.</p>
+				<p>Once you have a configured <code>FluentParser</code>, use the <code>parse()</code> method to process your input. <code>parse()</code> returns a <code>ParsedResult</code>. After checking that <code>.success</code> is <code>true</code>, you can access the parsed data via <code>.value</code>. If <code>success</code> is <code>false</code>, you can access the errors via the <code>.errors</code> property.</p>
+				<a href="#validation" id="validation" style="color: inherit; text-decoration: none;">
+					<h2>Validation</h2>
+				</a>
+				<p>All parsers validate input as they process it. You can add more validation rules when you are creating your parser:</p>
+				<pre><code class="language-typescript"><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">userParser</span><span style="color: #000000"> = </span><span style="color: #0070C1">P</span><span style="color: #000000">.</span><span style="color: #795E26">object</span><span style="color: #000000">({</span>
+<span style="color: #000000">  </span><span style="color: #001080">name:</span><span style="color: #000000"> </span><span style="color: #0070C1">P</span><span style="color: #000000">.</span><span style="color: #795E26">string</span><span style="color: #000000">().</span><span style="color: #795E26">maxLength</span><span style="color: #000000">(</span><span style="color: #098658">255</span><span style="color: #000000">),</span>
+<span style="color: #000000">  </span><span style="color: #001080">email:</span><span style="color: #000000"> </span><span style="color: #0070C1">P</span><span style="color: #000000">.</span><span style="color: #795E26">string</span><span style="color: #000000">().</span><span style="color: #795E26">maxLength</span><span style="color: #000000">(</span><span style="color: #098658">255</span><span style="color: #000000">).</span><span style="color: #795E26">matches</span><span style="color: #000000">(</span><span style="color: #811F3F">/@/</span><span style="color: #000000">),</span>
+<span style="color: #000000">  </span><span style="color: #001080">birthDate:</span><span style="color: #000000"> </span><span style="color: #0070C1">P</span><span style="color: #000000">.</span><span style="color: #795E26">date</span><span style="color: #000000">().</span><span style="color: #795E26">lessThan</span><span style="color: #000000">(</span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #267F99">Date</span><span style="color: #000000">(</span><span style="color: #098658">2020</span><span style="color: #000000">, </span><span style="color: #098658">0</span><span style="color: #000000">, </span><span style="color: #098658">1</span><span style="color: #000000">)),</span>
+<span style="color: #000000">})</span>
+</code></pre>
+				<p>Validation rules are evaluated in order. For example, given the following:</p>
+				<pre><code class="language-typescript"><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">emailParser</span><span style="color: #000000"> = </span><span style="color: #0070C1">P</span><span style="color: #000000">.</span><span style="color: #795E26">string</span><span style="color: #000000">().</span><span style="color: #795E26">maxLength</span><span style="color: #000000">(</span><span style="color: #098658">255</span><span style="color: #000000">).</span><span style="color: #795E26">matches</span><span style="color: #000000">(</span><span style="color: #811F3F">/@/</span><span style="color: #000000">);</span>
+</code></pre>
+				<p><code>emailParser</code> verifies that any input passes the following checks:</p>
+				<ol>
+					<li>Is the input a string?</li>
+					<li>Is the input less than or equal to 255 characters long?</li>
+					<li>Does the input match the regular expression <code>/@/</code>?</li>
+				</ol>
+				<p>If any of these checks fails, the parse operation will fail and return errors describing what went wrong.</p>
+				<p>Several built-in validation rules are available, but you can always write your own using the <code>.passes()</code> method:</p>
+				<pre><code class="language-typescript"><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">passwordParser</span><span style="color: #000000"> = </span><span style="color: #0070C1">P</span><span style="color: #000000">.</span><span style="color: #795E26">string</span><span style="color: #000000">().</span><span style="color: #795E26">passes</span><span style="color: #000000">(</span>
+<span style="color: #000000">  </span><span style="color: #001080">input</span><span style="color: #000000"> </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> </span><span style="color: #001080">input</span><span style="color: #000000"> !== </span><span style="color: #A31515">&quot;password&quot;</span><span style="color: #000000">,</span>
+<span style="color: #000000">  </span><span style="color: #A31515">&quot;passwordCantLiterallyBePassword&quot;</span><span style="color: #000000">,</span>
+<span style="color: #000000">  </span><span style="color: #A31515">&quot;&#039;password&#039; is not a valid password&quot;</span>
+</code></pre>
+				<p><code>passes()</code> accepts three arguments:</p>
+				<ol>
+					<li>A function to validate the input (which must return <code>true</code> or <code>false</code>)</li>
+					<li>An invariant error code used to identify the error if the check fails</li>
+					<li>An error message describing what went wrong.</li>
+				</ol>
+				<a href="#normalization" id="normalization" style="color: inherit; text-decoration: none;">
+					<h2>Normalization</h2>
+				</a>
+				<p>Incoming data can be normalized before validation. <code>p-block</code> includes several common normalizations, including:</p>
+				<ul>
+					<li><code>.defaultedTo()</code> (all) -- Specify a default value to be returned if the input is <code>null</code> or <code>undefined</code></li>
+					<li><code>.trimmed()</code> (strings) -- Remove leading and trailing whitespace</li>
+					<li><code>.rounded()</code> (numbers) -- Rounds input to a specific number of decimal places</li>
+					<li><code>.truncated()</code> (numbers) -- Removes the decimal component of an input (similar to <code>parseInt</code>)</li>
+					<li><code>.filtered()</code> (arrays) -- Filters the contents of an array input using a predicate</li>
+					<li><code>.mapped()</code> (arrays) -- Transforms the contents of an array input using a callback</li>
+				</ul>
+				<p>(Side note: normalization methods names always use the past tense.)</p>
+				<p>Additionally, you can do your own custom normalizations using <code>normalizedWith()</code>:</p>
+				<pre><code class="language-typescript"><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">reversingParser</span><span style="color: #000000"> = </span><span style="color: #0070C1">P</span><span style="color: #000000">.</span><span style="color: #795E26">string</span><span style="color: #000000">().</span><span style="color: #795E26">normalizedWith</span><span style="color: #000000">(</span><span style="color: #001080">input</span><span style="color: #000000"> </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> </span><span style="color: #001080">input</span><span style="color: #000000">.</span><span style="color: #795E26">split</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;&#039;</span><span style="color: #000000">).</span><span style="color: #795E26">reverse</span><span style="color: #000000">().</span><span style="color: #795E26">join</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;&#039;</span><span style="color: #000000">));</span>
+
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">parsed</span><span style="color: #000000"> = </span><span style="color: #001080">reversingParser</span><span style="color: #000000">.</span><span style="color: #795E26">parse</span><span style="color: #000000">(</span><span style="color: #A31515">&quot;hello&quot;</span><span style="color: #000000">);</span>
+
+<span style="color: #AF00DB">if</span><span style="color: #000000"> (</span><span style="color: #001080">parsed</span><span style="color: #000000">.</span><span style="color: #001080">success</span><span style="color: #000000">) {</span>
+<span style="color: #000000">  </span><span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">log</span><span style="color: #000000">(</span><span style="color: #001080">parsed</span><span style="color: #000000">.</span><span style="color: #001080">value</span><span style="color: #000000">) </span><span style="color: #008000">// &quot;olleh&quot;</span>
+<span style="color: #000000">}</span>
+</code></pre>
+				<p><strong>Important note:</strong> Normalizers cannot change the type of their input.</p>
+				<a href="#handling-errors" id="handling-errors" style="color: inherit; text-decoration: none;">
+					<h2>Handling Errors</h2>
+				</a>
+				<p>If parsing fails, the <code>errors</code> array on the parse result will include a set of objects describing the error(s) encountered. Each of those will include the following properties:</p>
+				<table>
+					<thead>
+						<tr>
+							<th>Property</th>
+							<th>Type</th>
+							<th>Description</th>
+						</tr>
+					</thead>
+					<tbody><tr>
+							<td><code>code</code></td>
+							<td><code>string</code></td>
+							<td>An invariant error code identifying the kind of error encountered. By default, <code>code</code> will be the name of the validation method that caused the error (for example <code>maxLength</code> or <code>matches</code>).</td>
+						</tr>
+						<tr>
+							<td><code>message</code></td>
+							<td><code>string</code></td>
+							<td>A short description (in English) describing the error encountered. <code>p-block</code> keeps these intentionally robotic-sounding--you probably don&#39;t want to display them to your users. Instead, consider mapping <code>code</code> to some friendlier error messages.</td>
+						</tr>
+						<tr>
+							<td><code>path</code></td>
+							<td><code>Array&lt;string|number&gt;</code></td>
+							<td>The path to the field in the input that caused the error.</td>
+						</tr>
+				</tbody></table>
+				<a href="#parsing-json" id="parsing-json" style="color: inherit; text-decoration: none;">
+					<h2>Parsing JSON</h2>
+				</a>
+				<p><code>p-block</code> provides support for several types that are not part of the JSON specification, including:</p>
+				<ul>
+					<li><code>Date</code></li>
+					<li>WHATWG <code>URL</code></li>
+				</ul>
+				<p>If you are loading data from JSON documents, you probably are representing these types of data using <code>string</code>. <code>FluentStringParser</code> provides helper methods for translating string fields into these types of objects:</p>
+				<pre><code class="language-typescript"><span style="color: #AF00DB">import</span><span style="color: #000000"> { </span><span style="color: #001080">P</span><span style="color: #000000"> } </span><span style="color: #AF00DB">from</span><span style="color: #000000"> </span><span style="color: #A31515">&quot;p-block&quot;</span><span style="color: #000000">;</span>
+
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">historyParser</span><span style="color: #000000"> = </span><span style="color: #0070C1">P</span><span style="color: #000000">.</span><span style="color: #795E26">object</span><span style="color: #000000">({</span>
+<span style="color: #000000">  </span><span style="color: #001080">date:</span><span style="color: #000000"> </span><span style="color: #0070C1">P</span><span style="color: #000000">.</span><span style="color: #795E26">string</span><span style="color: #000000">().</span><span style="color: #795E26">parsedAsDate</span><span style="color: #000000">(),</span>
+<span style="color: #000000">  </span><span style="color: #001080">url:</span><span style="color: #000000"> </span><span style="color: #0070C1">P</span><span style="color: #000000">.</span><span style="color: #795E26">string</span><span style="color: #000000">().</span><span style="color: #795E26">parsedAsURL</span><span style="color: #000000">(),</span>
+<span style="color: #000000">});</span>
+</code></pre>
+				<a href="#differences-from-native-javascript" id="differences-from-native-javascript" style="color: inherit; text-decoration: none;">
+					<h2>Differences from Native Javascript</h2>
+				</a>
+				<p><code>p-block</code> makes a few opinionated choices about how it interprets input, including:</p>
+				<a href="#nan-infinity-and--infinity-rejected-by-default" id="nan-infinity-and--infinity-rejected-by-default" style="color: inherit; text-decoration: none;">
+					<h3><code>NaN</code>, <code>Infinity</code>, and <code>-Infinity</code> rejected by default</h3>
+				</a>
+				<p>If you use <code>P.number()</code> or <code>P.integer()</code>, attempting to parse any of the following will fail, despite the fact they are valid <code>number</code> values:</p>
+				<ul>
+					<li><code>NaN</code></li>
+					<li><code>Infinity</code></li>
+					<li><code>-Infinity</code></li>
+				</ul>
+				<a href="#invalid-date-rejected-by-default" id="invalid-date-rejected-by-default" style="color: inherit; text-decoration: none;">
+					<h3><code>Invalid Date</code> rejected by default</h3>
+				</a>
+				<p>Likewise, attempting to parse a <code>Date</code> instance whose <code>getTime()</code> returns <code>NaN</code> will fail.</p>
+				<a href="#yyyy-mm-dd-formatted-dates-in-local-timezone" id="yyyy-mm-dd-formatted-dates-in-local-timezone" style="color: inherit; text-decoration: none;">
+					<h3><code>YYYY-MM-DD</code> formatted dates in local timezone</h3>
+				</a>
+				<p>When using <code>FluentStringParser.parsedAsDate</code> to parse a date in the format <code>YYYY-MM-DD</code>, the resulting date will be in the local timezone rather than in UTC.</p>
+				<a href="#influences-and-prior-art" id="influences-and-prior-art" style="color: inherit; text-decoration: none;">
+					<h2>Influences and Prior Art</h2>
+				</a>
+				<p>This library borrows several good ideas from the amazing <a href="https://github.com/colinhacks/zod">zod</a> library. Additionally it was influenced by the .NET <a href="https://fluentvalidation.net/">FluentValidation</a> library.</p>
+			</div>
+		</div>
+		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+			<nav class="tsd-navigation primary">
+				<ul>
+					<li class=" ">
+						<a href="modules.html">Exports</a>
+					</li>
+				</ul>
+			</nav>
+			<nav class="tsd-navigation secondary menu-sticky">
+				<ul class="before-current">
+					<li class=" tsd-kind-interface tsd-has-type-parameter">
+						<a href="interfaces/fluentarrayparser.html" class="tsd-kind-icon">Fluent<wbr>Array<wbr>Parser</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/fluentbooleanparser.html" class="tsd-kind-icon">Fluent<wbr>Boolean<wbr>Parser</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/fluentdateparser.html" class="tsd-kind-icon">Fluent<wbr>Date<wbr>Parser</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/fluentnumberparser.html" class="tsd-kind-icon">Fluent<wbr>Number<wbr>Parser</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter">
+						<a href="interfaces/fluentobjectparser.html" class="tsd-kind-icon">Fluent<wbr>Object<wbr>Parser</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter">
+						<a href="interfaces/fluentparser.html" class="tsd-kind-icon">Fluent<wbr>Parser</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/fluentparsingroot.html" class="tsd-kind-icon">Fluent<wbr>Parsing<wbr>Root</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/fluentstringparser.html" class="tsd-kind-icon">Fluent<wbr>String<wbr>Parser</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/fluenturlparser.html" class="tsd-kind-icon">FluentURLParser</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-has-type-parameter">
+						<a href="modules.html#parsedtype" class="tsd-kind-icon">Parsed<wbr>Type</a>
+					</li>
+					<li class=" tsd-kind-variable">
+						<a href="modules.html#p" class="tsd-kind-icon">P</a>
+					</li>
+				</ul>
+			</nav>
+		</div>
+	</div>
+</div>
+<footer class="with-border-bottom">
+	<div class="container">
+		<h2>Legend</h2>
+		<div class="tsd-legend-group">
+			<ul class="tsd-legend">
+				<li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li>
+			</ul>
+		</div>
+	</div>
+</footer>
+<div class="container tsd-generator">
+	<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p>
+</div>
+<div class="overlay"></div>
+<script src="assets/js/main.js"></script>
+</body>
+</html>
