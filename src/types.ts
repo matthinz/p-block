@@ -57,6 +57,20 @@ export interface FluentParser<Type> extends Parser<Type> {
   optional(): FluentParser<Type | undefined>;
 
   /**
+   * Returns a new `FluentParser` that will pass input through the given `Parser`.
+   * This allows chaining together parsers:
+   *
+   * ```typescript
+   * const hasDigitParser = P.string().matches(/\d/);
+   *
+   * const passwordParser = P.string().minLength(10).passes(hasDigitParser);
+   *
+   * ```
+   * @param parser
+   */
+  passes(parser: Parser<Type>): FluentParser<Type>;
+
+  /**
    * @param validators
    * @param errorCode Error code assigned to any errors generated.
    * @param errorMessage Error message returned with any errors generated.
@@ -134,12 +148,47 @@ export interface FluentArrayParser<ItemType> extends FluentParser<ItemType[]> {
     errorMessage?: string
   ): FluentArrayParser<ItemType>;
 
+  normalizedWith(
+    ...normalizers: (
+      | NormalizationFunction<ItemType[]>
+      | NormalizationFunction<ItemType[]>[]
+    )[]
+  ): FluentArrayParser<ItemType>;
+
   /**
    * @returns A new parser, derived from this one, that runs a further type check on its items.
    */
   of<NextItemType extends ItemType>(
     parser: Parser<NextItemType>
   ): FluentArrayParser<NextItemType>;
+
+  /**
+   * Returns a new `FluentParser` that will pass input through the given `Parser`.
+   * This allows chaining together parsers:
+   *
+   * ```typescript
+   * const hasDigitParser = P.string().matches(/\d/);
+   *
+   * const passwordParser = P.string().minLength(10).passes(hasDigitParser);
+   *
+   * ```
+   * @param parser
+   */
+  passes(parser: Parser<ItemType[]>): FluentArrayParser<ItemType>;
+
+  /**
+   * @param validators
+   * @param errorCode Error code assigned to any errors generated.
+   * @param errorMessage Error message returned with any errors generated.
+   * @returns A new FluentValidator that requires input to pass all of `validators`.
+   */
+  passes(
+    validators:
+      | ValidationFunction<ItemType[]>
+      | ValidationFunction<ItemType[]>[],
+    errorCode?: string,
+    errorMessage?: string
+  ): FluentArrayParser<ItemType>;
 }
 
 export interface FluentBooleanParser extends FluentParser<boolean> {
@@ -152,6 +201,7 @@ export interface FluentBooleanParser extends FluentParser<boolean> {
       | NormalizationFunction<boolean>[]
     )[]
   ): FluentBooleanParser;
+  passes(parser: Parser<boolean>): FluentBooleanParser;
   passes(
     validators: ValidationFunction<boolean> | ValidationFunction<boolean>[],
     errorCode?: string,
@@ -160,6 +210,8 @@ export interface FluentBooleanParser extends FluentParser<boolean> {
 }
 
 export interface FluentDateParser extends FluentParser<Date> {
+  defaultedTo(value: Date): FluentDateParser;
+
   between(
     inclusiveMinimum: Date,
     inclusiveMaximum: Date,
@@ -226,6 +278,21 @@ export interface FluentDateParser extends FluentParser<Date> {
     errorCode?: string,
     errorMessage?: string
   ): FluentDateParser;
+
+  normalizedWith(
+    ...normalizers: (
+      | NormalizationFunction<Date>
+      | NormalizationFunction<Date>[]
+    )[]
+  ): FluentDateParser;
+
+  passes(parser: Parser<Date>): FluentDateParser;
+
+  passes(
+    validators: ValidationFunction<Date> | ValidationFunction<Date>[],
+    errorCode?: string,
+    errorMessage?: string
+  ): FluentDateParser;
 }
 
 export interface FluentNumberParser extends FluentParser<number> {
@@ -235,6 +302,8 @@ export interface FluentNumberParser extends FluentParser<number> {
     errorCode?: string,
     errorMessage?: string
   ): FluentNumberParser;
+
+  defaultedTo(value: number): FluentNumberParser;
 
   /**
    * @param value
@@ -296,6 +365,21 @@ export interface FluentNumberParser extends FluentParser<number> {
     errorMessage?: string
   ): FluentNumberParser;
 
+  normalizedWith(
+    ...normalizers: (
+      | NormalizationFunction<number>
+      | NormalizationFunction<number>[]
+    )[]
+  ): FluentNumberParser;
+
+  passes(parser: Parser<number>): FluentNumberParser;
+
+  passes(
+    validators: ValidationFunction<number> | ValidationFunction<number>[],
+    errorCode?: string,
+    errorMessage?: string
+  ): FluentNumberParser;
+
   /**
    * @param decimalPlaces
    * @returns A new FluentNumberParser, derived from this one, that rounds its input to the given number of decimal places before validating.
@@ -311,6 +395,21 @@ export interface FluentNumberParser extends FluentParser<number> {
 export interface FluentObjectParser<Type extends Record<string, unknown>>
   extends FluentParser<Type> {
   defaultedTo(values: Partial<Type>): FluentObjectParser<Type>;
+
+  normalizedWith(
+    ...normalizers: (
+      | NormalizationFunction<Type>
+      | NormalizationFunction<Type>[]
+    )[]
+  ): FluentObjectParser<Type>;
+
+  passes(parser: Parser<Type>): FluentObjectParser<Type>;
+
+  passes(
+    validators: ValidationFunction<Type> | ValidationFunction<Type>[],
+    errorCode?: string,
+    errorMessage?: string
+  ): FluentObjectParser<Type>;
 
   propertiesMatch<
     PropertyName extends keyof Type,
@@ -349,6 +448,8 @@ export interface FluentObjectParser<Type extends Record<string, unknown>>
 }
 
 export interface FluentStringParser extends FluentParser<string> {
+  defaultedTo(values: string): FluentStringParser;
+
   /**
    * @returns A FluentStringValidator, derived from this one, that validates its input is included in `values`. This check is strict--case matters.
    */
@@ -383,7 +484,22 @@ export interface FluentStringParser extends FluentParser<string> {
     errorMessage?: string
   ): FluentStringParser;
 
+  normalizedWith(
+    ...normalizers: (
+      | NormalizationFunction<string>
+      | NormalizationFunction<string>[]
+    )[]
+  ): FluentStringParser;
+
   notEmpty(errorCode?: string, errorMessage?: string): FluentStringParser;
+
+  passes(parser: Parser<string>): FluentStringParser;
+
+  passes(
+    validators: ValidationFunction<string> | ValidationFunction<string>[],
+    errorCode?: string,
+    errorMessage?: string
+  ): FluentStringParser;
 
   parsedAsBoolean(
     errorCode?: string,
@@ -449,6 +565,8 @@ export interface FluentStringParser extends FluentParser<string> {
 export type KnownProtocol = "http:" | "https:" | "ftp:" | "mailto:";
 
 export interface FluentURLParser extends FluentParser<URL> {
+  defaultedTo(value: URL): FluentURLParser;
+
   /**
    * Validates that the incoming URL is using the HTTP or HTTPS protocol.
    */
@@ -458,6 +576,21 @@ export interface FluentURLParser extends FluentParser<URL> {
    * Validates that the incoming URL is using the HTTPS protocol.
    */
   httpsOnly(errorCode?: string, errorMessage?: string): FluentParser<URL>;
+
+  normalizedWith(
+    ...normalizers: (
+      | NormalizationFunction<URL>
+      | NormalizationFunction<URL>[]
+    )[]
+  ): FluentURLParser;
+
+  passes(parser: Parser<URL>): FluentURLParser;
+
+  passes(
+    validators: ValidationFunction<URL> | ValidationFunction<URL>[],
+    errorCode?: string,
+    errorMessage?: string
+  ): FluentURLParser;
 
   /**
    * Validates that the incoming URL uses the given protocol. If more than

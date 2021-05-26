@@ -215,23 +215,37 @@ describe("array()", () => {
   });
 
   describe("passes", () => {
-    function allPositive(input: number[]): boolean {
-      return input.every((item) => item > 0);
-    }
+    describe("with function", () => {
+      function allPositive(input: number[]): boolean {
+        return input.every((item) => item > 0);
+      }
 
-    const parser = P.array()
-      .of(P.number())
-      .passes(allPositive, "not_positive", "should be positive");
+      const parser = P.array()
+        .of(P.number())
+        .passes(allPositive, "not_positive", "should be positive");
 
-    const tests: ParsingTest<number[]>[] = [
+      const tests: ParsingTest<number[]>[] = [
+        [[], true],
+        [null, false, "invalidType", "input must be an array", []],
+        [undefined, false, "invalidType", "input must be an array", []],
+        ["", false, "invalidType", "input must be an array", []],
+        [[1, 2, -1], false, "not_positive", "should be positive", []],
+        [[1, 2, 3], true],
+      ];
+
+      runParsingTests(parser, tests);
+    });
+  });
+  describe("with parser", () => {
+    const tests: ParsingTest<string[]>[] = [
+      [undefined, false, "invalidType"],
       [[], true],
-      [null, false, "invalidType", "input must be an array", []],
-      [undefined, false, "invalidType", "input must be an array", []],
-      ["", false, "invalidType", "input must be an array", []],
-      [[1, 2, -1], false, "not_positive", "should be positive", []],
-      [[1, 2, 3], true],
+      [["foo", "bar"], true],
+      [["foo", "", "bar"], false, "allItemsPass", "", [1]],
     ];
-
+    const parser = P.array(P.string()).passes(
+      P.array(P.string()).allItemsPass((item) => item.length > 0)
+    );
     runParsingTests(parser, tests);
   });
 });

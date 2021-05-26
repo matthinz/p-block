@@ -98,18 +98,13 @@ export class FluentParserImpl<Type, FluentParserType extends FluentParser<Type>>
   };
 
   passes(
-    validators: ValidationFunction<Type> | ValidationFunction<Type>[],
+    validatorOrValidatorArrayOrParser:
+      | ValidationFunction<Type>
+      | ValidationFunction<Type>[]
+      | Parser<Type>,
     errorCode?: string,
     errorMessage?: string
   ): FluentParserType {
-    const validator = applyErrorDetails(
-      composeValidators(validators),
-      "invalid",
-      "input was invalid",
-      errorCode,
-      errorMessage
-    );
-
     const nextParser = {
       ...this.parser,
       parse: (input: unknown): ParseResult<Type> => {
@@ -118,22 +113,37 @@ export class FluentParserImpl<Type, FluentParserType extends FluentParser<Type>>
           return parsed;
         }
 
-        const validationResult = validator(parsed.value);
-        if (validationResult === false) {
-          throw new Error(
-            "No error code could be determined to report validation failure"
+        if (
+          typeof validatorOrValidatorArrayOrParser === "function" ||
+          Array.isArray(validatorOrValidatorArrayOrParser)
+        ) {
+          const validator = applyErrorDetails(
+            composeValidators(validatorOrValidatorArrayOrParser),
+            "invalid",
+            "input was invalid",
+            errorCode,
+            errorMessage
           );
-        } else if (validationResult !== true) {
-          const errors = Array.isArray(validationResult)
-            ? validationResult
-            : [validationResult];
-          return {
-            success: false,
-            errors,
-          };
+
+          const validationResult = validator(parsed.value);
+          if (validationResult === false) {
+            throw new Error(
+              "No error code could be determined to report validation failure"
+            );
+          } else if (validationResult !== true) {
+            const errors = Array.isArray(validationResult)
+              ? validationResult
+              : [validationResult];
+            return {
+              success: false,
+              errors,
+            };
+          }
+          return parsed;
         }
 
-        return parsed;
+        const parser: Parser<Type> = validatorOrValidatorArrayOrParser;
+        return parser.parse(parsed.value);
       },
     };
 

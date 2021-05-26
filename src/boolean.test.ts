@@ -1,5 +1,9 @@
 import { P } from ".";
-import { ParsingTest, runParsingTests } from "./test-utils";
+import {
+  ParsingTest,
+  ParsingTestWithParser,
+  runParsingTests,
+} from "./test-utils";
 
 describe("boolean()", () => {
   describe("stock", () => {
@@ -58,5 +62,16 @@ describe("boolean()", () => {
       P.boolean().normalizedWith((input) => !input),
       tests
     );
+  });
+
+  describe("passes()", () => {
+    describe("with Parser<boolean>", () => {
+      const tests: ParsingTest<boolean>[] = [
+        [undefined, false, "invalidType"],
+        [true, true],
+        [false, false, "isTrue"],
+      ];
+      runParsingTests(P.boolean().passes(P.boolean().isTrue()), tests);
+    });
   });
 });
