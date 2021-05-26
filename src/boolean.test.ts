@@ -1,9 +1,5 @@
 import { P } from ".";
-import {
-  ParsingTest,
-  ParsingTestWithParser,
-  runParsingTests,
-} from "./test-utils";
+import { ParsingTest, runParsingTests } from "./test-utils";
 
 describe("boolean()", () => {
   describe("stock", () => {
