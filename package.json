@@ -9,11 +9,12 @@
   },
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc && rm dist/*.test.js dist/*.test.d.ts dist/test-utils.*",
+    "build": "tsc",
     "docs": "typedoc src/index.ts",
     "lint": "eslint src",
     "lint:fix": "eslint --fix src",
-    "test": "jest --coverage"
+    "test": "jest --coverage",
+    "test:dist": "jest --coverage --testMatch '**/*.test.js' --roots ."
   },
   "devDependencies": {
     "@types/jest": "^26.0.22",

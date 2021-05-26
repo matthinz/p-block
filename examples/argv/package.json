@@ -1,17 +1,13 @@
 {
   "name": "p-block-example-argv",
   "version": "1.0.0",
-  "main": "index.js",
-  "license": "MIT",
   "scripts": {
-    "start": "ts-node index.ts"
+    "test": "node dist/index.js --verbose package.json tsconfig.json"
   },
   "dependencies": {
-    "p-block": "^0.0.1"
-  },
-  "devDependencies": {
-    "ts-node": "^9.1.1",
-    "typescript": "^4.2.4"
+    "@types/node": "^15.6.1",
+    "p-block": "^0.0.1",
+    "typescript": "^3"
   },
   "private": true
 }

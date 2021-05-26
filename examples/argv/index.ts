@@ -1,5 +1,5 @@
 import path from "path";
-import { ParsedType, P } from "../../src";
+import { ParsedType, P } from "p-block";
 
 const ArgumentSchema = P.object().withProperties({
   verbose: P.boolean().defaultedTo(false),
@@ -28,7 +28,7 @@ argv.errors.forEach(({ code, message }) =>
 );
 
 if (argv.success) {
-  console.log(argv.parsed);
+  console.log(argv.value);
 }
 
 process.exitCode = argv.errors.length;

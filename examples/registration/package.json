@@ -1,14 +1,12 @@
 {
   "name": "p-block-example-registration",
   "version": "1.0.0",
-  "main": "index.js",
-  "license": "MIT",
-  "dependencies": {
-    "p-block": "^0.0.1"
+  "scripts": {
+    "test": "node dist/index.js"
   },
-  "devDependencies": {
-    "ts-node": "^9.1.1",
-    "typescript": "^4.2.4"
+  "dependencies": {
+    "p-block": "^0.0.1",
+    "typescript": "^3"
   },
   "private": true
 }

@@ -1,4 +1,4 @@
-import { P } from "../../src";
+import { P } from "p-block";
 
 const EnvironmentVariables = P.object().withProperties({
   NODE_ENV: P.string()
@@ -17,7 +17,7 @@ options.errors.forEach(({ code, message }) => {
 });
 
 if (options.success) {
-  console.log(options.parsed);
+  console.log(options.value);
 }
 
 process.exitCode = options.errors.length;

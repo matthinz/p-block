@@ -1,15 +1,23 @@
 DOCKER_IMAGE = p-block
 DOCKER_CONTAINER = $(DOCKER_IMAGE)
 
-.PHONY: build clean test
+.PHONY: build clean test test-examples
 
 build: dist
 
 clean:
-	rm -rf coverage dist
+	-rm -rf coverage dist node_modules
+	-find examples -type d -name "node_modules" | xargs rm -rf
+	-find examples -type d -name "dist" | xargs rm -rf
+	-find examples -name "*.js" | xargs rm
+	-find examples -name "yarn.lock" | xargs rm
 
 test: node_modules
 	yarn test
+
+test-examples: build
+	cd examples/argv && yarn && yarn test
+	cd examples/checkout && yarn && yarn test
 
 dist: src/*.ts node_modules
 	yarn lint

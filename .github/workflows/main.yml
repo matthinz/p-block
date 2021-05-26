@@ -2,25 +2,79 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches: [ ci ]
 
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v2
       - name: Setup Node
         uses: actions/setup-node@v2
         with:
-          node-version: '14'
+          node-version: '16'
       - name: Install Dependencies
         run: yarn
+      - name: Lint
+        run: yarn lint
       - name: Build
         run: yarn build
-      - name: Test
-        run: yarn test
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: dist
+          path: dist
+          retention-days: 2
+
+  unit-test:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [12, 14, 16]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Download dist
+        uses: actions/download-artifact@v2
+        with:
+          name: dist
+      - name: Setup Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Install Dependencies
+        run: yarn
+      - name: Run Unit Tests
+        run: "yarn test:dist"
+
+  integration-test:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [10, 12, 14, 16]
+        typescript: [3, 4]
+    env:
+      TYPESCRIPT_VERSION: ${{ matrix.typescript }}
+    steps:
+        - uses: actions/checkout@v2
+        - name: Download dist
+          uses: actions/download-artifact@v2
+          with:
+            name: dist
+        - name: Setup Node
+          uses: actions/setup-node@v2
+          with:
+            node-version: ${{ matrix.node }}
+        - name: Link
+          run: yarn link
+        - name: "Run Example: argv"
+          run: scripts/run-integration-test.sh examples/argv
+        - name: "Run Example: checkout"
+          run: scripts/run-integration-test.sh examples/checkout
+        - name: "Run Example: environment"
+          run: scripts/run-integration-test.sh examples/environment
+        - name: "Run Example: registration"
+          run: scripts/run-integration-test.sh examples/registration

@@ -1,4 +1,4 @@
-import { P } from "../src";
+import { P } from ".";
 import { ParsingTest, runParsingTests } from "./test-utils";
 
 describe("nullish()", () => {

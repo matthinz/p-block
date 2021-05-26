@@ -1,4 +1,4 @@
-import { ParsedType, P } from "../../src";
+import { ParsedType, P } from "p-block";
 
 const Registration = P.object()
   .withProperties({
