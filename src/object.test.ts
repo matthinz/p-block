@@ -20,8 +20,12 @@ describe("object()", () => {
       [
         new NotAPlainObject(),
         false,
-        "invalidType",
-        "input must be a plain object",
+        ["required", "required"],
+        [
+          "input must include property 'firstName'",
+          "input must include property 'lastName'",
+        ],
+        [["firstName"], ["lastName"]],
       ],
       [
         {

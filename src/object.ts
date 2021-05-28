@@ -22,25 +22,10 @@ const INVALID_TYPE_PARSE_RESULT: ParseResult<Record<string, unknown>> = {
   ],
 };
 
-const PLAIN_OBJECT_PARSE_RESULT: ParseResult<Record<string, unknown>> = {
-  success: false,
-  errors: [
-    {
-      code: "invalidType",
-      message: "input must be a plain object",
-      path: [],
-    },
-  ],
-};
-
 export const defaultObjectParser = {
   parse: (input: unknown): ParseResult<Record<string, unknown>> => {
     if (typeof input !== "object" || input == null || Array.isArray(input)) {
       return INVALID_TYPE_PARSE_RESULT;
-    }
-
-    if (input.constructor !== Object) {
-      return PLAIN_OBJECT_PARSE_RESULT;
     }
 
     return {
