@@ -149,4 +149,73 @@ export class FluentParserImpl<Type, FluentParserType extends FluentParser<Type>>
 
     return new this.ctor(this.root, nextParser);
   }
+
+  protected internalParsedAs<
+    NextType,
+    FluentParserType extends FluentParser<NextType>
+  >(
+    ctor: {
+      new (root: FluentParsingRoot, parser: Parser<NextType>): FluentParserType;
+    },
+    defaultParser: (input: Type) => NextType | undefined,
+    defaultErrorCode: string,
+    defaultErrorMessage: string,
+    parserOrErrorCode?: ((input: Type) => NextType | undefined) | string,
+    errorCodeOrErrorMessage?: string,
+    errorMessage?: string
+  ): FluentParserType {
+    const nextParser: Parser<NextType> = {
+      parse: (input: unknown): ParseResult<NextType> => {
+        const parseResult = this.parse(input);
+        if (!parseResult.success) {
+          return parseResult;
+        }
+
+        const parser =
+          typeof parserOrErrorCode === "function"
+            ? parserOrErrorCode
+            : defaultParser;
+
+        const value = parser(parseResult.value);
+
+        if (value !== undefined) {
+          return {
+            success: true,
+            errors: [],
+            value,
+          };
+        }
+
+        let code =
+          typeof parserOrErrorCode === "function"
+            ? errorCodeOrErrorMessage
+            : parserOrErrorCode;
+
+        let message =
+          typeof parserOrErrorCode === "function"
+            ? errorMessage
+            : errorCodeOrErrorMessage;
+
+        if (code == null) {
+          code = defaultErrorCode;
+          message = defaultErrorMessage;
+        } else {
+          message = message ?? code;
+        }
+
+        return {
+          success: false,
+          errors: [
+            {
+              code,
+              message,
+              path: [],
+            },
+          ],
+        };
+      },
+    };
+
+    return new ctor(this.root, nextParser);
+  }
 }
