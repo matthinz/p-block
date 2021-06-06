@@ -1,19 +1,18 @@
 import { FluentParserImpl } from "./base";
-import { defaultBooleanParser, FluentBooleanParserImpl } from "./boolean";
-import { defaultDateParser, FluentDateParserImpl } from "./date";
-import { finiteNumberParser, FluentNumberParserImpl } from "./number";
+import { FluentBooleanParserImpl } from "./boolean";
+import { FluentDateParserImpl } from "./date";
+import { FluentNumberParserImpl } from "./number";
 import {
   FluentBooleanParser,
   FluentDateParser,
   FluentNumberParser,
-  FluentParser,
   FluentParsingRoot,
   FluentStringParser,
   FluentURLParser,
   Parser,
   ParseResult,
 } from "./types";
-import { defaultURLParser, FluentURLParserImpl } from "./url";
+import { FluentURLParserImpl } from "./url";
 import { resolveErrorDetails } from "./utils";
 
 // This email regex was sourced from the HTML Living Standard
@@ -156,7 +155,6 @@ export class FluentStringParserImpl
     return this.internalParsedAs(
       FluentBooleanParserImpl,
       defaultStringToBooleanParser,
-      defaultBooleanParser,
       "parsedAsBoolean",
       "input could not be parsed as a boolean",
       parserOrErrorCode,
@@ -173,7 +171,6 @@ export class FluentStringParserImpl
     return this.internalParsedAs(
       FluentDateParserImpl,
       defaultStringToDateParser,
-      defaultDateParser,
       "parsedAsDate",
       "input could not be parsed as a Date",
       parserOrErrorCode,
@@ -190,7 +187,6 @@ export class FluentStringParserImpl
     return this.internalParsedAs(
       FluentNumberParserImpl,
       defaultStringToFloatParser,
-      finiteNumberParser,
       "parsedAsFloat",
       "input could not be parsed as a float",
       parserOrErrorCode,
@@ -220,7 +216,6 @@ export class FluentStringParserImpl
     return this.internalParsedAs(
       FluentNumberParserImpl,
       defaultStringToIntegerParser.bind(undefined, 10),
-      finiteNumberParser,
       "parsedAsInteger",
       "input could not be parsed as an integer",
       radixOrParserOrErrorCode,
@@ -237,7 +232,6 @@ export class FluentStringParserImpl
     return this.internalParsedAs<URL, FluentURLParser>(
       FluentURLParserImpl,
       defaultStringToURLParser,
-      defaultURLParser,
       "parsedAsURL",
       "input cannot be parsed as a URL",
       parserOrErrorCode,
@@ -252,76 +246,6 @@ export class FluentStringParserImpl
 
   upperCased(): FluentStringParser {
     return this.normalizedWith((str) => str.toUpperCase());
-  }
-
-  protected internalParsedAs<Type, FluentParserType extends FluentParser<Type>>(
-    ctor: {
-      new (root: FluentParsingRoot, parser: Parser<Type>): FluentParserType;
-    },
-    defaultParser: (input: string) => Type | undefined,
-    typedParser: Parser<Type>,
-    defaultErrorCode: string,
-    defaultErrorMessage: string,
-    parserOrErrorCode?: ((input: string) => Type | undefined) | string,
-    errorCodeOrErrorMessage?: string,
-    errorMessage?: string
-  ): FluentParserType {
-    const nextParser: Parser<Type> = {
-      ...typedParser,
-      parse: (input: unknown): ParseResult<Type> => {
-        // First, ensure the input is even a string...
-        const stringParseResult = this.parse(input);
-        if (!stringParseResult.success) {
-          return stringParseResult;
-        }
-
-        // ...then process it from string -> Type
-        const stringParser =
-          typeof parserOrErrorCode === "function"
-            ? parserOrErrorCode
-            : defaultParser;
-
-        const value = stringParser(stringParseResult.value);
-
-        if (value !== undefined) {
-          return {
-            success: true,
-            errors: [],
-            value,
-          };
-        }
-
-        let code =
-          typeof parserOrErrorCode === "function"
-            ? errorCodeOrErrorMessage
-            : parserOrErrorCode;
-
-        let message =
-          typeof parserOrErrorCode === "function"
-            ? errorMessage
-            : errorCodeOrErrorMessage;
-
-        if (code == null) {
-          code = defaultErrorCode;
-          message = defaultErrorMessage;
-        } else {
-          message = message ?? code;
-        }
-
-        return {
-          success: false,
-          errors: [
-            {
-              code,
-              message,
-              path: [],
-            },
-          ],
-        };
-      },
-    };
-
-    return new ctor(this.root, nextParser);
   }
 }
 
