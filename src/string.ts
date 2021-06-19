@@ -67,9 +67,7 @@ export class FluentStringParserImpl
   }
 
   lowerCased(): FluentStringParser {
-    return this.normalizedWith((value: any) =>
-      typeof value === "string" ? value.toLowerCase() : value
-    );
+    return this.normalizedWith((value: string) => value.toLowerCase());
   }
 
   matches(

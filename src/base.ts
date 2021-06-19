@@ -97,6 +97,12 @@ export class FluentParserImpl<Type, FluentParserType extends FluentParser<Type>>
     return this.parser.parse(input);
   };
 
+  parsedAs<NextType>(
+    parser: ((input: Type) => NextType | undefined) | Parser<NextType>,
+    errorCode?: string,
+    errorMessage?: string
+  ) {}
+
   passes(
     validatorOrValidatorArrayOrParser:
       | ValidationFunction<Type>

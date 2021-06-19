@@ -57,6 +57,18 @@ export interface FluentParser<Type> extends Parser<Type> {
   optional(): FluentParser<Type | undefined>;
 
   /**
+   * Returns a new FluentParser
+   * @param parsingFunction
+   * @param errorCode
+   * @param errorMessage
+   */
+  parsedAs<NextType>(
+    parsingFunction: (input: Type) => NextType | undefined,
+    errorCode?: string,
+    errorMessage?: string
+  ): FluentParser<NextType>;
+
+  /**
    * Returns a new `FluentParser` that will pass input through the given `Parser`.
    * This allows chaining together parsers:
    *
