@@ -8,7 +8,7 @@ export class AndParser<Left, Right> implements Parser<Left & Right> {
     private readonly right: Parser<Right>
   ) {}
 
-  parse(input: any): ParseResult<Left & Right> {
+  parse(input: unknown): ParseResult<Left & Right> {
     const leftResult = this.left.parse(input);
     const rightResult = this.right.parse(input);
 
