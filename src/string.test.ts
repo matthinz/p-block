@@ -29,6 +29,18 @@ describe("P.string()", () => {
     runParsingTests(parser, tests);
   });
 
+  describe("email()", () => {
+    const parser = P.string().email();
+    const tests: ParsingTest<string>[] = [
+      ["", false, "email"],
+      ["foo@", false, "email"],
+      ["foo@bar", true],
+      ["foo@bar.xyz", true],
+      ["foo@bar.co.uk", true],
+    ];
+    runParsingTests(parser, tests);
+  });
+
   describe("length", () => {
     test.todo("must be at least 0");
 

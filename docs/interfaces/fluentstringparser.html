@@ -91,14 +91,15 @@
 						<section class="tsd-index-section ">
 							<h3>Methods</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-method tsd-parent-kind-interface tsd-is-inherited"><a href="fluentstringparser.html#defaultedto" class="tsd-kind-icon">defaulted<wbr>To</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-interface tsd-is-overwrite"><a href="fluentstringparser.html#defaultedto" class="tsd-kind-icon">defaulted<wbr>To</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="fluentstringparser.html#email" class="tsd-kind-icon">email</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="fluentstringparser.html#isin" class="tsd-kind-icon">is<wbr>In</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="fluentstringparser.html#length" class="tsd-kind-icon">length</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="fluentstringparser.html#lowercased" class="tsd-kind-icon">lower<wbr>Cased</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="fluentstringparser.html#matches" class="tsd-kind-icon">matches</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="fluentstringparser.html#maxlength" class="tsd-kind-icon">max<wbr>Length</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="fluentstringparser.html#minlength" class="tsd-kind-icon">min<wbr>Length</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-interface tsd-is-inherited"><a href="fluentstringparser.html#normalizedwith" class="tsd-kind-icon">normalized<wbr>With</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-interface tsd-is-overwrite"><a href="fluentstringparser.html#normalizedwith" class="tsd-kind-icon">normalized<wbr>With</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="fluentstringparser.html#notempty" class="tsd-kind-icon">not<wbr>Empty</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-interface tsd-is-inherited"><a href="fluentstringparser.html#optional" class="tsd-kind-icon">optional</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="fluentstringparser.html#parsedasboolean" class="tsd-kind-icon">parsed<wbr>AsBoolean</a></li>
@@ -106,7 +107,7 @@
 								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="fluentstringparser.html#parsedasfloat" class="tsd-kind-icon">parsed<wbr>AsFloat</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="fluentstringparser.html#parsedasinteger" class="tsd-kind-icon">parsed<wbr>AsInteger</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="fluentstringparser.html#parsedasurl" class="tsd-kind-icon">parsed<wbr>AsURL</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-interface tsd-is-inherited"><a href="fluentstringparser.html#passes" class="tsd-kind-icon">passes</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-interface tsd-is-overwrite"><a href="fluentstringparser.html#passes" class="tsd-kind-icon">passes</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="fluentstringparser.html#trimmed" class="tsd-kind-icon">trimmed</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="fluentstringparser.html#uppercased" class="tsd-kind-icon">upper<wbr>Cased</a></li>
 							</ul>
@@ -130,28 +131,54 @@
 			</section>
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Methods</h2>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface tsd-is-inherited">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface tsd-is-overwrite">
 					<a name="defaultedto" class="tsd-anchor"></a>
 					<h3>defaulted<wbr>To</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface tsd-is-inherited">
-						<li class="tsd-signature tsd-kind-icon">defaulted<wbr>To<span class="tsd-signature-symbol">(</span>value<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="fluentparser.html" class="tsd-signature-type" data-tsd-kind="Interface">FluentParser</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></li>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface tsd-is-overwrite">
+						<li class="tsd-signature tsd-kind-icon">defaulted<wbr>To<span class="tsd-signature-symbol">(</span>values<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="fluentstringparser.html" class="tsd-signature-type" data-tsd-kind="Interface">FluentStringParser</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from <a href="fluentparser.html">FluentParser</a>.<a href="fluentparser.html#defaultedto">defaultedTo</a></p>
+								<p>Overrides <a href="fluentparser.html">FluentParser</a>.<a href="fluentparser.html#defaultedto">defaultedTo</a></p>
 								<ul>
-									<li>Defined in types.ts:44</li>
+									<li>Defined in types.ts:451</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>value: <span class="tsd-signature-type">string</span></h5>
+									<h5>values: <span class="tsd-signature-type">string</span></h5>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="fluentparser.html" class="tsd-signature-type" data-tsd-kind="Interface">FluentParser</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4>
-							<p>A parser, derived from this one, that will fill in the given default value when input is null or undefined.</p>
+							<h4 class="tsd-returns-title">Returns <a href="fluentstringparser.html" class="tsd-signature-type" data-tsd-kind="Interface">FluentStringParser</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface">
+					<a name="email" class="tsd-anchor"></a>
+					<h3>email</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
+						<li class="tsd-signature tsd-kind-icon">email<span class="tsd-signature-symbol">(</span>errorCode<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span>, errorMessage<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="fluentstringparser.html" class="tsd-signature-type" data-tsd-kind="Interface">FluentStringParser</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in types.ts:458</li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> errorCode: <span class="tsd-signature-type">string</span></h5>
+								</li>
+								<li>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> errorMessage: <span class="tsd-signature-type">string</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="fluentstringparser.html" class="tsd-signature-type" data-tsd-kind="Interface">FluentStringParser</a></h4>
+							<p>A FluentStringValidator, derived from this one, that validates its input looks like an email address according to the WHATWG HTML Living Standard (see <a href="https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address">https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address</a>)</p>
 						</li>
 					</ul>
 				</section>
@@ -165,7 +192,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in types.ts:355</li>
+									<li>Defined in types.ts:463</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -195,7 +222,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in types.ts:361</li>
+									<li>Defined in types.ts:469</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -218,7 +245,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in types.ts:366</li>
+									<li>Defined in types.ts:474</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="fluentstringparser.html" class="tsd-signature-type" data-tsd-kind="Interface">FluentStringParser</a></h4>
@@ -236,7 +263,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in types.ts:368</li>
+									<li>Defined in types.ts:476</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -265,7 +292,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in types.ts:374</li>
+									<li>Defined in types.ts:482</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -294,7 +321,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in types.ts:380</li>
+									<li>Defined in types.ts:488</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -313,18 +340,18 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface tsd-is-inherited">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface tsd-is-overwrite">
 					<a name="normalizedwith" class="tsd-anchor"></a>
 					<h3>normalized<wbr>With</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface tsd-is-inherited">
-						<li class="tsd-signature tsd-kind-icon">normalized<wbr>With<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>normalizers<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-type">NormalizationFunction</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">NormalizationFunction</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="fluentparser.html" class="tsd-signature-type" data-tsd-kind="Interface">FluentParser</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></li>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface tsd-is-overwrite">
+						<li class="tsd-signature tsd-kind-icon">normalized<wbr>With<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>normalizers<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-type">NormalizationFunction</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">NormalizationFunction</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="fluentstringparser.html" class="tsd-signature-type" data-tsd-kind="Interface">FluentStringParser</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from <a href="fluentparser.html">FluentParser</a>.<a href="fluentparser.html#normalizedwith">normalizedWith</a></p>
+								<p>Overrides <a href="fluentparser.html">FluentParser</a>.<a href="fluentparser.html#normalizedwith">normalizedWith</a></p>
 								<ul>
-									<li>Defined in types.ts:46</li>
+									<li>Defined in types.ts:494</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -333,7 +360,7 @@
 									<h5><span class="tsd-flag ts-flagRest">Rest</span> <span class="tsd-signature-symbol">...</span>normalizers: <span class="tsd-signature-symbol">(</span><span class="tsd-signature-type">NormalizationFunction</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">NormalizationFunction</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[]</span></h5>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="fluentparser.html" class="tsd-signature-type" data-tsd-kind="Interface">FluentParser</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4>
+							<h4 class="tsd-returns-title">Returns <a href="fluentstringparser.html" class="tsd-signature-type" data-tsd-kind="Interface">FluentStringParser</a></h4>
 						</li>
 					</ul>
 				</section>
@@ -347,7 +374,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in types.ts:386</li>
+									<li>Defined in types.ts:501</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -394,7 +421,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in types.ts:388</li>
+									<li>Defined in types.ts:511</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -411,7 +438,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in types.ts:393</li>
+									<li>Defined in types.ts:516</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -458,7 +485,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in types.ts:399</li>
+									<li>Defined in types.ts:522</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -506,7 +533,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in types.ts:405</li>
+									<li>Defined in types.ts:528</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -544,7 +571,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in types.ts:411</li>
+									<li>Defined in types.ts:534</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -572,7 +599,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in types.ts:413</li>
+									<li>Defined in types.ts:536</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -589,7 +616,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in types.ts:418</li>
+									<li>Defined in types.ts:541</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -609,7 +636,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in types.ts:424</li>
+									<li>Defined in types.ts:547</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -657,7 +684,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in types.ts:430</li>
+									<li>Defined in types.ts:553</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -674,7 +701,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in types.ts:432</li>
+									<li>Defined in types.ts:555</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -711,18 +738,34 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface tsd-is-inherited">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface tsd-is-overwrite">
 					<a name="passes" class="tsd-anchor"></a>
 					<h3>passes</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface tsd-is-inherited">
-						<li class="tsd-signature tsd-kind-icon">passes<span class="tsd-signature-symbol">(</span>validators<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ValidationFunction</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">ValidationFunction</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span>, errorCode<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span>, errorMessage<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="fluentparser.html" class="tsd-signature-type" data-tsd-kind="Interface">FluentParser</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></li>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface tsd-is-overwrite">
+						<li class="tsd-signature tsd-kind-icon">passes<span class="tsd-signature-symbol">(</span>parser<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Parser</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="fluentstringparser.html" class="tsd-signature-type" data-tsd-kind="Interface">FluentStringParser</a></li>
+						<li class="tsd-signature tsd-kind-icon">passes<span class="tsd-signature-symbol">(</span>validators<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ValidationFunction</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">ValidationFunction</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span>, errorCode<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span>, errorMessage<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="fluentstringparser.html" class="tsd-signature-type" data-tsd-kind="Interface">FluentStringParser</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from <a href="fluentparser.html">FluentParser</a>.<a href="fluentparser.html#passes">passes</a></p>
+								<p>Overrides <a href="fluentparser.html">FluentParser</a>.<a href="fluentparser.html#passes">passes</a></p>
 								<ul>
-									<li>Defined in types.ts:65</li>
+									<li>Defined in types.ts:503</li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>parser: <span class="tsd-signature-type">Parser</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="fluentstringparser.html" class="tsd-signature-type" data-tsd-kind="Interface">FluentStringParser</a></h4>
+						</li>
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Overrides <a href="fluentparser.html">FluentParser</a>.<a href="fluentparser.html#passes">passes</a></p>
+								<ul>
+									<li>Defined in types.ts:505</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -732,19 +775,12 @@
 								</li>
 								<li>
 									<h5><span class="tsd-flag ts-flagOptional">Optional</span> errorCode: <span class="tsd-signature-type">string</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>Error code assigned to any errors generated.</p>
-									</div>
 								</li>
 								<li>
 									<h5><span class="tsd-flag ts-flagOptional">Optional</span> errorMessage: <span class="tsd-signature-type">string</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>Error message returned with any errors generated.</p>
-									</div>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="fluentparser.html" class="tsd-signature-type" data-tsd-kind="Interface">FluentParser</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4>
-							<p>A new FluentValidator that requires input to pass all of <code>validators</code>.</p>
+							<h4 class="tsd-returns-title">Returns <a href="fluentstringparser.html" class="tsd-signature-type" data-tsd-kind="Interface">FluentStringParser</a></h4>
 						</li>
 					</ul>
 				</section>
@@ -758,7 +794,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in types.ts:441</li>
+									<li>Defined in types.ts:564</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="fluentstringparser.html" class="tsd-signature-type" data-tsd-kind="Interface">FluentStringParser</a></h4>
@@ -776,7 +812,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in types.ts:446</li>
+									<li>Defined in types.ts:569</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="fluentstringparser.html" class="tsd-signature-type" data-tsd-kind="Interface">FluentStringParser</a></h4>
@@ -825,8 +861,11 @@
 							<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
 								<a href="fluentstringparser.html#parse" class="tsd-kind-icon">parse</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-interface tsd-is-inherited">
+							<li class=" tsd-kind-method tsd-parent-kind-interface tsd-is-overwrite">
 								<a href="fluentstringparser.html#defaultedto" class="tsd-kind-icon">defaulted<wbr>To</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-interface">
+								<a href="fluentstringparser.html#email" class="tsd-kind-icon">email</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-interface">
 								<a href="fluentstringparser.html#isin" class="tsd-kind-icon">is<wbr>In</a>
@@ -846,7 +885,7 @@
 							<li class=" tsd-kind-method tsd-parent-kind-interface">
 								<a href="fluentstringparser.html#minlength" class="tsd-kind-icon">min<wbr>Length</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-interface tsd-is-inherited">
+							<li class=" tsd-kind-method tsd-parent-kind-interface tsd-is-overwrite">
 								<a href="fluentstringparser.html#normalizedwith" class="tsd-kind-icon">normalized<wbr>With</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-interface">
@@ -870,7 +909,7 @@
 							<li class=" tsd-kind-method tsd-parent-kind-interface">
 								<a href="fluentstringparser.html#parsedasurl" class="tsd-kind-icon">parsed<wbr>AsURL</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-interface tsd-is-inherited">
+							<li class=" tsd-kind-method tsd-parent-kind-interface tsd-is-overwrite">
 								<a href="fluentstringparser.html#passes" class="tsd-kind-icon">passes</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-interface">

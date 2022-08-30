@@ -451,6 +451,13 @@ export interface FluentStringParser extends FluentParser<string> {
   defaultedTo(values: string): FluentStringParser;
 
   /**
+   * @param errorCode
+   * @param errorMessage
+   * @returns A FluentStringValidator, derived from this one, that validates its input looks like an email address according to the WHATWG HTML Living Standard (see https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address)
+   */
+  email(errorCode?: string, errorMessage?: string): FluentStringParser;
+
+  /**
    * @returns A FluentStringValidator, derived from this one, that validates its input is included in `values`. This check is strict--case matters.
    */
   isIn(

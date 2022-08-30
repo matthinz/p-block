@@ -16,6 +16,21 @@ import {
 import { defaultURLParser, FluentURLParserImpl } from "./url";
 import { resolveErrorDetails } from "./utils";
 
+// This email regex was sourced from the HTML Living Standard
+// (https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address)
+//
+// Quoth the standard:
+//
+// > This requirement is a willful violation of RFC 5322, which defines a syntax
+// > for email addresses that is simultaneously too strict (before the “@”
+// > character), too vague (after the “@” character), and too lax (allowing
+// > comments, whitespace characters, and quoted strings in manners unfamiliar
+// > to most users) to be of practical use here.
+//
+// Basically, this is a "good enough" email regex that is baked into modern
+// browsers for `<input type="email">` validation purposes.
+const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+
 const INVALID_TYPE_PARSE_RESULT: ParseResult<string> = {
   success: false,
   errors: [
@@ -45,6 +60,18 @@ export class FluentStringParserImpl
   implements FluentStringParser {
   constructor(root: FluentParsingRoot, parser?: Parser<string>) {
     super(root, parser ?? defaultStringParser, FluentStringParserImpl);
+  }
+
+  email(errorCode?: string, errorMessage?: string): FluentStringParser {
+    return this.matches(
+      EMAIL_REGEX,
+      ...resolveErrorDetails(
+        "email",
+        "input does not look like an email address",
+        errorCode,
+        errorMessage
+      )
+    );
   }
 
   isIn(
