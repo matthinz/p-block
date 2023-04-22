@@ -45,7 +45,9 @@ export class FluentParsingRootImpl implements FluentParsingRoot {
   private objectParser: FluentObjectParser<
     Record<string, unknown>
   > = new FluentObjectParserImpl(this, defaultObjectParser);
-  private stringParser: FluentStringParser = new FluentStringParserImpl(this);
+  private stringParser: FluentStringParser<string> = new FluentStringParserImpl(
+    this
+  );
   private unknownParser: FluentParser<unknown> = new FluentParserImpl<
     unknown,
     FluentParser<unknown>

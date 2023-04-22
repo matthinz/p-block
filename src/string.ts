@@ -54,14 +54,21 @@ const defaultStringParser: Parser<string> = {
   },
 };
 
-export class FluentStringParserImpl
-  extends FluentParserImpl<string, FluentStringParser>
-  implements FluentStringParser {
-  constructor(root: FluentParsingRoot, parser?: Parser<string>) {
-    super(root, parser ?? defaultStringParser, FluentStringParserImpl);
+export class FluentStringParserImpl<StringType extends string>
+  extends FluentParserImpl<StringType, FluentStringParser<StringType>>
+  implements FluentStringParser<StringType> {
+  constructor(root: FluentParsingRoot, parser?: Parser<StringType>) {
+    super(
+      root,
+      parser ?? (defaultStringParser as Parser<StringType>),
+      FluentStringParserImpl
+    );
   }
 
-  email(errorCode?: string, errorMessage?: string): FluentStringParser {
+  email(
+    errorCode?: string,
+    errorMessage?: string
+  ): FluentStringParser<StringType> {
     return this.matches(
       EMAIL_REGEX,
       ...resolveErrorDetails(
@@ -73,19 +80,26 @@ export class FluentStringParserImpl
     );
   }
 
-  isIn(
-    values: string[],
+  isIn<ValueType extends StringType>(
+    values: ValueType[],
     errorCode?: string,
     errorMessage?: string
-  ): FluentStringParser {
-    return this.passes(
-      (input) => values.includes(input),
+  ): FluentStringParser<ValueType> {
+    return this.internalParsedAs<ValueType, FluentStringParser<ValueType>>(
+      FluentStringParserImpl,
+      (input) => {
+        if ((values as StringType[]).includes(input)) {
+          return input as ValueType;
+        }
+      },
+      "isIn",
+      "The input was not a member of the set",
       errorCode,
       errorMessage
     );
   }
 
-  length(length: number): FluentStringParser {
+  length(length: number): FluentStringParser<StringType> {
     return this.passes(
       (str) => str.length === length,
       "length",
@@ -93,15 +107,23 @@ export class FluentStringParserImpl
     );
   }
 
-  lowerCased(): FluentStringParser {
-    return this.normalizedWith((value: string) => value.toLowerCase());
+  lowerCased(): FluentStringParser<Lowercase<StringType>> {
+    return this.internalParsedAs<
+      Lowercase<StringType>,
+      FluentStringParser<Lowercase<StringType>>
+    >(
+      FluentStringParserImpl,
+      (input) => input.toLowerCase() as Lowercase<StringType>,
+      "",
+      ""
+    );
   }
 
   matches(
     regex: RegExp,
     errorCode?: string,
     errorMessage?: string
-  ): FluentStringParser {
+  ): FluentStringParser<StringType> {
     return this.passes(
       (input) => regex.test(input),
       errorCode ?? "matches",
@@ -113,7 +135,7 @@ export class FluentStringParserImpl
     max: number,
     errorCode?: string,
     errorMessage?: string
-  ): FluentStringParser {
+  ): FluentStringParser<StringType> {
     return this.passes(
       (input) => input.length <= max,
       errorCode ?? "maxLength",
@@ -126,7 +148,7 @@ export class FluentStringParserImpl
     min: number,
     errorCode?: string,
     errorMessage?: string
-  ): FluentStringParser {
+  ): FluentStringParser<StringType> {
     [errorCode, errorMessage] = resolveErrorDetails(
       "minLength",
       `input length must be greater than or equal to ${min} character(s)`,
@@ -137,7 +159,10 @@ export class FluentStringParserImpl
     return this.passes((input) => input.length >= min, errorCode, errorMessage);
   }
 
-  notEmpty(errorCode?: string, errorMessage?: string): FluentStringParser {
+  notEmpty(
+    errorCode?: string,
+    errorMessage?: string
+  ): FluentStringParser<StringType> {
     return this.minLength(
       1,
       errorCode ?? "notEmpty",
@@ -146,7 +171,7 @@ export class FluentStringParserImpl
   }
 
   parsedAsBoolean(
-    parserOrErrorCode?: ((input: string) => boolean | undefined) | string,
+    parserOrErrorCode?: ((input: StringType) => boolean | undefined) | string,
     errorCodeOrErrorMessage?: string,
     errorMessage?: string
   ): FluentBooleanParser {
@@ -162,7 +187,7 @@ export class FluentStringParserImpl
   }
 
   parsedAsDate(
-    parserOrErrorCode?: string | ((input: string) => Date | undefined),
+    parserOrErrorCode?: string | ((input: StringType) => Date | undefined),
     errorCodeOrErrorMessage?: string,
     errorMessage?: string
   ): FluentDateParser {
@@ -178,7 +203,7 @@ export class FluentStringParserImpl
   }
 
   parsedAsFloat(
-    parserOrErrorCode?: string | ((input: string) => number | undefined),
+    parserOrErrorCode?: string | ((input: StringType) => number | undefined),
     errorCodeOrErrorMessage?: string,
     errorMessage?: string
   ): FluentNumberParser {
@@ -195,7 +220,7 @@ export class FluentStringParserImpl
 
   parsedAsInteger(
     radixOrParserOrErrorCode?:
-      | ((input: string) => number | undefined)
+      | ((input: StringType) => number | undefined)
       | number
       | string,
     errorCodeOrErrorMessage?: string,
@@ -223,7 +248,7 @@ export class FluentStringParserImpl
   }
 
   parsedAsURL(
-    parserOrErrorCode?: string | ((input: string) => URL | undefined),
+    parserOrErrorCode?: string | ((input: StringType) => URL | undefined),
     errorCodeOrErrorMessage?: string,
     errorMessage?: string
   ): FluentURLParser {
@@ -238,12 +263,27 @@ export class FluentStringParserImpl
     );
   }
 
-  trimmed(): FluentStringParser {
-    return this.normalizedWith((str) => str.trim());
+  trimmed(): FluentStringParser<string> {
+    return this.internalParsedAs<string, FluentStringParser<string>>(
+      FluentStringParserImpl,
+      (input) => input.trim(),
+      "",
+      "",
+      "",
+      ""
+    );
   }
 
-  upperCased(): FluentStringParser {
-    return this.normalizedWith((str) => str.toUpperCase());
+  upperCased(): FluentStringParser<Uppercase<StringType>> {
+    return this.internalParsedAs<
+      Uppercase<StringType>,
+      FluentStringParser<Uppercase<StringType>>
+    >(
+      FluentStringParserImpl,
+      (input) => input.toUpperCase() as Uppercase<StringType>,
+      "",
+      ""
+    );
   }
 }
 

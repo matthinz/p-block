@@ -109,7 +109,7 @@ export interface FluentParsingRoot {
   nullish(): FluentParser<undefined>;
   number(): FluentNumberParser;
   object(): FluentObjectParser<Record<string, unknown>>;
-  string(): FluentStringParser;
+  string(): FluentStringParser<string>;
   unknown(): FluentParser<unknown>;
   url(): FluentURLParser;
 }
@@ -447,66 +447,79 @@ export interface FluentObjectParser<Type extends Record<string, unknown>>
   >;
 }
 
-export interface FluentStringParser extends FluentParser<string> {
-  defaultedTo(values: string): FluentStringParser;
+export interface FluentStringParser<StringType extends string>
+  extends FluentParser<StringType> {
+  defaultedTo<ValueType extends StringType>(
+    value: ValueType
+  ): FluentStringParser<StringType | ValueType>;
 
   /**
    * @param errorCode
    * @param errorMessage
    * @returns A FluentStringValidator, derived from this one, that validates its input looks like an email address according to the WHATWG HTML Living Standard (see https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address)
    */
-  email(errorCode?: string, errorMessage?: string): FluentStringParser;
+  email(
+    errorCode?: string,
+    errorMessage?: string
+  ): FluentStringParser<StringType>;
 
   /**
    * @returns A FluentStringValidator, derived from this one, that validates its input is included in `values`. This check is strict--case matters.
    */
-  isIn(
-    values: string[],
+  isIn<ValueType extends StringType>(
+    values: ValueType[],
     errorCode?: string,
     errorMessage?: string
-  ): FluentStringParser;
+  ): FluentStringParser<ValueType>;
 
-  length(length: number): FluentStringParser;
+  length(length: number): FluentStringParser<StringType>;
 
   /**
    * @returns A FluentStringParser that converts input to lower case before validating.
    */
-  lowerCased(): FluentStringParser;
+  lowerCased(): FluentStringParser<Lowercase<StringType>>;
 
   matches(
     regex: RegExp,
     errorCode?: string,
     errorMessage?: string
-  ): FluentStringParser;
+  ): FluentStringParser<StringType>;
 
   maxLength(
     max: number,
     errorCode?: string,
     errorMessage?: string
-  ): FluentStringParser;
+  ): FluentStringParser<StringType>;
 
   minLength(
     min: number,
     errorCode?: string,
     errorMessage?: string
-  ): FluentStringParser;
+  ): FluentStringParser<StringType>;
 
   normalizedWith(
     ...normalizers: (
-      | NormalizationFunction<string>
-      | NormalizationFunction<string>[]
+      | NormalizationFunction<StringType>
+      | NormalizationFunction<StringType>[]
     )[]
-  ): FluentStringParser;
+  ): FluentStringParser<StringType>;
 
-  notEmpty(errorCode?: string, errorMessage?: string): FluentStringParser;
-
-  passes(parser: Parser<string>): FluentStringParser;
-
-  passes(
-    validators: ValidationFunction<string> | ValidationFunction<string>[],
+  notEmpty(
     errorCode?: string,
     errorMessage?: string
-  ): FluentStringParser;
+  ): FluentStringParser<StringType>;
+
+  passes<ParserInputType extends StringType>(
+    parser: Parser<ParserInputType>
+  ): FluentStringParser<ParserInputType>;
+
+  passes<ValidatorInputType extends StringType>(
+    validators:
+      | ValidationFunction<ValidatorInputType>
+      | ValidationFunction<ValidatorInputType>[],
+    errorCode?: string,
+    errorMessage?: string
+  ): FluentStringParser<ValidatorInputType>;
 
   parsedAsBoolean(
     errorCode?: string,
@@ -514,19 +527,19 @@ export interface FluentStringParser extends FluentParser<string> {
   ): FluentBooleanParser;
 
   parsedAsBoolean(
-    parser?: (input: string) => boolean | undefined,
+    parser?: (input: StringType) => boolean | undefined,
     errorCode?: string,
     errorMessage?: string
   ): FluentBooleanParser;
 
   parsedAsDate(
-    parser?: (input: string) => Date | undefined,
+    parser?: (input: StringType) => Date | undefined,
     errorCode?: string,
     errorMessage?: string
   ): FluentDateParser;
 
   parsedAsFloat(
-    parser: (input: string) => number | undefined,
+    parser: (input: StringType) => number | undefined,
     errorCode?: string,
     errorMessage?: string
   ): FluentNumberParser;
@@ -545,7 +558,7 @@ export interface FluentStringParser extends FluentParser<string> {
   ): FluentNumberParser;
 
   parsedAsInteger(
-    parser: (input: string) => number | undefined,
+    parser: (input: StringType) => number | undefined,
     errorCode?: string,
     errorMessage?: string
   ): FluentNumberParser;
@@ -553,7 +566,7 @@ export interface FluentStringParser extends FluentParser<string> {
   parsedAsURL(errorCode?: string, errorMessage?: string): FluentURLParser;
 
   parsedAsURL(
-    parser: (input: string) => URL | undefined,
+    parser: (input: StringType) => URL | undefined,
     errorCode?: string,
     errorMessage?: string
   ): FluentURLParser;
@@ -561,12 +574,12 @@ export interface FluentStringParser extends FluentParser<string> {
   /**
    * @returns A FluentStringParser, derived from this one, that trims leading and trailing whitespace from input before validation.
    */
-  trimmed(): FluentStringParser;
+  trimmed(): FluentStringParser<string>;
 
   /**
    * @returns A FluentStringParser, derived from this one, that converts inputs to uppercase before validation.
    */
-  upperCased(): FluentStringParser;
+  upperCased(): FluentStringParser<Uppercase<StringType>>;
 }
 
 export type KnownProtocol = "http:" | "https:" | "ftp:" | "mailto:";

@@ -41,6 +41,14 @@ describe("P.string()", () => {
     runParsingTests(parser, tests);
   });
 
+  describe("isIn", () => {
+    const parser = P.string().isIn(["foo", "bar"]);
+    const result = parser.parse("foo");
+
+    expect(result).toHaveProperty("success", true);
+    expect(result).toHaveProperty("value", "foo");
+  });
+
   describe("length", () => {
     test.todo("must be at least 0");
 
