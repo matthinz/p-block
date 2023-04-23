@@ -394,7 +394,9 @@ export interface FluentNumberParser extends FluentParser<number> {
 
 export interface FluentObjectParser<Type extends Record<string, unknown>>
   extends FluentParser<Type> {
-  defaultedTo(values: Partial<Type>): FluentObjectParser<Type>;
+  defaultedTo<NextType extends Partial<Type>>(
+    values: NextType
+  ): FluentObjectParser<Type & NextType>;
 
   normalizedWith(
     ...normalizers: (

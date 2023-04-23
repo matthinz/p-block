@@ -43,11 +43,12 @@ export class FluentObjectParserImpl<Type extends Record<string, unknown>>
     super(root, parser, FluentObjectParserImpl);
   }
 
-  defaultedTo(defaults: Partial<Type>): FluentObjectParser<Type> {
-    const nextParser: Parser<Type> = {
+  defaultedTo<NextType extends Partial<Type>>(
+    defaults: NextType
+  ): FluentObjectParser<Type & NextType> {
+    const nextParser: Parser<Type & NextType> = {
       parse: (input: unknown) => {
         input = input == null ? defaults : input;
-
         const objectParseResult = defaultObjectParser.parse(input);
         if (!objectParseResult.success) {
           return objectParseResult;
@@ -56,7 +57,7 @@ export class FluentObjectParserImpl<Type extends Record<string, unknown>>
         return this.parse({
           ...defaults,
           ...objectParseResult.value,
-        });
+        }) as ParseResult<Type & NextType>;
       },
     };
     return new FluentObjectParserImpl(this.root, nextParser);
@@ -75,7 +76,9 @@ export class FluentObjectParserImpl<Type extends Record<string, unknown>>
   ): FluentObjectParser<Type> {
     [errorCode, errorMessage] = resolveErrorDetails(
       "propertiesMatch",
-      `input must include a value for property '${propertyName}' that matches the value for property '${otherPropertyName}'`,
+      `input must include a value for property '${String(
+        propertyName
+      )}' that matches the value for property '${String(otherPropertyName)}'`,
       errorCode,
       errorMessage
     );
@@ -84,7 +87,7 @@ export class FluentObjectParserImpl<Type extends Record<string, unknown>>
       propertyName,
       (value, obj) => {
         const otherValue = obj[otherPropertyName];
-        return value === otherValue;
+        return (value as unknown) === (otherValue as unknown);
       },
       errorCode,
       errorMessage
@@ -110,7 +113,9 @@ export class FluentObjectParserImpl<Type extends Record<string, unknown>>
             if (validationResult === false) {
               [errorCode, errorMessage] = resolveErrorDetails(
                 "propertyPasses",
-                `input must include a valid value for the property '${propertyName}'`,
+                `input must include a valid value for the property '${String(
+                  propertyName
+                )}'`,
                 errorCode,
                 errorMessage
               );
