@@ -96,12 +96,39 @@ export class FluentParsingRootImpl implements FluentParsingRoot {
     return this.arrayParser.of(itemParser);
   }
 
+  object<
+    PropertyParsers extends {
+      [property: string]: Parser<any>;
+    }
+  >(
+    properties?: PropertyParsers
+  ): FluentObjectParser<
+    Record<string, unknown> &
+      {
+        [property in keyof PropertyParsers]: ParsedType<
+          PropertyParsers[property]
+        >;
+      }
+  > {
+    if (!properties) {
+      return this.objectParser as FluentObjectParser<
+        Record<string, unknown> &
+          {
+            [property in keyof PropertyParsers]: ParsedType<
+              PropertyParsers[property]
+            >;
+          }
+      >;
+    }
+
+    return this.objectParser.withProperties(properties);
+  }
+
   boolean = () => this.booleanParser;
   date = () => this.dateParser;
   integer = () => this.integerParser;
   nullish = () => this.nullishParser;
   number = () => this.numberParser;
-  object = () => this.objectParser;
   string = () => this.stringParser;
   unknown = () => this.unknownParser;
   url = () => this.urlParser;

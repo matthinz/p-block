@@ -108,7 +108,23 @@ export interface FluentParsingRoot {
   integer(): FluentNumberParser;
   nullish(): FluentParser<undefined>;
   number(): FluentNumberParser;
+
   object(): FluentObjectParser<Record<string, unknown>>;
+  object<
+    PropertyParsers extends {
+      [property: string]: Parser<any>;
+    }
+  >(
+    properties: PropertyParsers
+  ): FluentObjectParser<
+    Record<string, unknown> &
+      {
+        [property in keyof PropertyParsers]: ParsedType<
+          PropertyParsers[property]
+        >;
+      }
+  >;
+
   string(): FluentStringParser<string>;
   unknown(): FluentParser<unknown>;
   url(): FluentURLParser;

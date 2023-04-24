@@ -25,6 +25,7 @@ Random thoughts on things to do
 - Documentation
   - Error codes
   - Summary + example for every method
-- `P.object({})` should be a shortcut for `P.object().withProperties({})`
+- `P.object()` should only include properties mentioned
 - Result should have a way to generate an `Error`
 - `P.object().defaultedTo({})` should get proper type-checking (with `Partial<>`)
+- Parsers should be callable and should throw on parse failure

@@ -4,6 +4,20 @@ import { ParsingTest, runParsingTests } from "./test-utils";
 class NotAPlainObject {}
 
 describe("object()", () => {
+  it("allows passing properties", () => {
+    const parser = P.object({
+      firstName: P.string(),
+      lastName: P.string(),
+    });
+
+    const result = parser.parse({
+      firstName: 8,
+      lastName: "bar",
+    });
+
+    expect(result).toHaveProperty("success", false);
+  });
+
   describe("withProperties", () => {
     const parser = P.object().withProperties({
       firstName: P.string(),
