@@ -7,7 +7,13 @@ import {
   Parser,
   ParseResult,
 } from "./types";
-import { resolveErrorDetails } from "./utils";
+import {
+  createFailedParseResult,
+  createInvalidTypeParseResult,
+  deepFreeze,
+  NO_ERRORS,
+  resolveErrorDetails,
+} from "./utils";
 
 // XXX: URL is a global in Node.js as of 10.0.0. Rather than bring in
 //      the whole "dom" lib, here's the piece we actually use of it.
@@ -36,19 +42,14 @@ declare var URL: {
   revokeObjectURL(url: string): void;
 };
 
-const INVALID_TYPE_PARSE_RESULT: ParseResult<URL> = {
-  success: false,
-  errors: [
-    { code: "invalidType", message: "input must be of type 'URL'", path: [] },
-  ],
-};
+const INVALID_TYPE_PARSE_RESULT = createInvalidTypeParseResult<URL>("URL");
 
 export const defaultURLParser: Parser<URL> = {
   parse(input: unknown): ParseResult<URL> {
     if (input instanceof URL) {
       return {
         success: true,
-        errors: [],
+        errors: NO_ERRORS,
         value: input,
       };
     }

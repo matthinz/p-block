@@ -13,7 +13,11 @@ import {
   ParseResult,
 } from "./types";
 import { FluentURLParserImpl } from "./url";
-import { resolveErrorDetails } from "./utils";
+import {
+  createInvalidTypeParseResult,
+  NO_ERRORS,
+  resolveErrorDetails,
+} from "./utils";
 
 // This email regex was sourced from the HTML Living Standard
 // (https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address)
@@ -30,16 +34,9 @@ import { resolveErrorDetails } from "./utils";
 // browsers for `<input type="email">` validation purposes.
 const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
 
-const INVALID_TYPE_PARSE_RESULT: ParseResult<string> = {
-  success: false,
-  errors: [
-    {
-      code: "invalidType",
-      message: "input must be of type 'string'",
-      path: [],
-    },
-  ],
-};
+const INVALID_TYPE_PARSE_RESULT = createInvalidTypeParseResult<string>(
+  "input must be of type 'string'"
+);
 
 const defaultStringParser: Parser<string> = {
   parse(input: unknown): ParseResult<string> {
@@ -48,7 +45,7 @@ const defaultStringParser: Parser<string> = {
     }
     return {
       success: true,
-      errors: [],
+      errors: NO_ERRORS,
       value: input,
     };
   },

@@ -5,28 +5,20 @@ import {
   Parser,
   ParseResult,
 } from "./types";
+import {
+  createFailedParseResult,
+  createInvalidTypeParseResult,
+  NO_ERRORS,
+} from "./utils";
 
-const INVALID_TYPE_PARSE_RESULT: ParseResult<number> = {
-  success: false,
-  errors: [
-    {
-      code: "invalidType",
-      message: "input must be of type 'number'",
-      path: [],
-    },
-  ],
-};
+const INVALID_TYPE_PARSE_RESULT = createInvalidTypeParseResult<number>(
+  "input must be of type 'number'"
+);
 
-const NOT_FINITE_PARSE_RESULT: ParseResult<number> = {
-  success: false,
-  errors: [
-    {
-      code: "invalidNumber",
-      message: "input must be a finite number",
-      path: [],
-    },
-  ],
-};
+const NOT_FINITE_PARSE_RESULT = createFailedParseResult<number>(
+  "invalidNumber",
+  "input must be a finite number"
+);
 
 export const finiteNumberParser: Parser<number> = {
   parse(input: unknown): ParseResult<number> {
@@ -40,7 +32,7 @@ export const finiteNumberParser: Parser<number> = {
 
     return {
       success: true,
-      errors: [],
+      errors: NO_ERRORS,
       value: input,
     };
   },

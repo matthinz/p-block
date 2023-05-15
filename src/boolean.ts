@@ -5,24 +5,18 @@ import {
   Parser,
   ParseResult,
 } from "./types";
+import { createInvalidTypeParseResult, NO_ERRORS } from "./utils";
 
-const INVALID_TYPE_PARSE_RESULT: ParseResult<boolean> = {
-  success: false,
-  errors: [
-    {
-      code: "invalidType",
-      message: "input must be of type 'boolean'",
-      path: [],
-    },
-  ],
-};
+const INVALID_TYPE_PARSE_RESULT = createInvalidTypeParseResult<boolean>(
+  "input must be of type 'boolean'"
+);
 
 export const defaultBooleanParser: Parser<boolean> = {
   parse(input: unknown): ParseResult<boolean> {
     if (typeof input === "boolean") {
       return {
         success: true,
-        errors: [],
+        errors: NO_ERRORS,
         value: input,
       };
     }

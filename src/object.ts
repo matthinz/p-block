@@ -9,18 +9,15 @@ import {
   PropertyValidationFunction,
   ValidationErrorDetails,
 } from "./types";
-import { resolveErrorDetails } from "./utils";
+import {
+  createInvalidTypeParseResult,
+  NO_ERRORS,
+  resolveErrorDetails,
+} from "./utils";
 
-const INVALID_TYPE_PARSE_RESULT: ParseResult<Record<string, unknown>> = {
-  success: false,
-  errors: [
-    {
-      code: "invalidType",
-      message: "input must be an object",
-      path: [],
-    },
-  ],
-};
+const INVALID_TYPE_PARSE_RESULT = createInvalidTypeParseResult<
+  Record<string, unknown>
+>("input must be an object");
 
 export const defaultObjectParser = {
   parse: (input: unknown): ParseResult<Record<string, unknown>> => {
@@ -30,7 +27,7 @@ export const defaultObjectParser = {
 
     return {
       success: true,
-      errors: [],
+      errors: NO_ERRORS,
       value: input as Record<string, unknown>,
     };
   },
@@ -172,7 +169,7 @@ export class FluentObjectParserImpl<Type extends Record<string, unknown>>
         if (errors.length === 0) {
           return {
             success: true,
-            errors: [],
+            errors: NO_ERRORS,
             value: prevParseResult.value as NextType,
           };
         }

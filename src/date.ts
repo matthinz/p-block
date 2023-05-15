@@ -5,28 +5,20 @@ import {
   Parser,
   ParseResult,
 } from "./types";
+import {
+  createFailedParseResult,
+  createInvalidTypeParseResult,
+  NO_ERRORS,
+} from "./utils";
 
-const INVALID_TYPE_PARSE_RESULT: ParseResult<Date> = {
-  success: false,
-  errors: [
-    {
-      code: "invalidType",
-      message: "input must be a Date",
-      path: [],
-    },
-  ],
-};
+const INVALID_TYPE_PARSE_RESULT = createInvalidTypeParseResult<Date>(
+  "input must be a Date"
+);
 
-const INVALID_DATE_PARSE_RESULT: ParseResult<Date> = {
-  success: false,
-  errors: [
-    {
-      code: "invalidDate",
-      message: "input must represent a valid Date",
-      path: [],
-    },
-  ],
-};
+const INVALID_DATE_PARSE_RESULT = createFailedParseResult<Date>(
+  "invalidDate",
+  "input must represent a valid Date"
+);
 
 export const defaultDateParser: Parser<Date> = {
   parse(input: unknown): ParseResult<Date> {
@@ -41,7 +33,7 @@ export const defaultDateParser: Parser<Date> = {
 
     return {
       success: true,
-      errors: [],
+      errors: NO_ERRORS,
       value: input,
     };
   },

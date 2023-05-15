@@ -1,6 +1,8 @@
 import {
   NormalizationFunction,
+  ParseResult,
   Path,
+  PathElement,
   ValidationErrorDetails,
   ValidationFunction,
 } from "./types";
@@ -14,6 +16,10 @@ type NormalizerArgs<Type> =
   | NormalizationFunction<Type>
   | NormalizationFunction<Type>[]
   | undefined;
+
+export const EMPTY_PATH: ReadonlyArray<PathElement> = Object.freeze([]);
+
+export const NO_ERRORS: [] = Object.freeze([]) as [];
 
 export function applyErrorDetails<Type>(
   validator: ValidationFunction<Type>,
@@ -46,17 +52,17 @@ export function applyErrorDetails<Type>(
 }
 
 export function combineErrorLists(
-  errorLists: ValidationErrorDetails[][],
+  errorLists: ReadonlyArray<ValidationErrorDetails>[],
   merger: (
     x: ValidationErrorDetails,
     y: ValidationErrorDetails
   ) => ValidationErrorDetails | ValidationErrorDetails[]
-): ValidationErrorDetails[] {
+): ReadonlyArray<ValidationErrorDetails> {
   return errorLists.reduce(reducer, []);
 
   function reducer(
     result: ValidationErrorDetails[],
-    errors: ValidationErrorDetails[]
+    errors: ReadonlyArray<ValidationErrorDetails>
   ): ValidationErrorDetails[] {
     errors.forEach((err) => {
       const index = result.findIndex(
@@ -135,6 +141,54 @@ export function composeValidators<Type>(
   }
 
   return validators.reduce(reducer, () => true);
+}
+
+export function createFailedParseResult<T>(
+  errorCode: string,
+  errorMessage: string
+): ParseResult<T> {
+  return Object.freeze({
+    success: false,
+    errors: Object.freeze([
+      Object.freeze({
+        code: errorCode,
+        message: errorMessage,
+        path: EMPTY_PATH,
+      }),
+    ]),
+  });
+}
+
+export function createInvalidTypeParseResult<T>(
+  message: string
+): ParseResult<T> {
+  return createFailedParseResult<T>("invalidType", message);
+}
+
+export function deepFreeze<T>(obj: T): T {
+  if (typeof Object.freeze !== "function") {
+    return obj;
+  }
+
+  if (obj == null) {
+    return obj;
+  }
+
+  Object.freeze(obj);
+
+  if (Array.isArray(obj)) {
+    obj.forEach((item) => {
+      if (item != null && typeof item === "object") {
+        deepFreeze(item);
+      }
+    });
+  } else if (typeof obj === "object") {
+    Object.keys(obj).forEach((key) => {
+      deepFreeze((obj as any)[key]);
+    });
+  }
+
+  return obj;
 }
 
 export function pathsEqual(x: Path, y: Path): boolean {

@@ -7,11 +7,14 @@
  */
 export type ParseResult<Type> =
   | {
-      success: true;
-      errors: [];
-      value: Type;
+      readonly success: true;
+      readonly errors: [];
+      readonly value: Type;
     }
-  | { success: false; errors: ValidationErrorDetails[] };
+  | {
+      readonly success: false;
+      readonly errors: ReadonlyArray<ValidationErrorDetails>;
+    };
 
 /**
  * Function responsible for taking unknown input and attempting to parse it

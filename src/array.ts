@@ -7,21 +7,25 @@ import {
   ValidationErrorDetails,
   ValidationFunction,
 } from "./types";
-import { composeValidators, resolveErrorDetails } from "./utils";
+import {
+  composeValidators,
+  createInvalidTypeParseResult,
+  NO_ERRORS,
+  resolveErrorDetails,
+} from "./utils";
 
-const INVALID_TYPE_PARSE_RESULT: ParseResult<unknown[]> = {
-  success: false,
-  errors: [
-    { code: "invalidType", message: "input must be an array", path: [] },
-  ],
-};
+const INVALID_TYPE_PARSE_RESULT = createInvalidTypeParseResult<unknown[]>(
+  "input must be an array"
+);
 
 export const defaultArrayParser = {
   type: "array",
   parse(input: unknown): ParseResult<unknown[]> {
-    if (!Array.isArray(input)) return INVALID_TYPE_PARSE_RESULT;
+    if (!Array.isArray(input)) {
+      return INVALID_TYPE_PARSE_RESULT;
+    }
 
-    return { success: true, errors: [], value: input };
+    return { success: true, errors: NO_ERRORS, value: input };
   },
 };
 
@@ -168,7 +172,7 @@ export class FluentArrayParserImpl<ItemType>
               ],
             };
           },
-          { success: true, errors: [], value: [] }
+          { success: true, errors: NO_ERRORS, value: [] }
         );
       },
     };

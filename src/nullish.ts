@@ -1,21 +1,15 @@
 import { Parser, ParseResult } from "./types";
+import { createInvalidTypeParseResult, NO_ERRORS } from "./utils";
 
-const SUCCESS_RESULT: ParseResult<undefined> = {
+const SUCCESS_RESULT: ParseResult<undefined> = Object.freeze({
   success: true,
-  errors: [],
+  errors: NO_ERRORS,
   value: undefined,
-};
+});
 
-const FAILURE_RESULT: ParseResult<undefined> = {
-  success: false,
-  errors: [
-    {
-      code: "invalidType",
-      message: "input must be null or undefined",
-      path: [],
-    },
-  ],
-};
+const FAILURE_RESULT: ParseResult<undefined> = createInvalidTypeParseResult(
+  "input must be null or undefined"
+);
 
 export const nullishParser: Parser<undefined> = {
   parse: (input: unknown): ParseResult<undefined> => {
