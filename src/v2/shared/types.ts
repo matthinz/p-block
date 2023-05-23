@@ -12,7 +12,7 @@ import { FluentURLParser } from "../url/types";
  * throwing them.
  */
 export interface CompoundParseError {
-  readonly code: "mutlipleErrors";
+  readonly code: "multipleErrors";
   readonly message: string;
   readonly errors: ReadonlyArray<ParseError>;
 }
