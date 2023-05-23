@@ -1,8 +1,12 @@
-import { FluentMeasurableParser } from "../measurable/types";
+import { FluentMeasurableParserMethods } from "../measurable/types";
 import { NormalizationFunction, Parser } from "../shared/types";
 
 export interface FluentArrayParser<T>
-  extends FluentMeasurableParser<T[], FluentArrayParser<T>> {
+  extends Parser<T[]>,
+    FluentArrayParserMethods<T> {}
+
+export interface FluentArrayParserMethods<T>
+  extends FluentMeasurableParserMethods<T[], FluentArrayParser<T>> {
   /**
    * @returns A new FluentArrayParser that will substitute the given value when parsing `null` or `undefined` values.
    */

@@ -42,14 +42,16 @@ export type ParseResult<T> =
       readonly errors: ReadonlyArray<ParseError>;
     };
 
-export interface Parser<T> {
+export interface Parser<T> extends ParserMethods<T> {
   /**
    * Attempts to parse the given input.
    * @returns The parsed value, if successful.
    * @throws {CompoundParseError|ParseError} If multiple errors are encountered during parsing, they will be wrapped in a `CompoundParseError`.
    */
   (input: unknown): T;
+}
 
+export interface ParserMethods<T> {
   /**
    * Attempts to parse the given input.
    * @returns A ParseResult<T> describing the result of the parse operation, including any errors encountered.

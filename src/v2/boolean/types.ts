@@ -1,7 +1,7 @@
-import { FluentParser, NormalizationFunction, Parser } from "../shared/types";
+import { NormalizationFunction, Parser, ParserMethods } from "../shared/types";
 
-export interface FluentBooleanParser<T extends boolean>
-  extends FluentParser<T> {
+export interface FluentBooleanParserMethods<T extends boolean>
+  extends ParserMethods<T> {
   /**
    * @returns A new FluentBooleanParser that will substitute the given value when parsing `null` or `undefined` values.
    */
@@ -39,3 +39,7 @@ export interface FluentBooleanParser<T extends boolean>
    */
   passes(parser: Parser<T>): FluentBooleanParser<T>;
 }
+
+export interface FluentBooleanParser<T extends boolean>
+  extends Parser<T>,
+    FluentBooleanParserMethods<T> {}

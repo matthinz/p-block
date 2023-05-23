@@ -1,9 +1,9 @@
-import { FluentParser } from "../shared/types";
+import { Parser, ParserMethods } from "../shared/types";
 
-export interface FluentComparableParser<
+export interface FluentComparableParserMethods<
   T extends Date | number,
-  ParserType extends FluentParser<T>
-> extends FluentParser<T> {
+  ParserType extends Parser<T>
+> extends ParserMethods<T> {
   /**
    * @param inclusiveMinimum
    * @param inclusiveMaximum

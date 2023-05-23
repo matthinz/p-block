@@ -1,4 +1,4 @@
-import { FluentParser, NormalizationFunction, Parser } from "../shared/types";
+import { NormalizationFunction, Parser } from "../shared/types";
 
 export type PropertyParsers = { [property: string]: Parser<unknown> };
 
@@ -7,7 +7,10 @@ export type ParsedObjectType<P extends PropertyParsers> = {
 };
 
 export interface FluentObjectParser<T extends Record<string, unknown>>
-  extends FluentParser<T> {
+  extends Parser<T>,
+    FluentObjectParserMethods<T> {}
+
+export interface FluentObjectParserMethods<T extends Record<string, unknown>> {
   /**
    * @returns A FluentObjectParser that _also_ allows any other properties not already defined.
    */

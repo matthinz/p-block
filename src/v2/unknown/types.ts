@@ -1,6 +1,10 @@
-import { FluentParser, NormalizationFunction, Parser } from "../shared/types";
+import { NormalizationFunction, Parser } from "../shared/types";
 
-export interface FluentUnknownParser<T> extends FluentParser<T> {
+export interface FluentUnknownParser<T>
+  extends Parser<T>,
+    FluentUnknownParserMethods<T> {}
+
+export interface FluentUnknownParserMethods<T> {
   /**
    * @param value
    * @returns A new FluentParser that will substitute `value` when the input is `null` or `undefined`.

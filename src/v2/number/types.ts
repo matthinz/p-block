@@ -1,8 +1,12 @@
-import { FluentComparableParser } from "../comparable/types";
+import { FluentComparableParserMethods } from "../comparable/types";
 import { NormalizationFunction, Parser } from "../shared/types";
 
 export interface FluentNumberParser<T extends number>
-  extends FluentComparableParser<number, FluentNumberParser<T>> {
+  extends Parser<T>,
+    FluentNumberParserMethods<T> {}
+
+export interface FluentNumberParserMethods<T extends number>
+  extends FluentComparableParserMethods<T, FluentNumberParser<T>> {
   /**
    * @returns A new FluentNumberParser that will substitute the given value when parsing `null` or `undefined` values.
    */

@@ -3,10 +3,14 @@ import { FluentBooleanParser } from "../boolean/types";
 import { FluentDateParser } from "../date/types";
 import { NormalizationFunction, Parser } from "../shared/types";
 import { FluentURLParser } from "../url/types";
-import { FluentMeasurableParser } from "../measurable/types";
+import { FluentMeasurableParserMethods } from "../measurable/types";
 
 export interface FluentStringParser<T extends string>
-  extends FluentMeasurableParser<T, FluentStringParser<T>> {
+  extends Parser<T>,
+    FluentStringParserMethods<T> {}
+
+export interface FluentStringParserMethods<T extends string>
+  extends FluentMeasurableParserMethods<T, FluentStringParser<T>> {
   /**
    * @param value Default value used when parsing `null` or `undefined`.
    */

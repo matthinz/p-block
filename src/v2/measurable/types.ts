@@ -1,9 +1,9 @@
-import { FluentParser } from "../shared/types";
+import { ParserMethods } from "../shared/types";
 
-export interface FluentMeasurableParser<
+export interface FluentMeasurableParserMethods<
   T extends { length: number },
   ParserType
-> extends FluentParser<T> {
+> extends ParserMethods<T> {
   /**
    * @returns A Parser that verifies its input has a length of exactly <length>.
    */
