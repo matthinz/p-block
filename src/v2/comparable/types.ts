@@ -1,7 +1,7 @@
 import { Parser, ParserMethods } from "../shared/types";
 
 export interface FluentComparableParserMethods<
-  T extends Date | number,
+  T extends Date | number | bigint,
   ParserType extends Parser<T>
 > extends ParserMethods<T> {
   /**

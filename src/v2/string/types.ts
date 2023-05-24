@@ -1,9 +1,10 @@
-import { FluentNumberParser } from "../number/types";
+import { FluentBigIntParser } from "../bigint/types";
 import { FluentBooleanParser } from "../boolean/types";
 import { FluentDateParser } from "../date/types";
-import { NormalizationFunction, Parser } from "../shared/types";
-import { FluentURLParser } from "../url/types";
 import { FluentMeasurableParserMethods } from "../measurable/types";
+import { FluentNumberParser } from "../number/types";
+import { FluentURLParser } from "../url/types";
+import { NormalizationFunction, Parser } from "../shared/types";
 
 export interface FluentStringParser<T extends string>
   extends Parser<T>,
@@ -83,6 +84,43 @@ export interface FluentStringParserMethods<T extends string>
    * @returns A new FluentStringParser<T> that will pass its input through the given parser.
    */
   passes(parser: Parser<T>): FluentStringParser<T>;
+
+  /**
+   * Attempts to parse a string into a bigint value.
+   * @returns A FluentBigIntParser<bigint> to further manipulate the value.
+   */
+  parsedAsBigInt(): FluentBigIntParser<bigint>;
+
+  /**
+   * Attempts to parse a string into a bigint value.
+   * @param errorCode Custom error code to use.
+   * @param errorMessage Custom error message to use.
+   * @returns A FluentBigIntParser<bigint> to further manipulate the value.
+   */
+  parsedAsBoolean(
+    errorCode: string,
+    errorMessage?: string
+  ): FluentBigIntParser<bigint>;
+
+  /**
+   * Attempts to parse a string into a bigint value.
+   * @returns A FluentBigIntParser<bigint> to further manipulate the value.
+   */
+  parsedAsBoolean(
+    parser: (input: T) => bigint | undefined
+  ): FluentBigIntParser<bigint>;
+
+  /**
+   * Attempts to parse a string into a bigint value.
+   * @param errorCode Custom error code to use.
+   * @param errorMessage Custom error message to use.
+   * @returns A FluentBigIntParser<bigint> to further manipulate the value.
+   */
+  parsedAsBoolean(
+    parser: (input: T) => bigint | undefined,
+    errorCode: string,
+    errorMessage?: string
+  ): FluentBigIntParser<bigint>;
 
   /**
    * Attempts to parse a string into a boolean value.
